@@ -976,6 +976,7 @@ public class ResponseFromChatbot {
                                     @Override
                                     public void onFailure(Call call, Throwable t) {
                                         teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                                        logErrorAPIHealysa("OpenAIGetCommandName",t.getMessage(),"onFailure");
                                         teamChatBuddyApplication.setGetResponseTime( System.currentTimeMillis() );
                                         Log.e( tag, "Réponse ChatGPT [Failure] : " + t );
 
@@ -1138,13 +1139,27 @@ public class ResponseFromChatbot {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + chatgptResponse);
                                 //Toast.makeText(getApplicationContext(), chatgptResponse, Toast.LENGTH_LONG).show();
                             } else {
-                                Log.e("ChatGPT_Picture_Description", "Failed to get response: " + response.errorBody());
+                                if (response != null && response.errorBody() != null) {
+                                    Log.e("ChatGPT_Picture_Description", "Réponse ChatGPT photoDescription [not successful] ");
+                                    String jsonString = null;
+                                    try {
+                                        jsonString = response.errorBody().string();
+                                        JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                        String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_TAKE_PHOTO, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                        logErrorAPIHealysa("CMD_TAKE_PHOTO", errorTXT, "notOnFailure");
+                                    } catch (IOException | JSONException e) {
+                                        e.printStackTrace();
+                                        Log.e("ChatGPT_Picture_Description", "Réponse ChatGPT photoDescription [not successful]1 catch" + e);
+                                    }
+                                }
                             }
                         }
 
                         @Override
                         public void onFailure(Call<JsonObject> call, Throwable t) {
                             Log.e("ChatGPT_Picture_Description", "Error: " + t.getMessage(), t);
+                            logErrorAPIHealysa("CMD_TAKE_PHOTO",t.getMessage(),"onFailure");
                         }
                     });
 
@@ -1154,6 +1169,28 @@ public class ResponseFromChatbot {
             }
         });
 
+    }
+    public void logErrorAPIHealysa(String commande,String message,String type){
+        String errorTXT="";
+        if (type.equals("onFailure")){
+            errorTXT= new Date().toString()+", COMMANDERRORAPI,Commande= "+commande+ " ERROR Body{  message= "+message+"}"+System.getProperty("line.separator");
+        }
+        else {
+            errorTXT= message;
+        }
+
+        File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
+
+
+        try {
+
+            FileWriter fileWriter = new FileWriter(file2,true);
+            fileWriter.write(errorTXT);
+            fileWriter.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public String encodeImageToBase64(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

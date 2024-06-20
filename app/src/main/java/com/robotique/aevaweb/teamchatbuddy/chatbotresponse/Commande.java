@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
@@ -19,6 +20,7 @@ import com.bfr.buddysdk.BuddySDK;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
@@ -36,6 +38,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -63,8 +66,6 @@ public class Commande {
     private Setting settingClass;
     ResponseFromChatbot responseClass;
     private String configFile ="TeamChatBuddy.properties";
-    private String tokenHealysa;
-    private String imeiDevice;
     private String heart_rate;
     private String tensionS;
     private String tensionD;
@@ -1394,6 +1395,20 @@ public class Commande {
                     }
                 }
                 else {
+                    if (response != null && response.errorBody() != null) {
+                        Log.e(TAG, "generateMusic response [not successful] ");
+                        String jsonString = null;
+                        try {
+                            jsonString = response.errorBody().string();
+                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_MUSIC, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                            logErrorAPIHealysa("CMD_MUSIC", errorTXT, "notOnFailure");
+                        } catch (IOException | JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "generateMusic response [not successful]1 catch" + e);
+                        }
+                    }
                     Log.e(TAG,"generateMusic response not successful");
                 }
             }
@@ -1401,6 +1416,7 @@ public class Commande {
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e(TAG,"generateMusic onFailure : " + t);
+                logErrorAPIHealysa("CMD_MUSIC",t.getMessage(),"onFailure");
                 t.printStackTrace();
             }
         });
@@ -1769,12 +1785,26 @@ public class Commande {
                         }
                     }
                     else{
-                        Log.e(TAG, "Réponse Météo [not successful] :"+response.toString());
+                        if (response != null && response.errorBody() != null) {
+                            Log.e(TAG, "Réponse meteo [not successful] ");
+                            String jsonString = null;
+                            try {
+                                jsonString = response.errorBody().string();
+                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_METEO, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                logErrorAPIHealysa("CMD_METEO", errorTXT, "notOnFailure");
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "Réponse meteo  [not successful]1 catch" + e);
+                            }
+                        }
                     }
                 }
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e(TAG, "Réponse Météo [Failure] : " + t);
+                    logErrorAPIHealysa("CMD_METEO",t.getMessage(),"onFailure");
                 }
             });
         } catch (Exception e) {
@@ -1839,13 +1869,26 @@ public class Commande {
                                                         }
                                                     }
                                                     else{
-                                                        Log.i(TAG, "Radio play response Else : "  + response.code() );
+                                                        if (response != null && response.errorBody() != null) {
+                                                            Log.e(TAG, "Réponse Radio [not successful]  ");
+                                                            String jsonString = null;
+                                                            try {
+                                                                jsonString = response.errorBody().string();
+                                                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                                                String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_RADIO, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                                                logErrorAPIHealysa("CMD_RADIO", errorTXT, "notOnFailure");
+                                                            } catch (IOException | JSONException e) {
+                                                                e.printStackTrace();
+                                                                Log.e(TAG, "Réponse Radio [not successful]1 catch" + e);
+                                                            }
+                                                        }
                                                     }
                                                 }
 
                                                 @Override
                                                 public void onFailure(Call call, Throwable t) {
-
+                                                    logErrorAPIHealysa("CMD_RADIO",t.getMessage(),"onFailure");
                                                 }
                                             });
                                         } catch (JSONException e) {
@@ -1853,14 +1896,21 @@ public class Commande {
                                         }
                                     }
                                     else{
-                                        try {
 
-                                            Log.i(TAG, "Réponse Radio ERROR " + response.code() );
-                                            JSONObject jsonErrorContent = new JSONObject(response.errorBody().string());
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
+
+                                        if (response != null && response.errorBody() != null) {
+                                            Log.e(TAG, "Réponse Radio [not successful]  ");
+                                            String jsonString = null;
+                                            try {
+                                                jsonString = response.errorBody().string();
+                                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                                String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_RADIO, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                                logErrorAPIHealysa("CMD_RADIO", errorTXT, "notOnFailure");
+                                            } catch (IOException | JSONException e) {
+                                                e.printStackTrace();
+                                                Log.e(TAG, "Réponse Radio [not successful]1 catch" + e);
+                                            }
                                         }
 
                                     }
@@ -1869,6 +1919,7 @@ public class Commande {
                                 @Override
                                 public void onFailure(Call call, Throwable t) {
                                     Log.i(TAG, "Réponse Radio onFailure " + t);
+                                    logErrorAPIHealysa("CMD_RADIO",t.getMessage(),"onFailure");
                                 }
                             } );
                         } catch (JSONException e) {
@@ -1877,12 +1928,26 @@ public class Commande {
                         }
                     }
                     else{
-                        Log.e(TAG, "Réponse Radio Token [not successful] :"+response.toString());
+                        if (response != null && response.errorBody() != null) {
+                            Log.e(TAG, "Réponse Radio Token [not successful]  ");
+                            String jsonString = null;
+                            try {
+                                jsonString = response.errorBody().string();
+                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_RADIO, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                logErrorAPIHealysa("CMD_RADIO", errorTXT, "notOnFailure");
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "Réponse Radio [not successful]1 catch" + e);
+                            }
+                        }
                     }
                 }
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e(TAG, "Réponse Radio Token [Failure] : " + t);
+                    logErrorAPIHealysa("CMD_RADIO",t.getMessage(),"onFailure");
                 }
             });
         } catch (Exception e) {
@@ -2044,11 +2109,11 @@ public class Commande {
                         Log.i(TAG, "Réponse Auth Healysa [successful] :"+response.body().toString());
                         try {
                             JSONObject jsonObj = new JSONObject( response.body().toString() );
-                            tokenHealysa = jsonObj.getString( "token" );
+                            teamChatBuddyApplication.setTokenHealysa(jsonObj.getString( "token" ));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        Call<JsonObject> callIMEI = api.getIMEIHealya( "Bearer "+ tokenHealysa );
+                        Call<JsonObject> callIMEI = api.getIMEIHealya( "Bearer "+ teamChatBuddyApplication.getTokenHealysa() );
 
                         callIMEI.enqueue( new Callback<JsonObject>() {
                             @Override
@@ -2057,11 +2122,13 @@ public class Commande {
                                     try {
                                         JSONObject jsonObj = new JSONObject( response.body().toString() );
                                         JSONArray devices = jsonObj.getJSONArray( "devices" );
+                                        Boolean findConsumer =false;
                                         for (int i=0; i < devices.length(); i++) {
                                             Log.i(TAG, "Réponse Consumer Firstname Healysa [successful] :"+ devices.getJSONObject( i ).getJSONObject( "consumer" ).getString( "firstname" ));
                                             if(devices.getJSONObject( i ).getJSONObject( "consumer" ).getString( "firstname" ).toLowerCase().equals( utilisateur.toLowerCase() )) {
-                                                imeiDevice = devices.getJSONObject( i ).getString( "imei" );
-                                                Log.i(TAG, "Réponse Imei Healysa [successful] :"+imeiDevice);
+                                                findConsumer =true;
+                                                teamChatBuddyApplication.setImeiDevice(devices.getJSONObject( i ).getString( "imei" ));
+                                                Log.i(TAG, "Réponse Imei Healysa [successful] :"+teamChatBuddyApplication.getImeiDevice());
                                                 translate("HEALYSA_CONNECT", new ITranslationCallback() {
                                                     @Override
                                                     public void onTranslated(String translatedText) {
@@ -2073,11 +2140,28 @@ public class Commande {
                                                 });
                                             }
                                         }
+                                        if (!findConsumer){
+                                            logErrorAPIHealysa("HEALYSA_CONNECT","Consumer not found","onFailure");
+                                        }
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
                                 }
                                 else{
+                                    if (response != null && response.errorBody() != null) {
+                                        Log.e(TAG, "Réponse Imei Healysa [not successful] ");
+                                        String jsonString = null;
+                                        try {
+                                            jsonString = response.errorBody().string();
+                                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_CONNECT, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                            logErrorAPIHealysa("HEALYSA_CONNECT", errorTXT, "notOnFailure");
+                                        } catch (IOException | JSONException e) {
+                                            e.printStackTrace();
+                                            Log.e(TAG, "Réponse Imei Healysa [not successful]1 catch" + e);
+                                        }
+                                    }
                                     Log.e(TAG, "Réponse Imei Healysa [not successful]");
                                 }
                             }
@@ -2085,17 +2169,33 @@ public class Commande {
                             @Override
                             public void onFailure(Call<JsonObject> call, Throwable throwable) {
                                 Log.e(TAG, "Réponse Imei Healysa [Failure] : " + throwable);
+                                logErrorAPIHealysa("HEALYSA_CONNECT",throwable.getMessage(),"onFailure");
                             }
                         } );
 
                     }
                     else{
                         Log.e(TAG, "Réponse Auth Healysa [not successful]");
+                        if (response != null && response.errorBody() != null) {
+                            Log.e(TAG, "Réponse Auth Healysa  [not successful] ");
+                            String jsonString = null;
+                            try {
+                                jsonString = response.errorBody().string();
+                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                String errorTXT = new Date().toString() +  ", COMMANDERRORAPI, Commande= HEALYSA_CONNECT, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                logErrorAPIHealysa("HEALYSA_CONNECT", errorTXT, "notOnFailure");
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "Réponse Auth Healysa  [not successful]1 catch" + e);
+                            }
+                        }
                     }
                 }
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e(TAG, "Réponse Auth Healysa [Failure] : " + t);
+                    logErrorAPIHealysa("HEALYSA_CONNECT",t.getMessage(),"onFailure");
                 }
             });
 
@@ -2107,7 +2207,7 @@ public class Commande {
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD",configFile) , 30);
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-        Call<String> callHR = api.runCmdHealysa( "silver",imeiDevice,"IWBPXL,"+imeiDevice+",080835#", "Bearer " + tokenHealysa );
+        Call<String> callHR = api.runCmdHealysa( "silver",teamChatBuddyApplication.getImeiDevice(),"IWBPXL,"+teamChatBuddyApplication.getImeiDevice()+",080835#", "Bearer " + teamChatBuddyApplication.getTokenHealysa() );
         callHR.enqueue( new Callback() {
             @Override
             public void onResponse(Call call, Response response) {
@@ -2116,7 +2216,7 @@ public class Commande {
                     SystemClock.sleep(35000);
                     Log.i(TAG, "Réponse Fréquence Cardiaque Healysa [successful] : 30 secondes plus tard");
 
-                    Call<JsonObject> callGetHR = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "HEART_RATE", "day", "Bearer " + tokenHealysa);
+                    Call<JsonObject> callGetHR = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "HEART_RATE", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                     callGetHR.enqueue( new Callback() {
                         @Override
                         public void onResponse(Call call, Response response) {
@@ -2142,6 +2242,21 @@ public class Commande {
                                 }
                             }
                             else {
+                                if (response != null && response.errorBody() != null) {
+                                    Log.e(TAG, "Réponse Imei Healysa [not successful] response code " + response.code() + "response.body " + response.errorBody());
+                                    String jsonString = null;
+                                    try {
+                                        jsonString = response.errorBody().string();
+                                        JSONObject jsonErrorContent = new JSONObject(jsonString);
+                                        Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful]1 jsonErrorContent " + jsonErrorContent);
+
+                                        String errorTXT = new Date().toString() +  ", COMMANDERRORAPI, Commande= HEALYSA_HRV, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                        logErrorAPIHealysa("HEALYSA_HRV", errorTXT, "notOnFailure");
+                                    } catch (IOException | JSONException e) {
+                                        e.printStackTrace();
+                                        Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful]1 catch" + e);
+                                    }
+                                }
                                 Log.e(TAG, "Réponse GET Fréquence Cardiaque Healysa [not successful]");
                             }
                         }
@@ -2149,17 +2264,34 @@ public class Commande {
                         @Override
                         public void onFailure(Call call, Throwable throwable) {
                             Log.e(TAG, "Réponse GET Fréquence Cardiaque Healysa [not successful] :"+throwable);
+                            logErrorAPIHealysa("HEALYSA_HRV",throwable.getMessage(),"onFailure");
                         }
                     } );
                 }
                 else{
                     String text = "Génère moi une phrase pour dire que je ne suis pas connecté à la plateforme Healysa";
                     Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful]");
+                    if (response != null && response.errorBody() != null) {
+                        Log.e(TAG, "Réponse Imei Healysa [not successful] response code " + response.code() + "response.body " + response.errorBody());
+                        String jsonString = null;
+                        try {
+                            jsonString = response.errorBody().string();
+                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+                            Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful]1 jsonErrorContent " + jsonErrorContent);
+
+                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_HRV, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                            logErrorAPIHealysa("HEALYSA_HRV", errorTXT, "notOnFailure");
+                        } catch (IOException | JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful]1 catch" + e);
+                        }
+                    }
                 }
             }
             @Override
             public void onFailure(Call call, Throwable throwable) {
                 Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful] :"+ throwable);
+                logErrorAPIHealysa("HEALYSA_HRV",throwable.getMessage(),"onFailure");
             }
         } );
     }
@@ -2167,8 +2299,8 @@ public class Commande {
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD",configFile) , 30);
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-        Log.i(TAG, "Tension Healysa imei:"+imeiDevice);
-        Call<String> callHR = api.runCmdHealysa( "silver",imeiDevice,"IWBPXY,"+imeiDevice+",080835#", "Bearer " + tokenHealysa );
+        Log.i(TAG, "Tension Healysa imei:"+teamChatBuddyApplication.getImeiDevice());
+        Call<String> callHR = api.runCmdHealysa( "silver",teamChatBuddyApplication.getImeiDevice(),"IWBPXY,"+teamChatBuddyApplication.getImeiDevice()+",080835#", "Bearer " + teamChatBuddyApplication.getTokenHealysa() );
         callHR.enqueue( new Callback() {
             @Override
             public void onResponse(Call call, Response response) {
@@ -2177,64 +2309,97 @@ public class Commande {
                     SystemClock.sleep(35000);
                     Log.i(TAG, "Réponse Tension Healysa [successful] : 30 secondes plus tard");
 
-                    Call<JsonObject> callGetTensionS = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_SYSTOLIC", "day", "Bearer " + tokenHealysa);
+                    Call<JsonObject> callGetTensionS = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_SYSTOLIC", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                     callGetTensionS.enqueue( new Callback() {
                         @Override
                         public void onResponse(Call call, Response response) {
-                            Log.i(TAG, "Réponse GET Tension Healysa [successful] :"+response.body().toString());
-                            try{
-                                JSONObject reponse = new JSONObject(response.body().toString());
-                                JSONArray array = new JSONArray(reponse.getString( "BLOOD_PRESSURE_SYSTOLIC" ));
-                                JSONObject data = array.getJSONObject( 0 );
-                                tensionS = data.getString( "dataValue" );
-                                Log.i(TAG, "Réponse GET Tension Healysa [successful] : "+ tensionS);
-                                Call<JsonObject> callGetTensionD = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_DIASTOLIC", "day", "Bearer " + tokenHealysa);
-                                callGetTensionD.enqueue( new Callback() {
-                                    @Override
-                                    public void onResponse(Call call, Response response) {
-                                        Log.i(TAG, "Réponse GET Tension Healysa [successful] :"+response.body().toString());
-                                        try{
-                                            JSONObject reponse = new JSONObject(response.body().toString());
-                                            JSONArray array = new JSONArray(reponse.getString( "BLOOD_PRESSURE_DIASTOLIC" ));
-                                            JSONObject data = array.getJSONObject( 0 );
-                                            tensionD = data.getString( "dataValue" );
-                                            Log.i(TAG, "Réponse GET Tension Healysa [successful] : "+ tensionD);
-                                        }
-                                        catch (JSONException e){
-                                            e.printStackTrace();
-                                        }
-                                        Log.i(TAG, "Réponse GET Tension Healysa [successful] : "+ tensionS + tensionD);
-                                        translate("HEALYSA_BLOODP", new ITranslationCallback() {
-                                            @Override
-                                            public void onTranslated(String translatedText) {
-                                                String verifyMessage = verifyCmdMessages(translatedText);
-                                                if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                                                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",tensionS).replace("[2]",tensionD));
-                                                }
+                            if (response.isSuccessful()){
+                                Log.i(TAG, "Réponse GET Tension Healysa [successful] :" + response.body().toString());
+                                try {
+                                    JSONObject reponse = new JSONObject(response.body().toString());
+                                    JSONArray array = new JSONArray(reponse.getString("BLOOD_PRESSURE_SYSTOLIC"));
+                                    JSONObject data = array.getJSONObject(0);
+                                    tensionS = data.getString("dataValue");
+                                    Log.i(TAG, "Réponse GET Tension Healysa [successful] : " + tensionS);
+                                    Call<JsonObject> callGetTensionD = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_DIASTOLIC", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
+                                    callGetTensionD.enqueue(new Callback() {
+                                        @Override
+                                        public void onResponse(Call call, Response response) {
+                                            Log.i(TAG, "Réponse GET Tension Healysa [successful] :" + response.body().toString());
+                                            try {
+                                                JSONObject reponse = new JSONObject(response.body().toString());
+                                                JSONArray array = new JSONArray(reponse.getString("BLOOD_PRESSURE_DIASTOLIC"));
+                                                JSONObject data = array.getJSONObject(0);
+                                                tensionD = data.getString("dataValue");
+                                                Log.i(TAG, "Réponse GET Tension Healysa [successful] : " + tensionD);
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
                                             }
-                                        });
-                                    }
+                                            Log.i(TAG, "Réponse GET Tension Healysa [successful] : " + tensionS + tensionD);
+                                            translate("HEALYSA_BLOODP", new ITranslationCallback() {
+                                                @Override
+                                                public void onTranslated(String translatedText) {
+                                                    String verifyMessage = verifyCmdMessages(translatedText);
+                                                    if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", tensionS).replace("[2]", tensionD));
+                                                    }
+                                                }
+                                            });
+                                        }
 
-                                    @Override
-                                    public void onFailure(Call call, Throwable throwable) {
-                                        Log.e(TAG, "Réponse GET Tension Healysa [not successful] :"+throwable);
-                                    }
-                                } );
+                                        @Override
+                                        public void onFailure(Call call, Throwable throwable) {
+                                            Log.e(TAG, "Réponse GET Tension Healysa [not successful] :" + throwable);
+                                            logErrorAPIHealysa("HEALYSA_BLOODP", throwable.getMessage(), "onFailure");
+                                        }
+                                    });
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                             }
-                            catch (JSONException e){
-                                e.printStackTrace();
+                            else {
+                                if (response != null && response.errorBody() != null) {
+                                    Log.e(TAG, "Réponse Tension Healysa [not successful]");
+                                    String jsonString = null;
+                                    try {
+                                        jsonString = response.errorBody().string();
+                                        JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                        String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_BLOODP, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                        logErrorAPIHealysa("HEALYSA_BLOODP", errorTXT, "notOnFailure");
+                                    } catch (IOException | JSONException e) {
+                                        e.printStackTrace();
+                                        Log.e(TAG, "Réponse Tension Healysa[not successful]1 catch" + e);
+                                    }
+                                }
+                                Log.e(TAG, "Réponse Tension Healysa [not successful]");
                             }
                         }
 
                         @Override
                         public void onFailure(Call call, Throwable throwable) {
                             Log.e(TAG, "Réponse GET Tension Healysa [not successful] :"+throwable);
+                            logErrorAPIHealysa("HEALYSA_BLOODP",throwable.getMessage(),"onFailure");
                         }
                     } );
 
                 }
                 else{
                     String text = "Génère moi une phrase pour dire que je ne suis pas connecté à la plateforme Healysa";
+                    if (response != null && response.errorBody() != null) {
+                        Log.e(TAG, "Réponse Tension Healysa [not successful]");
+                        String jsonString = null;
+                        try {
+                            jsonString = response.errorBody().string();
+                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_BLOODP, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                            logErrorAPIHealysa("HEALYSA_BLOODP", errorTXT, "notOnFailure");
+                        } catch (IOException | JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "Réponse Tension Healysa[not successful]1 catch" + e);
+                        }
+                    }
                     Log.e(TAG, "Réponse Tension Healysa [not successful]");
                 }
             }
@@ -2242,6 +2407,7 @@ public class Commande {
             @Override
             public void onFailure(Call call, Throwable throwable) {
                 Log.e(TAG, "Réponse Tension Healysa [not successful] :"+ throwable);
+                logErrorAPIHealysa("HEALYSA_BLOODP",throwable.getMessage(),"onFailure");
             }
         } );
     }
@@ -2249,7 +2415,7 @@ public class Commande {
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD",configFile), 30 );
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-        Call<String> callHR = api.runCmdHealysa( "silver",imeiDevice,"IWBPXZ,"+imeiDevice+",080835#", "Bearer " + tokenHealysa );
+        Call<String> callHR = api.runCmdHealysa( "silver",teamChatBuddyApplication.getImeiDevice(),"IWBPXZ,"+teamChatBuddyApplication.getImeiDevice()+",080835#", "Bearer " + teamChatBuddyApplication.getTokenHealysa() );
         callHR.enqueue( new Callback() {
             @Override
             public void onResponse(Call call, Response response) {
@@ -2258,40 +2424,72 @@ public class Commande {
                     SystemClock.sleep(35000);
                     Log.i(TAG, "Réponse SPO2 Healysa [successful] : 30 secondes plus tard");
 
-                    Call<JsonObject> callGetHR = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "SPO2", "day", "Bearer " + tokenHealysa);
+                    Call<JsonObject> callGetHR = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "SPO2", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                     callGetHR.enqueue( new Callback() {
                         @Override
                         public void onResponse(Call call, Response response) {
-                            Log.i(TAG, "Réponse GET SPO2 Healysa [successful] :"+response.body().toString());
-                            try{
-                                JSONObject reponse = new JSONObject(response.body().toString());
-                                JSONArray array = new JSONArray(reponse.getString( "SPO2" ));
-                                JSONObject data = array.getJSONObject( 0 );
-                                String spo2 = data.getString( "dataValue" );
-                                Log.i(TAG, "Réponse GET SPO2 Healysa [successful] : "+ spo2);
-                                translate("HEALYSA_SPO2", new ITranslationCallback() {
-                                    @Override
-                                    public void onTranslated(String translatedText) {
-                                        String verifyMessage = verifyCmdMessages(translatedText);
-                                        if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",spo2));
+                            if (response.isSuccessful()) {
+                                Log.i(TAG, "Réponse GET SPO2 Healysa [successful] :" + response.body().toString());
+                                try {
+                                    JSONObject reponse = new JSONObject(response.body().toString());
+                                    JSONArray array = new JSONArray(reponse.getString("SPO2"));
+                                    JSONObject data = array.getJSONObject(0);
+                                    String spo2 = data.getString("dataValue");
+                                    Log.i(TAG, "Réponse GET SPO2 Healysa [successful] : " + spo2);
+                                    translate("HEALYSA_SPO2", new ITranslationCallback() {
+                                        @Override
+                                        public void onTranslated(String translatedText) {
+                                            String verifyMessage = verifyCmdMessages(translatedText);
+                                            if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", spo2));
+                                            }
                                         }
+                                    });
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }else {
+                                if (response != null && response.errorBody() != null) {
+                                    Log.e(TAG, "Réponse SPO2 Healysa [not successful]");
+                                    String jsonString = null;
+                                    try {
+                                        jsonString = response.errorBody().string();
+                                        JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                        String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_SPO2, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                        logErrorAPIHealysa("HEALYSA_SPO2", errorTXT, "notOnFailure");
+                                    } catch (IOException | JSONException e) {
+                                        e.printStackTrace();
+                                        Log.e(TAG, "Réponse SPO2 Healysa [not successful]1 catch" + e);
                                     }
-                                });
-                            }
-                            catch (JSONException e){
-                                e.printStackTrace();
+                                }
+                                Log.e(TAG, "Réponse SPO2 Healysa [not successful]");
                             }
                         }
 
                         @Override
                         public void onFailure(Call call, Throwable throwable) {
                             Log.e(TAG, "Réponse GET SPO2 Healysa [not successful] :"+throwable);
+                            logErrorAPIHealysa("HEALYSA_SPO2",throwable.getMessage(),"onFailure");
                         }
                     } );
                 }
                 else{
                     String text = "Génère moi une phrase pour dire que je ne suis pas connecté à la plateforme Healysa";
+                    if (response != null && response.errorBody() != null) {
+                        Log.e(TAG, "Réponse SPO2 Healysa [not successful]");
+                        String jsonString = null;
+                        try {
+                            jsonString = response.errorBody().string();
+                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_SPO2, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                            logErrorAPIHealysa("HEALYSA_SPO2", errorTXT, "notOnFailure");
+                        } catch (IOException | JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "Réponse SPO2 Healysa [not successful]1 catch" + e);
+                        }
+                    }
                     Log.e(TAG, "Réponse SPO2 Healysa [not successful]");
                 }
             }
@@ -2299,6 +2497,7 @@ public class Commande {
             @Override
             public void onFailure(Call call, Throwable throwable) {
                 Log.e(TAG, "Réponse SPO2 Healysa [not successful] :"+ throwable);
+                logErrorAPIHealysa("HEALYSA_SPO2",throwable.getMessage(),"onFailure");
             }
         } );
     }
@@ -2306,7 +2505,7 @@ public class Commande {
         String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD",configFile) , 30);
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-        Call<String> callHR = api.runCmdHealysa( "silver",imeiDevice,"IWBPXZ,"+imeiDevice+",080835#", "Bearer " + tokenHealysa );
+        Call<String> callHR = api.runCmdHealysa( "silver",teamChatBuddyApplication.getImeiDevice(),"IWBPXZ,"+teamChatBuddyApplication.getImeiDevice()+",080835#", "Bearer " + teamChatBuddyApplication.getTokenHealysa() );
         callHR.enqueue( new Callback() {
             @Override
             public void onResponse(Call call, Response response) {
@@ -2316,7 +2515,7 @@ public class Commande {
                     Log.i(TAG, "Réponse SANTE Healysa [successful] : 30 secondes plus tard");
 
 
-                    Call<JsonObject> callGetHR = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "HEART_RATE", "day", "Bearer " + tokenHealysa);
+                    Call<JsonObject> callGetHR = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "HEART_RATE", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                     callGetHR.enqueue( new Callback() {
                         @Override
                         public void onResponse(Call call, Response response) {
@@ -2328,7 +2527,7 @@ public class Commande {
                                     JSONObject data = array.getJSONObject( 0 );
                                     heart_rate = data.getString( "dataValue" );
                                     Log.i( TAG, "Réponse GET Fréquence Cardiaque Healysa [successful] : " + heart_rate );
-                                    Call<JsonObject> callGetTension1 = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_SYSTOLIC", "day", "Bearer " + tokenHealysa);
+                                    Call<JsonObject> callGetTension1 = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_SYSTOLIC", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                     callGetTension1.enqueue( new Callback() {
                                         @Override
                                         public void onResponse(Call call, Response response) {
@@ -2339,7 +2538,7 @@ public class Commande {
                                                 JSONObject data = array.getJSONObject( 0 );
                                                 tensionS = data.getString( "dataValue" );
                                                 Log.i(TAG, "Réponse GET Tension Healysa [successful] : "+ tensionS);
-                                                Call<JsonObject> callGetTension2 = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_DIASTOLIC", "day", "Bearer " + tokenHealysa);
+                                                Call<JsonObject> callGetTension2 = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_DIASTOLIC", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                                 callGetTension2.enqueue( new Callback() {
                                                     @Override
                                                     public void onResponse(Call call, Response response) {
@@ -2350,7 +2549,7 @@ public class Commande {
                                                             JSONObject data = array.getJSONObject( 0 );
                                                             tensionD = data.getString( "dataValue" );
                                                             Log.i(TAG, "Réponse GET Tension Healysa [successful] : "+ tensionD);
-                                                            Call<JsonObject> callGetSPO2 = api.getDataHealysa(imeiDevice, date + "T00:00:00.000Z", date + "T23:59:59.000Z", "SPO2", "day", "Bearer " + tokenHealysa);
+                                                            Call<JsonObject> callGetSPO2 = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "SPO2", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                                             callGetSPO2.enqueue( new Callback() {
                                                                 @Override
                                                                 public void onResponse(Call call, Response response) {
@@ -2378,6 +2577,7 @@ public class Commande {
                                                                 @Override
                                                                 public void onFailure(Call call, Throwable throwable) {
                                                                     Log.e(TAG, "Réponse GET SPO2 Healysa [not successful] :"+throwable);
+                                                                    logErrorAPIHealysa("HEALYSA_CHECKUP",throwable.getMessage(),"onFailure");
                                                                 }
                                                             } );
                                                         }
@@ -2388,6 +2588,7 @@ public class Commande {
                                                     @Override
                                                     public void onFailure(Call call, Throwable throwable) {
                                                         Log.e(TAG, "Réponse GET Tension Healysa [not successful] :"+throwable);
+                                                        logErrorAPIHealysa("HEALYSA_CHECKUP",throwable.getMessage(),"onFailure");
                                                     }
                                                 } );
                                             }
@@ -2398,6 +2599,7 @@ public class Commande {
                                         @Override
                                         public void onFailure(Call call, Throwable throwable) {
                                             Log.e(TAG, "Réponse GET Tension Healysa [not successful] :"+throwable);
+                                            logErrorAPIHealysa("HEALYSA_CHECKUP",throwable.getMessage(),"onFailure");
                                         }
                                     } );
                                 } catch (JSONException e) {
@@ -2406,23 +2608,54 @@ public class Commande {
                             }
                             else {
                                 Log.e(TAG, "Réponse GET Fréquence Cardiaque Healysa [not successful]");
+                                if (response != null && response.errorBody() != null) {
+                                    Log.e(TAG, "Réponse Imei Healysa [not successful] response code " + response.code() + "response.body " + response.errorBody());
+                                    String jsonString = null;
+                                    try {
+                                        jsonString = response.errorBody().string();
+                                        JSONObject jsonErrorContent = new JSONObject(jsonString);
+                                        Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful]1 jsonErrorContent " + jsonErrorContent);
+
+                                        String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_CHECKUP, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                        logErrorAPIHealysa("HEALYSA_CHECKUP", errorTXT, "notOnFailure");
+                                    } catch (IOException | JSONException e) {
+                                        e.printStackTrace();
+                                        Log.e(TAG, "Réponse Fréquence Cardiaque Healysa [not successful]1 catch" + e);
+                                    }
+                                }
                             }
                         }
                         @Override
                         public void onFailure(Call call, Throwable throwable) {
                             Log.e(TAG, "Réponse GET Fréquence Cardiaque Healysa [not successful] :"+throwable);
+                            logErrorAPIHealysa("HEALYSA_CHECKUP",throwable.getMessage(),"onFailure");
                         }
                     } );
                 }
                 else{
                     String text = "Génère moi une phrase pour dire que je ne suis pas connecté à la plateforme Healysa";
                     Log.e(TAG, "Réponse Santé Healysa [not successful]");
+                    if (response != null && response.errorBody() != null) {
+                        Log.e(TAG, "Réponse Santé Healysa [not successful]");
+                        String jsonString = null;
+                        try {
+                            jsonString = response.errorBody().string();
+                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_CHECKUP, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                            logErrorAPIHealysa("HEALYSA_CHECKUP", errorTXT, "notOnFailure");
+                        } catch (IOException | JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "Réponse Santé Healysa [not successful]1 catch" + e);
+                        }
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call call, Throwable throwable) {
                 Log.e(TAG, "Réponse HR Healysa [not successful] :"+ throwable);
+                logErrorAPIHealysa("HEALYSA_CHECKUP",throwable.getMessage(),"onFailure");
             }
         } );
     }
@@ -2433,11 +2666,12 @@ public class Commande {
         if(phone_number==null){
             String text = "Génère moi une phrase pour dire que aucun numéro de téléphone est attribué à " + destinataire;
             Log.e(TAG, "Aucun numéro de téléphone est attribué à " + destinataire);
+            logErrorAPIHealysa("HEALYSA_CALL","No telephone number is assigned to "+destinataire,"onFailure");
             return;
         }
         Log.i(TAG, "Réponse numéro de téléphone :"+ phone_number);
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-        Call<String> callHR = api.runCmdHealysa( "silver", imeiDevice, "IWBP32,"+imeiDevice+",080835,"+phone_number+"#", "Bearer " + tokenHealysa );
+        Call<String> callHR = api.runCmdHealysa( "silver", teamChatBuddyApplication.getImeiDevice(), "IWBP32,"+teamChatBuddyApplication.getImeiDevice()+",080835,"+phone_number+"#", "Bearer " + teamChatBuddyApplication.getTokenHealysa() );
         callHR.enqueue( new Callback() {
             @Override
             public void onResponse(Call call, Response response) {
@@ -2455,6 +2689,20 @@ public class Commande {
                 }
                 else{
                     String text = "Génère moi une phrase pour dire que je ne suis pas connecté à la plateforme Healysa";
+                    if (response != null && response.errorBody() != null) {
+                        Log.e(TAG, "Réponse de l'appel [not successful]");
+                        String jsonString = null;
+                        try {
+                            jsonString = response.errorBody().string();
+                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_CALL, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                            logErrorAPIHealysa("HEALYSA_CALL", errorTXT, "notOnFailure");
+                        } catch (IOException | JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "Réponse de l'appel [not successful]1 catch" + e);
+                        }
+                    }
                     Log.e(TAG, "Réponse de l'appel [not successful]");
                 }
             }
@@ -2462,6 +2710,7 @@ public class Commande {
             @Override
             public void onFailure(Call call, Throwable throwable) {
                 Log.e(TAG, "Réponse de l'appel [not successful] :"+ throwable);
+                logErrorAPIHealysa("HEALYSA_CALL",throwable.getMessage(),"onFailure");
             }
         } );
     }
@@ -2481,11 +2730,11 @@ public class Commande {
                         Log.i(TAG, "Réponse Auth Healysa [successful] :"+response.body().toString());
                         try {
                             JSONObject jsonObj = new JSONObject( response.body().toString() );
-                            tokenHealysa = jsonObj.getString( "token" );
+                            teamChatBuddyApplication.setTokenHealysa(jsonObj.getString( "token" ));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        Call<JsonObject> callIMEI = api.getIMEIHealya( "Bearer "+ tokenHealysa );
+                        Call<JsonObject> callIMEI = api.getIMEIHealya( "Bearer "+ teamChatBuddyApplication.getTokenHealysa() );
 
                         callIMEI.enqueue( new Callback<JsonObject>() {
                             @Override
@@ -2494,41 +2743,74 @@ public class Commande {
                                     try {
                                         JSONObject jsonObj = new JSONObject( response.body().toString() );
                                         JSONArray devices = jsonObj.getJSONArray( "devices" );
+                                        Boolean findConsumer =false;
                                         for (int i=0; i < devices.length(); i++) {
                                             Log.i(TAG, "Réponse Consumer Firstname Healysa [successful] :"+ devices.getJSONObject( i ).getJSONObject( "consumer" ).getString( "firstname" ));
-                                            if(devices.getJSONObject( i ).getJSONObject( "consumer" ).getString( "firstname" ).toLowerCase().equals( prénom )) {
+                                            if(devices.getJSONObject( i ).getJSONObject( "consumer" ).getString( "firstname" ).toLowerCase().equals( prénom.toLowerCase() )) {
+                                                findConsumer = true;
                                                 imeiLocation = devices.getJSONObject( i ).getString( "imei" );
                                                 Log.i(TAG, "Réponse Imei Healysa [successful] :"+imeiLocation);
                                                 Log.i(TAG, "Réponse Location Healysa [successful] :"+ prénom);
-                                                Call<JsonObject> callLocation = api.getLocationBeaconHealysa( imeiLocation, "Bearer " + tokenHealysa );
+                                                Call<JsonArray> callLocation = api.getLocationBeaconHealysa( imeiLocation, "Bearer " + teamChatBuddyApplication.getTokenHealysa() );
                                                 callLocation.enqueue( new Callback() {
                                                     @Override
                                                     public void onResponse(Call call, Response response) {
                                                         if (response.isSuccessful()){
                                                             Log.i(TAG, "Réponse Location Healysa [successful] :"+response.body().toString());
-                                                            //todo : traitement de la réponse
-                                                            translate("HEALYSA_LOC", new ITranslationCallback() {
-                                                                @Override
-                                                                public void onTranslated(String translatedText) {
-                                                                    String verifyMessage = verifyCmdMessages(translatedText);
-                                                                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                                                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
-                                                                    }
+                                                            String responseBody = response.body().toString();
+                                                            try {
+                                                                JSONArray localisation = new JSONArray(responseBody);
+                                                                if (localisation.length()>0){
+                                                                    JSONObject firstObject = localisation.getJSONObject(0);
+
+                                                                    // Récupérer la valeur de la clé "description"
+                                                                    String description = firstObject.getString("description");
+                                                                    translate("HEALYSA_LOC", new ITranslationCallback() {
+                                                                        @Override
+                                                                        public void onTranslated(String translatedText) {
+                                                                            String verifyMessage = verifyCmdMessages(translatedText);
+                                                                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",description));
+                                                                            }
+                                                                        }
+                                                                    });
                                                                 }
-                                                            });
+                                                            } catch (JSONException e) {
+                                                                e.printStackTrace();
+                                                            }
+                                                            //todo : traitement de la réponse
+
                                                         }
                                                         else{
-                                                            Log.e(TAG, "Réponse HR Healysa [not successful] :"+response.body().toString());
+                                                            if (response != null && response.errorBody() != null) {
+                                                                Log.e(TAG, "Réponse HR Healysa [not successful] ");
+                                                                String jsonString = null;
+                                                                try {
+                                                                    jsonString = response.errorBody().string();
+                                                                    JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                                                    String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_LOC, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                                                    logErrorAPIHealysa("HEALYSA_LOC", errorTXT, "notOnFailure");
+                                                                } catch (IOException | JSONException e) {
+                                                                    e.printStackTrace();
+                                                                    Log.e(TAG, "Réponse HR Healysa [not successful]1 catch" + e);
+                                                                }
+                                                            }
+                                                            Log.e(TAG, "Réponse HR Healysa [not successful]2 :"+response.body().toString());
                                                         }
                                                     }
 
                                                     @Override
                                                     public void onFailure(Call call, Throwable throwable) {
-                                                        Log.e(TAG, "Réponse HR Healysa [not successful] :"+ throwable);
+                                                        throwable.printStackTrace();
+                                                        Log.e(TAG, "Réponse HR Healysa [not successful]1 :"+ throwable);
+                                                        logErrorAPIHealysa("HEALYSA_LOC",throwable.getMessage(),"onFailure");
                                                     }
                                                 } );
                                             }
-                                            Log.e(TAG, "Réponse Location Healysa [not successful] : " + prénom + " non trvoué");
+                                        }
+                                        if (!findConsumer){
+                                            logErrorAPIHealysa("HEALYSA_LOC","Consumer not found","onFailure");
                                         }
                                     } catch (JSONException e) {
                                         e.printStackTrace();
@@ -2536,23 +2818,53 @@ public class Commande {
                                 }
                                 else{
                                     Log.e(TAG, "Réponse Imei Healysa [not successful]");
+                                    if (response != null && response.errorBody() != null) {
+                                        Log.e(TAG, "Réponse Imei Healysa [not successful] ");
+                                        String jsonString = null;
+                                        try {
+                                            jsonString = response.errorBody().string();
+                                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_LOC, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                            logErrorAPIHealysa("HEALYSA_LOC", errorTXT, "notOnFailure");
+                                        } catch (IOException | JSONException e) {
+                                            e.printStackTrace();
+                                            Log.e(TAG, "Réponse Imei Healysa [not successful]1 catch" + e);
+                                        }
+                                    }
                                 }
                             }
 
                             @Override
                             public void onFailure(Call<JsonObject> call, Throwable throwable) {
                                 Log.e(TAG, "Réponse Imei Healysa [Failure] : " + throwable);
+                                logErrorAPIHealysa("HEALYSA_LOC",throwable.getMessage(),"onFailure");
                             }
                         } );
 
                     }
                     else{
                         Log.e(TAG, "Réponse Auth Healysa [not successful]");
+                        if (response != null && response.errorBody() != null) {
+                            Log.e(TAG, "Réponse Auth Healysa [not successful]");
+                            String jsonString = null;
+                            try {
+                                jsonString = response.errorBody().string();
+                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_LOC, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                logErrorAPIHealysa("HEALYSA_LOC", errorTXT, "notOnFailure");
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "Réponse Auth Healysa [not successful]1 catch" + e);
+                            }
+                        }
                     }
                 }
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e(TAG, "Réponse Auth Healysa [Failure] : " + t);
+                    logErrorAPIHealysa("HEALYSA_LOC",t.getMessage(),"onFailure");
                 }
             });
 
@@ -2576,12 +2888,12 @@ public class Commande {
                         Log.i( TAG, "Réponse Auth Healysa [successful] :" + response.body().toString() );
                         try {
                             JSONObject jsonObj = new JSONObject( response.body().toString() );
-                            tokenHealysa = jsonObj.getString( "token" );
+                            teamChatBuddyApplication.setTokenHealysa(jsonObj.getString( "token" ));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
 
-                        Call<JsonObject> callIMEI = api.getIMEIHealya( "Bearer "+ tokenHealysa );
+                        Call<JsonObject> callIMEI = api.getIMEIHealya( "Bearer "+ teamChatBuddyApplication.getTokenHealysa() );
                         callIMEI.enqueue( new Callback<JsonObject>() {
                             @Override
                             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
@@ -2613,7 +2925,7 @@ public class Commande {
                                         jsonBody.put( "command", jsonA);
                                         jsonBody.put( "user_id", null );
                                         RequestBody reqBody = RequestBody.create(okhttp3.MediaType.parse("application/json; charset=utf-8"), jsonBody.toString());
-                                        Call<JsonObject> callFeed = api.postFeedCat( imeiFeeder, reqBody, "Bearer " + tokenHealysa);
+                                        Call<JsonObject> callFeed = api.postFeedCat( imeiFeeder, reqBody, "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                         callFeed.enqueue( new Callback<JsonObject>() {
                                             @Override
                                             public void onResponse(Call call, Response response) {
@@ -2629,11 +2941,28 @@ public class Commande {
                                                         }
                                                     });
                                                 }
+                                                else {
+                                                    if (response != null && response.errorBody() != null) {
+                                                        Log.e(TAG, "Réponse Feed Healysa  [not successful]");
+                                                        String jsonString = null;
+                                                        try {
+                                                            jsonString = response.errorBody().string();
+                                                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_FEEDCAT, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                                            logErrorAPIHealysa("HEALYSA_FEEDCAT", errorTXT, "notOnFailure");
+                                                        } catch (IOException | JSONException e) {
+                                                            e.printStackTrace();
+                                                            Log.e(TAG, "Réponse Feed Healysa  [not successful]1 catch" + e);
+                                                        }
+                                                    }
+                                                }
                                             }
 
                                             @Override
                                             public void onFailure(Call call, Throwable t) {
                                                 Log.e(TAG, "Réponse Feed Healysa [Failure] : " + t);
+                                                logErrorAPIHealysa("HEALYSA_FEEDCAT",t.getMessage(),"onFailure");
                                             }
                                         } );
                                     } catch (JSONException e) {
@@ -2646,20 +2975,59 @@ public class Commande {
 
                             @Override
                             public void onFailure(Call<JsonObject> call, Throwable t) {
-
+                                logErrorAPIHealysa("HEALYSA_FEEDCAT",t.getMessage(),"onFailure");
                             }
                         } );
+                    }
+                    else {
+                        if (response != null && response.errorBody() != null) {
+                            Log.e(TAG, "Réponse FeedCat [not successful]");
+                            String jsonString = null;
+                            try {
+                                jsonString = response.errorBody().string();
+                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_FEEDCAT, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                logErrorAPIHealysa("HEALYSA_FEEDCAT", errorTXT, "notOnFailure");
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "Réponse FeedCat  [not successful]1 catch" + e);
+                            }
+                        }
                     }
                 }
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e(TAG, "Réponse Feed Healysa [Failure] : " + t);
+                    logErrorAPIHealysa("HEALYSA_FEEDCAT",t.getMessage(),"onFailure");
                 }
             });
         } catch (Exception e) {
             Log.e(TAG, "Exception pendant la récupération de la réponse Healysa : " + e);
         }
 
+    }
+    public void logErrorAPIHealysa(String commande,String message,String type){
+        String errorTXT="";
+        if (type.equals("onFailure")){
+            errorTXT= new Date().toString()+", COMMANDERRORAPI,Commande= "+commande+ " ERROR Body{  message= "+message+"}"+System.getProperty("line.separator");
+        }
+        else {
+            errorTXT= message;
+        }
+
+        File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
+
+
+        try {
+
+            FileWriter fileWriter = new FileWriter(file2,true);
+            fileWriter.write(errorTXT);
+            fileWriter.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     public void SWITCHBOT_LIGHT(String state){
         Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,"https://api.switch-bot.com", 30);
@@ -2688,11 +3056,26 @@ public class Commande {
                     }
                     else{
                         Log.e(TAG, "Réponse SwitchBot [not successful] :"+response.toString());
+                        if (response != null && response.errorBody() != null) {
+                            Log.e(TAG, "Réponse SwitchBot [not successful]");
+                            String jsonString = null;
+                            try {
+                                jsonString = response.errorBody().string();
+                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                                String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= SWITCHBOT_LIGHT, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                logErrorAPIHealysa("SWITCHBOT_LIGHT", errorTXT, "notOnFailure");
+                            } catch (IOException | JSONException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "Réponse SwitchBot [not successful]1 catch" + e);
+                            }
+                        }
                     }
                 }
                 @Override
                 public void onFailure(Call call, Throwable t) {
                     Log.e(TAG, "Réponse SwitchBot [Failure] : " + t);
+                    logErrorAPIHealysa("SWITCHBOT_LIGHT",t.getMessage(),"onFailure");
                 }
             });
         } catch (Exception e) {
@@ -2774,12 +3157,27 @@ public class Commande {
                 }
                 else {
                     Log.e(TAG,"generateImage response not successful");
+                    if (response != null && response.errorBody() != null) {
+                        Log.e(TAG, "generateImage response [not successful] ");
+                        String jsonString = null;
+                        try {
+                            jsonString = response.errorBody().string();
+                            JSONObject jsonErrorContent = new JSONObject(jsonString);
+
+                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_IMAGE, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                            logErrorAPIHealysa("CMD_IMAGE", errorTXT, "notOnFailure");
+                        } catch (IOException | JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "generateImage response [not successful]1 catch" + e);
+                        }
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e(TAG,"generateImage onFailure : " + t);
+                logErrorAPIHealysa("CMD_IMAGE",t.getMessage(),"onFailure");
                 t.printStackTrace();
             }
         });

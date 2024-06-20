@@ -269,6 +269,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private Boolean appIsCurrentlyDealingWithTheQuestion = false;
     private Boolean BIExecution = false;
     private boolean alreadyChatting = false; // pour savoir si BUDDY doit prononcer l'invitation au dialogue ou non
+    private String imeiDevice;
+    private String tokenHealysa;
 
     public boolean isAlreadyChatting() {
         return alreadyChatting;
@@ -824,6 +826,23 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public void setVoiceList(VoicesList voiceList) {
         this.voiceList = voiceList;
     }
+
+    public String getImeiDevice() {
+        return imeiDevice;
+    }
+
+    public String getTokenHealysa() {
+        return tokenHealysa;
+    }
+
+    public void setTokenHealysa(String tokenHealysa) {
+        this.tokenHealysa = tokenHealysa;
+    }
+
+    public void setImeiDevice(String imeiDevice) {
+        this.imeiDevice = imeiDevice;
+    }
+
     /**
      * initialisations
      */
