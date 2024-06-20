@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_black">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_blue">
+
+            <!-- close btn -->
+            <RelativeLayout
+                android:id="@+id/close_blue_mic"
+                android:layout_width="100px"
+                android:layout_height="100px"
+                android:layout_marginTop="20px"
+                android:layout_marginStart="140px"
+                android:clickable="true"
+                android:elevation="0.8dp"
+                android:background="@drawable/ellipse_opened"
+                android:onClick="closeBlueMicPage">
+                <ImageView
+                    android:layout_width="60px"
+                    android:layout_height="60px"
+                    android:layout_centerInParent="true"
+                    android:src="@drawable/blue_mic_icon" />
+            </RelativeLayout>
+
+            <!-- White window -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="348dp"
+                android:layout_marginHorizontal="60px"
+                android:layout_marginBottom="35dp"
+                android:layout_marginTop="140px"
+                android:paddingVertical="20px"
+                android:orientation="vertical"
+                android:background="@drawable/window_bg">
+
+                <!--  TITLE  -->
+                <TextView
+                    android:id="@+id/layout_blue_mic_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/menu_option_bluemic"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:layout_gravity="center"/>
+
+                <!--  CONTENT  -->
+                <RelativeLayout
+                    android:id="@+id/layout_blue_mic_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginHorizontal="20px"
+                    android:layout_marginBottom="20px">
+
+
+                    <!--       selected blue mic        -->
+                    <RelativeLayout
+                        android:id="@+id/layout_blue_mic_selected"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20px">
+
+                        <TextView
+                            android:id="@+id/selected_blue_mic_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text=""
+                            android:gravity="center"/>
+
+                    </RelativeLayout>
+
+
+                    <!--       line below selected blue mic      -->
+                    <View
+                        android:id="@+id/line_below_selected_mic"
+                        android:layout_width="match_parent"
+                        android:layout_height="5px"
+                        android:layout_marginTop="20px"
+                        android:background="#80d8d8d8"
+                        android:layout_below="@+id/layout_blue_mic_selected"/>
+
+                    <!--       discovered blue mics        -->
+                    <RelativeLayout
+                        android:id="@+id/layout_blue_mic_discovered"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="20px"
+                        android:layout_marginBottom="20px"
+                        android:layout_below="@+id/line_below_selected_mic"
+                        android:layout_above="@+id/start_scan_btn_lyt">
+
+                        <ListView
+                            android:id="@+id/list_blue_mic_discovered"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:dividerHeight="20px"
+                            android:divider="@android:color/transparent"
+                            android:scrollbars="vertical" />
+
+                    </RelativeLayout>
+
+
+
+                    <!--  START SCAN  -->
+                    <RelativeLayout
+                        android:id="@+id/start_scan_btn_lyt"
+                        android:layout_width="100px"
+                        android:layout_height="100px"
+                        android:background="@drawable/ellipse_black"
+                        android:clickable="false"
+                        android:alpha="0.3"
+                        android:onClick="startScan"
+                        android:layout_alignParentBottom="true"
+                        android:layout_alignParentEnd="true">
+
+                        <ImageView
+                            android:id="@+id/start_scan_btn"
+                            android:layout_width="60px"
+                            android:layout_height="60px"
+                            android:layout_centerInParent="true"
+                            android:src="@drawable/scan"
+                            app:tint="@color/white" />
+                    </RelativeLayout>
+
+
+                    <!--  STOP SCAN  -->
+                    <RelativeLayout
+                        android:id="@+id/stop_scan_btn_lyt"
+                        android:layout_width="100px"
+                        android:layout_height="100px"
+                        android:background="@drawable/ellipse_green"
+                        android:clickable="false"
+                        android:alpha="0.3"
+                        android:layout_marginRight="20px"
+                        android:onClick="stopScan"
+                        android:layout_toLeftOf="@+id/start_scan_btn_lyt"
+                        android:layout_alignParentBottom="true">
+
+                        <ImageView
+                            android:id="@+id/stop_scan_btn"
+                            android:layout_width="60px"
+                            android:layout_height="60px"
+                            android:src="@drawable/stop_scan"
+                            app:tint="@color/white"
+                            android:layout_centerInParent="true" />
+                    </RelativeLayout>
+
+
+                    <!--  CONNECT  -->
+                    <RelativeLayout
+                        android:id="@+id/connect_btn_lyt"
+                        android:layout_width="100px"
+                        android:layout_height="100px"
+                        android:background="@drawable/ellipse_black"
+                        android:clickable="false"
+                        android:alpha="0.3"
+                        android:onClick="connect"
+                        android:layout_marginRight="20px"
+                        android:layout_toLeftOf="@+id/stop_scan_btn_lyt"
+                        android:layout_alignParentBottom="true">
+
+                        <ImageView
+                            android:id="@+id/connect_btn"
+                            android:layout_width="60px"
+                            android:layout_height="60px"
+                            android:src="@drawable/link"
+                            app:tint="@color/white"
+                            android:layout_centerInParent="true" />
+                    </RelativeLayout>
+
+
+                    <!--  DISCONNECT  -->
+                    <RelativeLayout
+                        android:id="@+id/disconnect_btn_lyt"
+                        android:layout_width="100px"
+                        android:layout_height="100px"
+                        android:background="@drawable/ellipse_green"
+                        android:clickable="false"
+                        android:alpha="0.3"
+                        android:onClick="disconnect"
+                        android:layout_marginRight="20px"
+                        android:layout_toLeftOf="@+id/connect_btn_lyt"
+                        android:layout_alignParentBottom="true">
+
+                        <ImageView
+                            android:id="@+id/disconnect_btn"
+                            android:layout_width="60px"
+                            android:layout_height="60px"
+                            android:src="@drawable/unlink"
+                            app:tint="@color/white"
+                            android:layout_centerInParent="true" />
+                    </RelativeLayout>
+
+
+                </RelativeLayout>
+
+            </LinearLayout>
+        </RelativeLayout>
+    </RelativeLayout>
+</RelativeLayout>
