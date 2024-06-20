@@ -1,5 +1,6 @@
 package com.robotique.aevaweb.teamchatbuddy.utilis;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import okhttp3.RequestBody;
@@ -85,7 +86,7 @@ public interface ApiEndpointInterface {
     );
 
     @GET("api/beacon/{imei}")
-    Call<JsonObject> getLocationBeaconHealysa(
+    Call<JsonArray> getLocationBeaconHealysa(
             @Path( value = "imei", encoded = true) String deviceImei,
             @Header("Authorization") String token
     );
