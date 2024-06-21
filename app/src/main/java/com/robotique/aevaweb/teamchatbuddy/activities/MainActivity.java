@@ -96,6 +96,7 @@ import java.util.List;
 import java.util.Random;
 
 import java.util.StringTokenizer;
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -201,9 +202,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private boolean isPersonDetected = false;
     private boolean wasPersonDetected = false;
     private boolean personIsVisible = false;
+    private boolean personNotYetDetected = true;
     private boolean sendInvitationPending = false;
     private boolean isProcessingReTrack = false;
     private boolean isTrackingAlreadyInitialised = false;
+    private long timestartTogetpersonDetected =0;
 
     private CountDownTimer timerEcoute;
     private CountDownTimer responseTimeout;
@@ -2492,6 +2495,32 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
             //#endregion re-tracking, re-centering gaze and head
 
+            //#region Timer to exit the application
+            if (teamChatBuddyApplication.getParamFromFile("TRACKING_timeout","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("TRACKING_timeout","TeamChatBuddy.properties").trim().equals("")) {
+                if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_timeout","TeamChatBuddy.properties"))!=0){
+                    if (isPersonDetected) {
+                        Log.e("MRAAR", "isPersonDetected true");
+                        personNotYetDetected = true;
+                    } else {
+                        Log.e("MRAAR", "isPersonDetected false");
+                        if (personNotYetDetected) {
+
+                            timestartTogetpersonDetected = currentTime;
+                            Log.e("MRAAR", "isPersonDetected false take time " + timestartTogetpersonDetected);
+                            personNotYetDetected = false;
+                        }
+                        if (currentTime >= timestartTogetpersonDetected + (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_timeout","TeamChatBuddy.properties"))*1000)) {
+                            Log.e("MRAAR", "isPersonDetected false time isPassed app gona close");
+                            finishAffinity();
+                            System.exit(0);
+                        }
+                    }
+                }
+
+            }
+
+            //#endregion Timer to exit the application
+
         }
     };
 
@@ -2744,7 +2773,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             );
         });
     }
-
     private void detectPose(ImageProxy imageProxy) {
         poseLandmarkerHelper.detectLiveStream(imageProxy);
     }

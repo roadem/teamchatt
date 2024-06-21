@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 20; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 21; // upgrade this whenever you want to overwrite the file
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -471,11 +471,13 @@ public class ConfigurationFile {
             setProperty("TRACKING_delay_stoplisten","3");
             props.addPropertyComment("TRACKING_regard_center", "Time to refocus the pupils of the eyes if the person being monitored no longer looks towards the robot");
             setProperty("TRACKING_regard_center","30");
+            props.addPropertyComment("TRACKING_timeout", "Time in seconds to close TeamChatBuddy if no person is tracked within this duration ");
+            setProperty("TRACKING_timeout","600");
 
             props.addPropertyComment("TRACKING_Welcome","");
             props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
             props.addPropertyComment("TRACKING_Welcome", "Start Welcome");
-            setProperty("TRACKING_Welcome","No");
+            setProperty("TRACKING_Welcome","Yes");
             props.addPropertyComment("TRACKING_delay_welcome", "Delay in minuts to welcome after watching no one");
             setProperty("TRACKING_delay_welcome","10");
             props.addPropertyComment("TRACKING_duration_welcome", "the person looks at Buddy for 2 seconds to issue an invitation");
@@ -486,9 +488,9 @@ public class ConfigurationFile {
             String[] TRACKING_INVITATIONS_EN = {"Hello, how can I help you?/Hello! How can I make your day more enjoyable?/Hello, what can I do for you today?"};
             setProperty("TRACKING_welcome_EN", Arrays.toString(TRACKING_INVITATIONS_EN));
             props.addPropertyComment("TRACKING_welcome_CHATGPT", "Welcome message with ChatGPT");
-            setProperty("TRACKING_welcome_CHATGPT","No");
+            setProperty("TRACKING_welcome_CHATGPT","Yes");
             props.addPropertyComment("TRACKING_welcome_model", "Welcome ChatGPT model");
-            setProperty("TRACKING_welcome_model","gpt-3.5-turbo");
+            setProperty("TRACKING_welcome_model","gpt-4o");
             props.addPropertyComment("TRACKING_welcome_temperature", "Welcome Temperature");
             setProperty("TRACKING_welcome_temperature","0.5");
             props.addPropertyComment("TRACKING_welcome_prompt_FR", "Welcome Prompt for ChatGPT");
