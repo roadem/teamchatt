@@ -96,6 +96,7 @@ import java.util.List;
 import java.util.Random;
 
 import java.util.StringTokenizer;
+import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -165,6 +166,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private int TRACKING_DELAY_WELCOME;
     private int TRACKING_DURATION_WELCOME;
     private int TRACKING_WELCOME_MAX_TOKEN;
+    private int TRACKING_TIMEOUT;
 
     private String TRACKING_WELCOME_FR;
     private String TRACKING_WELCOME_EN;
@@ -204,6 +206,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private boolean sendInvitationPending = false;
     private boolean isProcessingReTrack = false;
     private boolean isTrackingAlreadyInitialised = false;
+    private boolean isReTrack = false;
 
     private CountDownTimer timerEcoute;
     private CountDownTimer responseTimeout;
@@ -351,7 +354,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen")) || !isFirstLaunch){
                             teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                         }
-                        initTracking(false);
+                        isReTrack = false;
+                        initTracking();
                     }
                 }
             }
@@ -1499,7 +1503,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     @Override
                     public void run() {
                         if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
-                            initTracking(true);
+                            isReTrack = true;
+                            initTracking();
                         }
                     }
                 });
@@ -1698,7 +1703,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 responseFromChatbot.getQuestionToDescribePicture(bitmap);
                                 if(timerPhoto != null) timerPhoto.cancel();
                                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
-                                    initTracking(true);
+                                    isReTrack = true;
+                                    initTracking();
                                 }
                             }
                             @Override
@@ -1706,7 +1712,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 Toast.makeText(MainActivity.this, "Erreur lors de la capture de l'image", Toast.LENGTH_SHORT).show();
                                 Log.e("CameraX", "Image capture error", exception);
                                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
-                                    initTracking(true);
+                                    isReTrack = true;
+                                    initTracking();
                                 }
                             }
                         });
@@ -2492,10 +2499,18 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
             //#endregion re-tracking, re-centering gaze and head
 
+            //#region Timer to exit the application
+            if ( TRACKING_TIMEOUT!=0 && !isPersonDetected && currentTime - lastVisibleTime_saved >= TRACKING_TIMEOUT * 1000L){
+                finishAffinity();
+                System.exit(0);
+            }
+
+            //#endregion Timer to exit the application
+
         }
     };
 
-    private void initTracking(boolean isReTrack){
+    private void initTracking(){
         Log.d(TAG_TRACKING, "initTracking(isReTrack="+isReTrack+")");
 
         if(!isFirstLaunch && !isReTrack){
@@ -2532,6 +2547,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             TRACKING_WELCOME_PROMPT_FR = teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_prompt_FR", "TeamChatBuddy.properties");
             TRACKING_WELCOME_PROMPT_EN = teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_prompt_EN", "TeamChatBuddy.properties");
             TRACKING_WELCOME_MAX_TOKEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_maxtoken", "TeamChatBuddy.properties"));
+            try {
+                TRACKING_TIMEOUT=Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_timeout","TeamChatBuddy.properties"));
+            }
+            catch (Exception e){
+                TRACKING_TIMEOUT=0;
+            }
+
         }
 
         if(isFirstLaunch && !isReTrack && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
@@ -2543,7 +2565,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
                         startListeningQuestion();
                     }
-                    startTracking(isReTrack);
+                    else{
+                        teamChatBuddyApplication.setAlreadyChatting(false);
+                    }
+                    startTracking();
                 }
             });
         }
@@ -2551,11 +2576,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             if(isFirstLaunch && !isReTrack && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
                 startListeningQuestion();
             }
-            startTracking(isReTrack);
+            startTracking();
         }
     }
 
-    private void startTracking(boolean isReTrack){
+    private void startTracking(){
         Log.d(TAG_TRACKING, "startTracking(isReTrack="+isReTrack+")");
 
         poseTracking= new PoseTracking();
@@ -2569,10 +2594,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         viewModel.setDelegate(PoseLandmarkerHelper.DELEGATE_GPU);
         viewModel.set_model(PoseLandmarkerHelper.MODEL_POSE_LANDMARKER_FULL);
 
-        setUpCamera(isReTrack);
+        setUpCamera();
     }
 
-    private void setUpCamera(boolean isReTrack) {
+    private void setUpCamera() {
         Log.i(TAG_TRACKING,"setUpCamera(isReTrack="+isReTrack+")");
         isTrackingAlreadyInitialised = false;
         previewView.post(() -> {
@@ -2744,7 +2769,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             );
         });
     }
-
     private void detectPose(ImageProxy imageProxy) {
         poseLandmarkerHelper.detectLiveStream(imageProxy);
     }
@@ -2758,7 +2782,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 stopTracking();
                 poseTracking.lookAtCenter();
                 poseTracking.centerHead();
-                initTracking(true);
+                isReTrack = true;
+                initTracking();
             }
         });
     }
