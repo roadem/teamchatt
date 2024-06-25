@@ -1764,6 +1764,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                     }
                                     else {
                                         Log.e(TAG, "Hotword result  size = 0 : " );
+                                        speechRecognizer.startListening(speechRecognizerIntent2);
                                     }
                                 }
 
@@ -2058,6 +2059,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 }
                                 else {
                                     Log.e(TAG, "question result onResults size = 0 : " );
+                                    speechRecognizer.startListening(speechRecognizerIntent);
                                 }
                             }
 
