@@ -1578,6 +1578,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 BuddySDK.Companion.raiseEvent("enableLeftEye");
                 BuddySDK.Companion.raiseEvent("enableHeadSensors");
                 BuddySDK.Companion.raiseEvent("enableBodySensors");
+                BuddySDK.Companion.raiseEvent("disableOnMouth");
             }else {
                 Log.e("MRARA","disable Raise event NO");
                 BuddySDK.Companion.raiseEvent("disableRightEye");

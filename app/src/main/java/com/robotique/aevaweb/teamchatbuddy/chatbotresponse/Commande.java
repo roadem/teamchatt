@@ -671,7 +671,7 @@ public class Commande {
                                 public void run() {
                                     CMD_QUIT();
                                 }
-                            },2000);
+                            },5000);
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
@@ -681,7 +681,7 @@ public class Commande {
                                 public void run() {
                                     CMD_QUIT();
                                 }
-                            },2000);
+                            },5000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
@@ -692,7 +692,7 @@ public class Commande {
                                 public void run() {
                                     CMD_QUIT();
                                 }
-                            },2000);
+                            },5000);
                         }
                     }
                 });
