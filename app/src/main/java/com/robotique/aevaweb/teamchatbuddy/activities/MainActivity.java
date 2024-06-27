@@ -645,10 +645,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             //Désactiver le trigger Companion de la bouche et de OK BUDDY
             BuddySDK.Companion.raiseEvent("disableOkBuddy");
             BuddySDK.Companion.raiseEvent("disableOnMouth");
-            BuddySDK.Companion.raiseEvent("disableRightEye");
-            BuddySDK.Companion.raiseEvent("disableLeftEye");
-            BuddySDK.Companion.raiseEvent("disableHeadSensors");
-            BuddySDK.Companion.raiseEvent("disableBodySensors");
+
 
             BuddySDK.Vision.stopCamera(0, new IVisionRsp.Stub() {
                 @Override
@@ -758,10 +755,21 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 if (teamChatBuddyApplication.getparam("Stimulis").equals("true")) {
                     Log.e("FCHH","click");
                     if (!teamChatBuddyApplication.getAppIsCurrentlyDealingWithTheQuestion() && !mlKitIsDownloading) {
-                        if (teamChatBuddyApplication.getParamFromFile("Eye_touched_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Eye_touched_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
-                            executeBI("Eye_touched_Behavior");
+                        if (faceTouchData.getX()>200 && faceTouchData.getX()<565){
+                            if (teamChatBuddyApplication.getParamFromFile("touchLeftEye_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchLeftEye_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")) {
+                                executeBI("touchLeftEye_Behavior");
+                            }
                         }
-
+                        else if (faceTouchData.getX()>773 && faceTouchData.getX()<1120){
+                            if (teamChatBuddyApplication.getParamFromFile("touchRightEye_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchRightEye_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")) {
+                                executeBI("touchRightEye_Behavior");
+                            }
+                        }
+                        else {
+                            if (teamChatBuddyApplication.getParamFromFile("touchFace_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchFace_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")) {
+                                executeBI("touchFace_Behavior");
+                            }
+                        }
                     }
                 }
             }
@@ -1518,7 +1526,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
      */
 
     private void init() {
-
+        Log.e(TAG,"init() ");
         BuddySDK.UI.addFaceTouchListener(iuiFaceTouchCallback);
         if (teamChatBuddyApplication.getparam("Stimulis").equals("true")){
             handlerForSensor = new Handler();
@@ -1537,6 +1545,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         commande = new Commande( this );
 
         //init config file
+        teamChatBuddyApplication.pushFiles("TeamChatBuddyTasks.json","storage/emulated/0/Configs/Users/Default/Companion/Domains");
        initOrMajOrNone = teamChatBuddyApplication.createPropertiesFile();
 
     }
@@ -1556,6 +1565,27 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         settingClass.setSwitchVisibility(teamChatBuddyApplication.getparam("switch_visibility"));
         settingClass.setSwitchEmotion(teamChatBuddyApplication.getparam("switch_emotion"));
         Log.i(TAG, settingClass.toString());
+        if (teamChatBuddyApplication.getparam("Stimulis").equals("true")){
+            Log.e("MRARA","disnable Raise event Stimilus");
+            BuddySDK.Companion.raiseEvent("disableRightEye");
+            BuddySDK.Companion.raiseEvent("disableLeftEye");
+            BuddySDK.Companion.raiseEvent("disableHeadSensors");
+            BuddySDK.Companion.raiseEvent("disableBodySensors");
+        }else {
+            if (teamChatBuddyApplication.getParamFromFile("Companion_Enabled_With_Stimulis","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                Log.e("MRARA","enable Raise event Yes");
+                BuddySDK.Companion.raiseEvent("enableRightEye");
+                BuddySDK.Companion.raiseEvent("enableLeftEye");
+                BuddySDK.Companion.raiseEvent("enableHeadSensors");
+                BuddySDK.Companion.raiseEvent("enableBodySensors");
+            }else {
+                Log.e("MRARA","disable Raise event NO");
+                BuddySDK.Companion.raiseEvent("disableRightEye");
+                BuddySDK.Companion.raiseEvent("disableLeftEye");
+                BuddySDK.Companion.raiseEvent("disableHeadSensors");
+                BuddySDK.Companion.raiseEvent("disableBodySensors");
+            }
+        }
 
         wifiBroadCastReceiver.setAct(getApplicationContext());
         IntentFilter intentFilter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
@@ -1815,23 +1845,37 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         boolean body_left_touched = BuddySDK.Sensors.BodyTouchSensors().LeftShoulder().isTouched();
         boolean body_right_touched = BuddySDK.Sensors.BodyTouchSensors().RightShoulder().isTouched();
         Log.i("DEBUG_BI","detectBI : "+head_top_touched+"   -   "+head_left_touched+"   -   "+head_right_touched+"   -   "+body_torso_touched+"   -   "+body_left_touched+"   -   "+body_right_touched);
-        if (!teamChatBuddyApplication.getAppIsCurrentlyDealingWithTheQuestion() && (head_top_touched || head_left_touched ||head_right_touched) && !mlKitIsDownloading){
-            if (teamChatBuddyApplication.getParamFromFile("Head_Stroked_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Head_Stroked_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
-                executeBI("Head_Stroked_Behavior");
+        if (!teamChatBuddyApplication.getAppIsCurrentlyDealingWithTheQuestion() && !mlKitIsDownloading){
+            if (head_top_touched){
+                if (teamChatBuddyApplication.getParamFromFile("touchCenterHead_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchCenterHead_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+                    executeBI("touchCenterHead_Behavior");
+                }
             }
-
-        }
-        else if (!teamChatBuddyApplication.getAppIsCurrentlyDealingWithTheQuestion() && body_torso_touched && !mlKitIsDownloading){
-            if (teamChatBuddyApplication.getParamFromFile("Torso_Stroked_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Torso_Stroked_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
-                executeBI("Torso_Stroked_Behavior");
+            else if (head_left_touched){
+                if (teamChatBuddyApplication.getParamFromFile("touchLeftHead_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchLeftHead_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+                    executeBI("touchLeftHead_Behavior");
+                }
             }
-
-        }
-        else if(!teamChatBuddyApplication.getAppIsCurrentlyDealingWithTheQuestion() && (body_left_touched||body_right_touched) && !mlKitIsDownloading){
-            if (teamChatBuddyApplication.getParamFromFile("Shoulders_Stroked_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Shoulders_Stroked_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
-                executeBI("Shoulders_Stroked_Behavior");
+            else if (head_right_touched){
+                if (teamChatBuddyApplication.getParamFromFile("touchRightHead_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchRightHead_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+                    executeBI("touchRightHead_Behavior");
+                }
             }
-
+            else if (body_torso_touched){
+                if (teamChatBuddyApplication.getParamFromFile("touchHeart_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchHeart_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+                    executeBI("touchHeart_Behavior");
+                }
+            }
+            else if (body_left_touched){
+                if (teamChatBuddyApplication.getParamFromFile("touchLeftShoulder_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchLeftShoulder_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+                    executeBI("touchLeftShoulder_Behavior");
+                }
+            }
+            else if (body_right_touched){
+                if (teamChatBuddyApplication.getParamFromFile("touchRightShoulder_Behavior", "TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("touchRightShoulder_Behavior", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+                    executeBI("touchRightShoulder_Behavior");
+                }
+            }
         }
     }
 

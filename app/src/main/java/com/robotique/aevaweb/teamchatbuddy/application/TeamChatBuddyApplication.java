@@ -96,6 +96,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -4471,6 +4473,45 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             e.printStackTrace();
             return 0;
         }
+    }
+    //fonction pour push files
+
+    public void pushFiles(String assetPath, String dir) {
+
+        Log.i(TAG, "pushFiles( " + assetPath + " , " + dir + " )");
+
+        File mWorkingPath = new File(dir);
+
+        // if this directory does not exist, make one.
+        if (!mWorkingPath.exists()) {
+            if (!mWorkingPath.mkdirs()) {
+                Log.i(TAG, "pushFiles : create directory");
+            }
+        } else {
+            Log.i(TAG, "pushFiles : directory already exists");
+        }
+
+
+
+                Log.i(TAG, "pushFiles : Check if assetPath is a file if");
+                // assetPath is a file path, not a directory
+                try (InputStream in = getAssets().open(assetPath);
+                     OutputStream out = new FileOutputStream(new File(mWorkingPath, assetPath.substring(assetPath.lastIndexOf('/') + 1)))) {
+
+                    byte[] buf = new byte[1024];
+                    int len;
+                    Log.i(TAG, "pushFiles : Check if assetPath is a file while");
+                    while ((len = in.read(buf)) > 0) {
+                        out.write(buf, 0, len);
+                    }
+
+                    Log.i(TAG, "pushFiles : Copied file: " + assetPath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.e(TAG, "pushFiles : IOException : " + e);
+                }
+
+
     }
 
 
