@@ -284,9 +284,9 @@ public class ConfigurationFile {
             setProperty("touchRightShoulder_Behavior","RightShoulder");
             setProperty("touchHeart_Behavior","CenterHeart");
 
-            props.addPropertyComment("Companion_Enabled_With_Stimulis","");
-            props.addPropertyComment("Companion_Enabled_With_Stimulis","Parameter to configure whether to keep the Companion enabled when Stimulis are disabled (Yes/No).");
-            setProperty("Companion_Enabled_With_Stimulis","No");
+            props.addPropertyComment("use_companion_when_stimulis_disabled","");
+            props.addPropertyComment("use_companion_when_stimulis_disabled","Parameter to configure whether to keep the Companion enabled when Stimulis are disabled (Yes/No).");
+            setProperty("use_companion_when_stimulis_disabled","No");
 
             props.addPropertyComment("show_openAI_prices","");
             props.addPropertyComment("show_openAI_prices","Consumption Parameters");
