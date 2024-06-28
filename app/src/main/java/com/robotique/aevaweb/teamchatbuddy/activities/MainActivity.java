@@ -2006,15 +2006,17 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if ( !mlKitIsDownloading){
             Intent intent = new Intent(MainActivity.this,SettingsActivity.class);
             intent.putExtra("activity_name", "main");
-            finish();
             startActivity(intent);
+            finish();
+
             overridePendingTransition(0, 0);
         }else if (teamChatBuddyApplication.getBIExecution()){
             BIPlayer.getInstance().stopBehaviour();
             Intent intent = new Intent(MainActivity.this,SettingsActivity.class);
             intent.putExtra("activity_name", "main");
-            finish();
             startActivity(intent);
+            finish();
+
             overridePendingTransition(0, 0);
         }
     }
