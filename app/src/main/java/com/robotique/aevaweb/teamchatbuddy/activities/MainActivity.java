@@ -1545,6 +1545,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         commande = new Commande( this );
 
         //init config file
+        teamChatBuddyApplication.pushFiles("teamchat.json","storage/emulated/0/Configs/Users/Default/Companion/Domains");
         teamChatBuddyApplication.pushFiles("TeamChatBuddyTasks.json","storage/emulated/0/Configs/Users/Default/Companion/Domains");
        initOrMajOrNone = teamChatBuddyApplication.createPropertiesFile();
 

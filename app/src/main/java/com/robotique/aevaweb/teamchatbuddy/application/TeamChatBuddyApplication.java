@@ -4492,11 +4492,16 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
 
 
-
+        // Check if assetPath is a file
+        File outFile = new File(mWorkingPath, assetPath.substring(assetPath.lastIndexOf('/') + 1));
+        if (outFile.exists()) {
+            Log.i(TAG, "pushFiles : file already exists, skipping copy");
+            return; // If file exists, do nothing
+        }
                 Log.i(TAG, "pushFiles : Check if assetPath is a file if");
                 // assetPath is a file path, not a directory
                 try (InputStream in = getAssets().open(assetPath);
-                     OutputStream out = new FileOutputStream(new File(mWorkingPath, assetPath.substring(assetPath.lastIndexOf('/') + 1)))) {
+                     OutputStream out = new FileOutputStream(outFile)) {
 
                     byte[] buf = new byte[1024];
                     int len;
