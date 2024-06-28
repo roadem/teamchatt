@@ -1572,7 +1572,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             BuddySDK.Companion.raiseEvent("disableHeadSensors");
             BuddySDK.Companion.raiseEvent("disableBodySensors");
         }else {
-            if (teamChatBuddyApplication.getParamFromFile("Companion_Enabled_With_Stimulis","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+            if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
                 Log.e("MRARA","enable Raise event Yes");
                 BuddySDK.Companion.raiseEvent("enableRightEye");
                 BuddySDK.Companion.raiseEvent("enableLeftEye");
