@@ -44,6 +44,7 @@ import androidx.annotation.NonNull;
 
 import com.bfr.buddy.utils.events.EventItem;
 import com.bfr.buddysdk.BuddyActivity;
+import com.bfr.buddysdk.BuddySDK;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
@@ -403,6 +404,28 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchBIDisplay.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchBIDisplay(String.valueOf(b));
             teamChatBuddyApplication.setparam("Stimulis",String.valueOf(b));
+            if (teamChatBuddyApplication.getparam("Stimulis").equals("true")){
+                Log.e("MRARA","disnable Raise event Stimilus");
+                BuddySDK.Companion.raiseEvent("disableRightEye");
+                BuddySDK.Companion.raiseEvent("disableLeftEye");
+                BuddySDK.Companion.raiseEvent("disableHeadSensors");
+                BuddySDK.Companion.raiseEvent("disableBodySensors");
+            }else {
+                if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                    Log.e("MRARA","enable Raise event Yes");
+                    BuddySDK.Companion.raiseEvent("enableRightEye");
+                    BuddySDK.Companion.raiseEvent("enableLeftEye");
+                    BuddySDK.Companion.raiseEvent("enableHeadSensors");
+                    BuddySDK.Companion.raiseEvent("enableBodySensors");
+                    BuddySDK.Companion.raiseEvent("disableOnMouth");
+                }else {
+                    Log.e("MRARA","disable Raise event NO");
+                    BuddySDK.Companion.raiseEvent("disableRightEye");
+                    BuddySDK.Companion.raiseEvent("disableLeftEye");
+                    BuddySDK.Companion.raiseEvent("disableHeadSensors");
+                    BuddySDK.Companion.raiseEvent("disableBodySensors");
+                }
+            }
             set.setSwitchBIDisplay(String.valueOf(b));
 
         });
