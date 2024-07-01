@@ -8,12 +8,6 @@ public class Setting {
 
     private String header;
     private String apiKey;
-    private String totale_consommation;
-    private String prix_input_gpt3;
-    private String prix_output_gpt3;
-    private String prix_input_gpt4;
-    private String prix_output_gpt4;
-    private String prix_whisper;
 
     private String chatbot;
     private String langue;
@@ -32,54 +26,6 @@ public class Setting {
     private String projectID;
     public Setting() {
         // Method left empty intentionally because no specific action is needed for this update.
-    }
-
-    public String getTotale_consommation() {
-        return totale_consommation;
-    }
-
-    public void setTotale_consommation(String totale_consommation) {
-        this.totale_consommation = totale_consommation;
-    }
-
-    public String getPrix_input_gpt3() {
-        return prix_input_gpt3;
-    }
-
-    public void setPrix_input_gpt3(String prix_input_gpt3) {
-        this.prix_input_gpt3 = prix_input_gpt3;
-    }
-
-    public String getPrix_output_gpt3() {
-        return prix_output_gpt3;
-    }
-
-    public void setPrix_output_gpt3(String prix_output_gpt3) {
-        this.prix_output_gpt3 = prix_output_gpt3;
-    }
-
-    public String getPrix_input_gpt4() {
-        return prix_input_gpt4;
-    }
-
-    public void setPrix_input_gpt4(String prix_input_gpt4) {
-        this.prix_input_gpt4 = prix_input_gpt4;
-    }
-
-    public String getPrix_output_gpt4() {
-        return prix_output_gpt4;
-    }
-
-    public void setPrix_output_gpt4(String prix_output_gpt4) {
-        this.prix_output_gpt4 = prix_output_gpt4;
-    }
-
-    public String getPrix_whisper() {
-        return prix_whisper;
-    }
-
-    public void setPrix_whisper(String prix_whisper) {
-        this.prix_whisper = prix_whisper;
     }
 
     public String getSwitchEmotion() {
@@ -249,18 +195,12 @@ public class Setting {
                 && this.switchModeStream == setting.getSwitchModeStream()
                 && this.switchBIDisplay == setting.getSwitchBIDisplay()
                 && this.switchCommande == setting.getSwitchCommande()
-                && this.totale_consommation == setting.getTotale_consommation()
-                && this.prix_input_gpt3 == setting.getPrix_input_gpt3()
-                && this.prix_output_gpt3 == setting.getPrix_output_gpt3()
-                && this.prix_input_gpt4 == setting.getPrix_input_gpt4()
-                && this.prix_output_gpt4 == setting.getPrix_output_gpt4()
-                && this.prix_whisper == setting.getPrix_whisper()
                 && this.projectID == setting.getProjectID();
     }
     @Override
     public int hashCode() {
         return Objects.hash(
-                duration, attempt, chatbot, langue, vitesse, volume, switchVisibility, switchEmotion,switchLanguageDetection,switchModeStream,switchCommande,totale_consommation,prix_input_gpt3,prix_output_gpt3,prix_input_gpt4,prix_output_gpt4,prix_whisper
+                duration, attempt, chatbot, langue, vitesse, volume, switchVisibility, switchEmotion,switchLanguageDetection,switchModeStream,switchCommande
         );
     }
 

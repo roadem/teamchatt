@@ -44,6 +44,7 @@ import androidx.annotation.NonNull;
 
 import com.bfr.buddy.utils.events.EventItem;
 import com.bfr.buddysdk.BuddyActivity;
+import com.bfr.buddysdk.BuddySDK;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
@@ -90,8 +91,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private LinearLayout menu_option_projectID_lyt;
     private LinearLayout menu_option_stt_lyt;
     private LinearLayout menu_option_chatbot_lyt;
-    private LinearLayout openAI_prices;
-    private ImageView refresh_lyt;
     private ImageView affichage_Languages_List_lyt;
 
     private TextView menu_title;
@@ -111,13 +110,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private TextView menu_header_textView;
     private TextView menu_apiKey_textView;
 
-
-    private TextView menu_consommation_textView;
-    private TextView menu_inputGPT3Prix_textView;
-    private TextView menu_outputGPT3Prix_textView;
-    private TextView menu_inputGPT4Prix_textView;
-    private TextView menu_outputGPT4Prix_textView;
-    private TextView menu_whisperPrix_textView;
 
     private TextView  menu_option_commande_textView;
 
@@ -140,12 +132,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private EditText menu_header_editText;
     private EditText menu_apiKey_editText;
     private EditText menu_option_projectID_editText;
-    private TextView menu_totalConsommation_textView;
-    private EditText menu_inputGPT3Prix_editText;
-    private EditText menu_outputGPT3Prix_editText;
-    private EditText menu_inputGPT4Prix_editText;
-    private EditText menu_outputGPT4Prix_editText;
-    private EditText menu_whisperPrix_editText;
 
 
     private TextView volume_seekbar_value;
@@ -190,13 +176,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private String cabecera ="Cabecera";
     private String kopfzeile ="Kopfzeile";
     private String openAIKey = "openAI_API_Key";
-    private String configurationFile ="TeamChatValett.properties";
-    private String prixInputgpt3 = "Prix_input_gpt3";
-    private String prixOutputgpt3 = "Prix_output_gpt3";
-    private String prixInputgpt4 = "Prix_input_gpt4";
-    private String prixOutputgpt4 = "Prix_output_gpt4";
-    private String prixWhisper = "Prix_whisper";
-    private String totalConsommation = "Total_cons";
     private Boolean modelDownloading = false;
     private boolean english_is_downloaded = false;
     private boolean french_is_downloaded = false;
@@ -209,6 +188,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private LanguageDetailsChecker languageDetailsChecker;
     private RelativeLayout popupLanguageList;
     private LinearLayout popupLanguageListContent;
+    private ImageView dollar_icon;
 
 
     @Override
@@ -239,8 +219,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         popupLanguageList= findViewById(R.id.popup_Languages_List);
         popupLanguageListContent= findViewById(R.id.popup_Languages_List_linearLayout);
         menu_option_projectID_lyt = findViewById(R.id.menu_option_projectID_lyt);
-        openAI_prices = findViewById(R.id.openAI_prices);
-        refresh_lyt = findViewById(R.id.refresh_lyt);
         affichage_Languages_List_lyt = findViewById(R.id.Android_STT_language_lyt);
         menu_option_stt_lyt = findViewById(R.id.menu_option_stt_lyt);
         menu_option_chatbot_lyt = findViewById(R.id.menu_option_chatbot_lyt);
@@ -255,12 +233,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         menu_option_detectLanguage_textView = findViewById(R.id.menu_option_language_detection_textView);
         menu_option_mode_stream_textView = findViewById(R.id.menu_option_mode_stream_textView);
         menu_apiKey_textView = findViewById(R.id.api_key_txt);
-        menu_consommation_textView = findViewById(R.id.consommation_openai_txt);
-        menu_inputGPT3Prix_textView = findViewById(R.id.prix_input_gpt3_txt);
-        menu_outputGPT3Prix_textView = findViewById(R.id.prix_output_gpt3_txt);
-        menu_inputGPT4Prix_textView = findViewById(R.id.prix_input_gpt4_txt);
-        menu_outputGPT4Prix_textView = findViewById(R.id.prix_output_gpt4_txt);
-        menu_whisperPrix_textView = findViewById(R.id.prix_whisper_txt);
         menu_header_textView = findViewById(R.id.header_txt);
         menu_option_langue_spinner = findViewById(R.id.menu_option_langue_spinner);
         menu_option_stt_spinner = findViewById(R.id.menu_option_stt_spinner);
@@ -270,12 +242,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         menu_option_listening_attempt_editText = findViewById(R.id.menu_option_listening_attempt_editText);
         menu_option_projectID_editText = findViewById(R.id.menu_option_projectID_editText);
         menu_apiKey_editText = findViewById(R.id.api_key_editText);
-        menu_totalConsommation_textView = findViewById(R.id.consommation_openai_txtview);
-        menu_inputGPT3Prix_editText = findViewById(R.id.prix_input_gpt3_editText);
-        menu_outputGPT3Prix_editText = findViewById(R.id.prix_output_gpt3_editText);
-        menu_inputGPT4Prix_editText = findViewById(R.id.prix_input_gpt4_editText);
-        menu_outputGPT4Prix_editText = findViewById(R.id.prix_output_gpt4_editText);
-        menu_whisperPrix_editText = findViewById(R.id.prix_whisper_editText);
         menu_header_editText = findViewById(R.id.header_editText);
 
         volume_seekbar=findViewById(R.id.volume_seekbar);
@@ -311,6 +277,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchTrackingAutoListen = findViewById(R.id.switchTrackingAutoListen);
         switchTrackingInvitation = findViewById(R.id.switchTrackingInvitation);
         switchTrackingInvitationChatGpt = findViewById(R.id.switchTrackingInvitationChatGpt);
+        dollar_icon = findViewById(R.id.dollar_icon);
 
         set=new Setting();
         setting=new Setting();
@@ -403,6 +370,28 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchBIDisplay.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchBIDisplay(String.valueOf(b));
             teamChatBuddyApplication.setparam("Stimulis",String.valueOf(b));
+            if (teamChatBuddyApplication.getparam("Stimulis").equals("true")){
+                Log.e("MRARA","disnable Raise event Stimilus");
+                BuddySDK.Companion.raiseEvent("disableRightEye");
+                BuddySDK.Companion.raiseEvent("disableLeftEye");
+                BuddySDK.Companion.raiseEvent("disableHeadSensors");
+                BuddySDK.Companion.raiseEvent("disableBodySensors");
+            }else {
+                if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                    Log.e("MRARA","enable Raise event Yes");
+                    BuddySDK.Companion.raiseEvent("enableRightEye");
+                    BuddySDK.Companion.raiseEvent("enableLeftEye");
+                    BuddySDK.Companion.raiseEvent("enableHeadSensors");
+                    BuddySDK.Companion.raiseEvent("enableBodySensors");
+                    BuddySDK.Companion.raiseEvent("disableOnMouth");
+                }else {
+                    Log.e("MRARA","disable Raise event NO");
+                    BuddySDK.Companion.raiseEvent("disableRightEye");
+                    BuddySDK.Companion.raiseEvent("disableLeftEye");
+                    BuddySDK.Companion.raiseEvent("disableHeadSensors");
+                    BuddySDK.Companion.raiseEvent("disableBodySensors");
+                }
+            }
             set.setSwitchBIDisplay(String.valueOf(b));
 
         });
@@ -484,18 +473,15 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         handlerSTT();
 
         /**
-         *  Gestion du calcul de la consommation d'openai
+         *  Gestion de l'affichage du bouton permettant d'accéder à l'interface de consommation d'openai
          */
         String show_openAI_prices = teamChatBuddyApplication.getParamFromFile("show_openAI_prices", "TeamChatBuddy.properties");
-        if(show_openAI_prices != null && show_openAI_prices.trim().equalsIgnoreCase("Yes")){
-            openAI_prices.setVisibility(View.VISIBLE);
-            refresh_lyt.setVisibility(View.VISIBLE);
+        if(show_openAI_prices != null && show_openAI_prices.trim().equalsIgnoreCase("yes")){
+            dollar_icon.setVisibility(View.VISIBLE);
         }
         else{
-            openAI_prices.setVisibility(View.GONE);
-            refresh_lyt.setVisibility(View.INVISIBLE);
+            dollar_icon.setVisibility(View.INVISIBLE);
         }
-        handlerConsommation();
 
         /**
          * Gestion Tracking
@@ -952,271 +938,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         });
     }
 
-    private void handlerConsommation(){
-
-        DecimalFormat decimalFormatter = new DecimalFormat("##################.##############################");
-
-        double totaleConsommation = Double.parseDouble(teamChatBuddyApplication.getparam(totalConsommation));
-        teamChatBuddyApplication.setTotale_consommation(totaleConsommation);
-
-        String formattedValue = decimalFormatter.format(totaleConsommation);
-        menu_totalConsommation_textView.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-        menu_totalConsommation_textView.setText(formattedValue);
-
-
-        //prix input gpt3
-        if(teamChatBuddyApplication.getparam(prixInputgpt3).equals("")){
-            teamChatBuddyApplication.setparam(prixInputgpt3, teamChatBuddyApplication.getParamFromFile("Price_input_gpt3", configurationFile));
-        }
-
-        teamChatBuddyApplication.setPrix_input_gpt3(Double.parseDouble(teamChatBuddyApplication.getparam(prixInputgpt3)));
-
-        set.setPrix_input_gpt3(teamChatBuddyApplication.getparam(prixInputgpt3));
-        setting.setPrix_input_gpt3(teamChatBuddyApplication.getparam(prixInputgpt3));
-
-        menu_inputGPT3Prix_editText.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-        menu_inputGPT3Prix_editText.setText(teamChatBuddyApplication.getparam(prixInputgpt3));
-
-        menu_inputGPT3Prix_editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Method left empty intentionally because no specific action is needed for this update.
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(!charSequence.toString().isEmpty()){
-                    teamChatBuddyApplication.setparam(prixInputgpt3,charSequence.toString());
-                    teamChatBuddyApplication.setPrix_input_gpt3(Double.parseDouble(teamChatBuddyApplication.getparam("Prix_input_gpt3")));
-                    set.setPrix_input_gpt3(teamChatBuddyApplication.getparam(prixInputgpt3));
-                }
-            }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // Method left empty intentionally because no specific action is needed for this update.
-                teamChatBuddyApplication.setparam(prixInputgpt3,editable.toString());
-            }
-        });
-
-        menu_inputGPT3Prix_editText.setOnFocusChangeListener((v,hasFocus) -> {
-            if (hasFocus) {
-                View decorView = getWindow().getDecorView();
-                decorView.setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
-            } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
-            }
-        });
-
-        //button_close_menu_settings.setOnClickListener((v) -> btnCloseSettings());
-
-
-        //prix output gpt3
-        if (teamChatBuddyApplication.getparam(prixOutputgpt3).equals("")) {
-            String prix_output_gpt3_config_file = teamChatBuddyApplication.getParamFromFile("Price_output_gpt3", configurationFile);
-            Log.w("settings_debug","SharedPref do not contain prix_output_gpt3 ---> init SharedPref with value from configFile ["+prix_output_gpt3_config_file+"]");
-            teamChatBuddyApplication.setparam(prixOutputgpt3, prix_output_gpt3_config_file);
-        }
-        teamChatBuddyApplication.setPrix_output_gpt3(Double.parseDouble(teamChatBuddyApplication.getparam(prixOutputgpt3)));
-        Log.d("settings_debug","SharedPref contain ["+teamChatBuddyApplication.getparam(prixOutputgpt3)+"]");
-        Log.d("settings_debug","DOUBLE prix_output_gpt3 = ["+teamChatBuddyApplication.getPrix_output_gpt3()+"]");
-
-        set.setPrix_output_gpt3(teamChatBuddyApplication.getparam(prixOutputgpt3));
-        setting.setPrix_output_gpt3(teamChatBuddyApplication.getparam(prixOutputgpt3));
-
-        menu_outputGPT3Prix_editText.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-        menu_outputGPT3Prix_editText.setText(teamChatBuddyApplication.getparam(prixOutputgpt3));
-        menu_outputGPT3Prix_editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Method left empty intentionally because no specific action is needed for this update.
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(!charSequence.toString().isEmpty()){
-                    teamChatBuddyApplication.setparam(prixOutputgpt3,charSequence.toString());
-                    teamChatBuddyApplication.setPrix_output_gpt3(Double.parseDouble(teamChatBuddyApplication.getparam(prixOutputgpt3)));
-                    set.setPrix_output_gpt3(teamChatBuddyApplication.getparam(prixOutputgpt3));
-                }
-            }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // Method left empty intentionally because no specific action is needed for this update.
-                teamChatBuddyApplication.setparam(prixOutputgpt3,editable.toString());
-            }
-        });
-
-        menu_outputGPT3Prix_editText.setOnFocusChangeListener((v,hasFocus) -> {
-            if (hasFocus) {
-                View decorView = getWindow().getDecorView();
-                decorView.setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
-            } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
-            }
-        });
-
-        //button_close_menu_settings.setOnClickListener((v) -> btnCloseSettings());
-
-        //prix input gpt4
-        if(teamChatBuddyApplication.getparam(prixInputgpt4).equals("")){
-            teamChatBuddyApplication.setparam(prixInputgpt4, teamChatBuddyApplication.getParamFromFile("Price_input_gpt4", configurationFile));
-        }
-
-        teamChatBuddyApplication.setPrix_input_gpt4(Double.parseDouble(teamChatBuddyApplication.getparam(prixInputgpt4)));
-        set.setPrix_input_gpt4(teamChatBuddyApplication.getparam(prixInputgpt4));
-        setting.setPrix_input_gpt4(teamChatBuddyApplication.getparam(prixInputgpt4));
-
-        menu_inputGPT4Prix_editText.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-
-        menu_inputGPT4Prix_editText.setText(teamChatBuddyApplication.getparam(prixInputgpt4));
-
-        menu_inputGPT4Prix_editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Method left empty intentionally because no specific action is needed for this update.
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(!charSequence.toString().isEmpty()){
-                    teamChatBuddyApplication.setparam(prixInputgpt4,charSequence.toString());
-                    teamChatBuddyApplication.setPrix_input_gpt4(Double.parseDouble(teamChatBuddyApplication.getparam("Prix_input_gpt4")));
-                    set.setPrix_input_gpt4(teamChatBuddyApplication.getparam(prixInputgpt4));
-                }
-            }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // Method left empty intentionally because no specific action is needed for this update.
-                teamChatBuddyApplication.setparam(prixInputgpt4,editable.toString());
-            }
-        });
-
-        menu_inputGPT4Prix_editText.setOnFocusChangeListener((v,hasFocus) -> {
-            if (hasFocus) {
-                View decorView = getWindow().getDecorView();
-                decorView.setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
-            } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
-            }
-        });
-
-        //button_close_menu_settings.setOnClickListener((v) -> btnCloseSettings());
-
-        //prix output gpt4
-        if(teamChatBuddyApplication.getparam(prixOutputgpt4).equals("")) {
-            teamChatBuddyApplication.setparam(prixOutputgpt4, teamChatBuddyApplication.getParamFromFile("Price_output_gpt4", configurationFile));
-        }
-
-        teamChatBuddyApplication.setPrix_output_gpt4(Double.parseDouble(teamChatBuddyApplication.getparam(prixOutputgpt4)));
-        set.setPrix_output_gpt4(teamChatBuddyApplication.getparam(prixOutputgpt4));
-        setting.setPrix_output_gpt4(teamChatBuddyApplication.getparam(prixOutputgpt4));
-
-        menu_outputGPT4Prix_editText.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-
-        menu_outputGPT4Prix_editText.setText(teamChatBuddyApplication.getparam(prixOutputgpt4));
-
-        menu_outputGPT4Prix_editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Method left empty intentionally because no specific action is needed for this update.
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(!charSequence.toString().isEmpty()){
-                    teamChatBuddyApplication.setparam(prixOutputgpt4,charSequence.toString());
-                    teamChatBuddyApplication.setPrix_output_gpt4(Double.parseDouble(teamChatBuddyApplication.getparam("Prix_output_gpt4")));
-                    set.setPrix_output_gpt4(teamChatBuddyApplication.getparam(prixOutputgpt4));
-                }
-            }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // Method left empty intentionally because no specific action is needed for this update.
-                teamChatBuddyApplication.setparam(prixOutputgpt4,editable.toString());
-            }
-        });
-
-        menu_outputGPT4Prix_editText.setOnFocusChangeListener((v,hasFocus) -> {
-            if (hasFocus) {
-                View decorView = getWindow().getDecorView();
-                decorView.setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
-            } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
-            }
-        });
-
-        //button_close_menu_settings.setOnClickListener((v) -> btnCloseSettings());
-
-        //prix whisper
-        if(teamChatBuddyApplication.getparam(prixWhisper).equals("")){
-            teamChatBuddyApplication.setparam(prixWhisper, teamChatBuddyApplication.getParamFromFile("Price_whisper", configurationFile));
-        }
-
-        teamChatBuddyApplication.setPrix_whisper(Double.parseDouble(teamChatBuddyApplication.getparam(prixWhisper)));
-        set.setPrix_whisper(teamChatBuddyApplication.getparam(prixWhisper));
-        setting.setPrix_whisper(teamChatBuddyApplication.getparam(prixWhisper));
-
-        menu_whisperPrix_editText.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-
-        menu_whisperPrix_editText.setText(teamChatBuddyApplication.getparam(prixWhisper));
-
-        menu_whisperPrix_editText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Method left empty intentionally because no specific action is needed for this update.
-            }
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if(!charSequence.toString().isEmpty()){
-                    teamChatBuddyApplication.setparam(prixWhisper,charSequence.toString());
-                    teamChatBuddyApplication.setPrix_whisper(Double.parseDouble(teamChatBuddyApplication.getparam("Prix_whisper")));
-                    set.setPrix_whisper(teamChatBuddyApplication.getparam(prixWhisper));
-                }
-            }
-            @Override
-            public void afterTextChanged(Editable editable) {
-                // Method left empty intentionally because no specific action is needed for this update.
-                teamChatBuddyApplication.setparam(prixWhisper,editable.toString());
-            }
-        });
-
-        menu_whisperPrix_editText.setOnFocusChangeListener((v,hasFocus) -> {
-            if (hasFocus) {
-                View decorView = getWindow().getDecorView();
-                decorView.setSystemUiVisibility(
-                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                                | View.SYSTEM_UI_FLAG_FULLSCREEN);
-            } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
-            }
-        });
-
-    }
-
     private void handlerProjectID() {
         set.setProjectID(teamChatBuddyApplication.getparam("CustomGPT_Project_ID"));
         setting.setProjectID(teamChatBuddyApplication.getparam("CustomGPT_Project_ID"));
@@ -1502,12 +1223,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     public void setLanguageText(){
         if(teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
             menu_title.setText(R.string.menu_title_en);
-            menu_consommation_textView.setText(R.string.menu_consommation_openai_en);
-            menu_inputGPT3Prix_textView.setText(R.string.menu_prix_input_gpt3_en);
-            menu_outputGPT3Prix_textView.setText(R.string.menu_prix_output_gpt3_en);
-            menu_inputGPT4Prix_textView.setText(R.string.menu_prix_input_gpt4_en);
-            menu_outputGPT4Prix_textView.setText(R.string.menu_prix_output_gpt4_en);
-            menu_whisperPrix_textView.setText(R.string.menu_prix_whisper_en);
             menu_option_listening_duration_textView.setText(R.string.menu_option_listening_duration_en);
             menu_option_commande_textView.setText(R.string.menu_option_commande_en);
             menu_option_listening_attempt_textView.setText(R.string.menu_option_listening_attempt_en);
@@ -1543,12 +1258,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
             menu_title.setText(R.string.menu_title_fr);
-            menu_consommation_textView.setText(R.string.menu_consommation_openai_fr);
-            menu_inputGPT3Prix_textView.setText(R.string.menu_prix_input_gpt3_fr);
-            menu_outputGPT3Prix_textView.setText(R.string.menu_prix_output_gpt3_fr);
-            menu_inputGPT4Prix_textView.setText(R.string.menu_prix_input_gpt4_fr);
-            menu_outputGPT4Prix_textView.setText(R.string.menu_prix_output_gpt4_fr);
-            menu_whisperPrix_textView.setText(R.string.menu_prix_whisper_fr);
             menu_option_listening_duration_textView.setText(R.string.menu_option_listening_duration_fr);
             menu_option_commande_textView.setText(R.string.menu_option_commande_fr);
             menu_option_listening_attempt_textView.setText(R.string.menu_option_listening_attempt_fr);
@@ -1584,12 +1293,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         else if(teamChatBuddyApplication.getLangue().getNom().equals("Espagnol")){
             menu_title.setText(R.string.menu_title_es);
-            menu_consommation_textView.setText(R.string.menu_consommation_openai_es);
-            menu_inputGPT3Prix_textView.setText(R.string.menu_prix_input_gpt3_es);
-            menu_outputGPT3Prix_textView.setText(R.string.menu_prix_output_gpt3_es);
-            menu_inputGPT4Prix_textView.setText(R.string.menu_prix_input_gpt4_es);
-            menu_outputGPT4Prix_textView.setText(R.string.menu_prix_output_gpt4_es);
-            menu_whisperPrix_textView.setText(R.string.menu_prix_whisper_es);
             menu_option_listening_duration_textView.setText(R.string.menu_option_listening_duration_es);
             menu_option_commande_textView.setText(R.string.menu_option_commande_es);
             menu_option_listening_attempt_textView.setText(R.string.menu_option_listening_attempt_es);
@@ -1625,12 +1328,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         else if(teamChatBuddyApplication.getLangue().getNom().equals("Allemand")){
             menu_title.setText(R.string.menu_title_de);
-            menu_consommation_textView.setText(R.string.menu_consommation_openai_de);
-            menu_inputGPT3Prix_textView.setText(R.string.menu_prix_input_gpt3_de);
-            menu_outputGPT3Prix_textView.setText(R.string.menu_prix_output_gpt3_de);
-            menu_inputGPT4Prix_textView.setText(R.string.menu_prix_input_gpt4_de);
-            menu_outputGPT4Prix_textView.setText(R.string.menu_prix_output_gpt4_de);
-            menu_whisperPrix_textView.setText(R.string.menu_prix_whisper_de);
             menu_option_listening_duration_textView.setText(R.string.menu_option_listening_duration_de);
             menu_option_commande_textView.setText(R.string.menu_option_commande_de);
             menu_option_listening_attempt_textView.setText(R.string.menu_option_listening_attempt_de);
@@ -1667,12 +1364,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         else {
             if (!modelDownloading){
                 translateAndSetTextView(R.string.menu_title_en, menu_title,"");
-                menu_consommation_textView.setText(R.string.menu_consommation_openai_en);
-                menu_inputGPT3Prix_textView.setText(R.string.menu_prix_input_gpt3_en);
-                menu_outputGPT3Prix_textView.setText(R.string.menu_prix_output_gpt3_en);
-                menu_inputGPT4Prix_textView.setText(R.string.menu_prix_input_gpt4_en);
-                menu_outputGPT4Prix_textView.setText(R.string.menu_prix_output_gpt4_en);
-                menu_whisperPrix_textView.setText(R.string.menu_prix_whisper_en);
                 translateAndSetTextView(R.string.menu_option_listening_duration_en,menu_option_listening_duration_textView,"");
                 translateAndSetTextView(R.string.menu_option_commande_en,menu_option_commande_textView,"");
                 translateAndSetTextView(R.string.menu_option_listening_attempt_en,menu_option_listening_attempt_textView,"");
@@ -1922,15 +1613,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
 
     }
 
-    public void btnRefreshOpenAICons(View view) {
-        teamChatBuddyApplication.totale_consommation=0;
-        teamChatBuddyApplication.setparam("Total_cons","0");
-        teamChatBuddyApplication.setTotale_consommation(0);
-        menu_totalConsommation_textView.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
-        menu_totalConsommation_textView.setText(teamChatBuddyApplication.getparam(totalConsommation));
-        set.setTotale_consommation(teamChatBuddyApplication.getparam(totalConsommation));
-    }
-
     public void btnOpenBlueMic(View view) {
         Intent intentTeamChatBlueMicActivity = new Intent(SettingsActivity.this, TeamChatBlueMicActivity.class);
         startActivity(intentTeamChatBlueMicActivity);
@@ -1941,6 +1623,11 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         detailsIntent.setPackage("com.google.android.googlequicksearchbox");
         languageDetailsChecker = new LanguageDetailsChecker(SettingsActivity.this);
         sendOrderedBroadcast(detailsIntent, null, languageDetailsChecker, null, Activity.RESULT_OK, null, null);
+    }
+    public void btnOpenAi(View view) {
+        Intent intentOpenAiActivity = new Intent(getApplicationContext(), OpenAiActivity.class);
+        startActivity(intentOpenAiActivity);
+        overridePendingTransition(0, 0);
     }
     @Override
     public void onLanguagesReceived(ArrayList<String> languages) {

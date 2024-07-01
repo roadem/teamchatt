@@ -29,6 +29,10 @@
         android:theme="@style/BuddyTheme"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".activities.OpenAiActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
             android:name=".activities.TeamChatBlueMicActivity"
             android:exported="false"
             android:screenOrientation="landscape"/>

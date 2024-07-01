@@ -36,6 +36,7 @@ public class ReplicaListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         private TextView receivemessage;
         private TextView messageDuration;
+        private TextView messageConsommation;
 
         public ReceiveViewHolder( View itemView,TeamChatBuddyApplication teamChatBuddyApplication){
             super(itemView);
@@ -43,7 +44,10 @@ public class ReplicaListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             messageDuration = itemView.findViewById(R.id.txt_response_time);
             receivemessage.setTextSize(TypedValue.COMPLEX_UNIT_PX, teamChatBuddyApplication.getTextSizeBullesPX());
             messageDuration.setTextSize(TypedValue.COMPLEX_UNIT_PX, teamChatBuddyApplication.getTextSizeBullesPX());
-
+            if(teamChatBuddyApplication.getParamFromFile("show_openAI_prices", "TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")){
+                messageConsommation = itemView.findViewById(R.id.openai_price);
+                messageConsommation.setTextSize(TypedValue.COMPLEX_UNIT_PX,teamChatBuddyApplication.getTextSizeBullesPX());
+            }
         }
 
         public TextView getTextView() {
@@ -85,6 +89,9 @@ public class ReplicaListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         else if (holder.getClass()==ReceiveViewHolder.class){
             ((ReceiveViewHolder) holder).receivemessage.setText(mDataset[position].getValue());
             ((ReceiveViewHolder) holder).messageDuration.setText(mDataset[position].getDuration());
+            if(teamChatBuddyApplication.getParamFromFile("show_openAI_prices", "TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")){
+                ((ReceiveViewHolder) holder).messageConsommation.setText(mDataset[position].getPrix());
+            }
         }
 
     }

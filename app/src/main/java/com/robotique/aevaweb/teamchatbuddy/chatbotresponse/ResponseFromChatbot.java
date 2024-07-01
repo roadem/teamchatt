@@ -1289,6 +1289,15 @@ public class ResponseFromChatbot {
                                 JSONObject messageObject = choiceObject.getJSONObject( "message" );
                                 Log.e( "MEHDI", "Emotion detected------------------- " + messageObject.getString( "content" ) );
 
+                                //Calcul de la consommation d'openai cas des commandes
+                                JSONObject usages = jsonObj.getJSONObject("usage");
+                                int inputTokens = Integer.parseInt(usages.getString("prompt_tokens"));
+                                int outputTokens = Integer.parseInt(usages.getString("completion_tokens"));
+                                Log.i("tokens", "result: "+result + "\ninputTokens: "+inputTokens + "\noutputTokens: "+outputTokens);
+
+                                teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getParamFromFile("emotion_Model","TeamChatBuddy.properties"),inputTokens,outputTokens);
+
+
                                 if (messageObject.getString( "content" ).contains( "(" )) {
                                     String content = messageObject.getString( "content" );
                                     String emotion = null;
@@ -1330,6 +1339,17 @@ public class ResponseFromChatbot {
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
+                            }
+                        }
+                        else {
+
+                            if (response.errorBody() != null) {
+                                int checkErrorCode = response.code();
+                                // Calcul de la consommation openai de le cas d'echec
+                                if (checkErrorCode == 500 || checkErrorCode == 503 || checkErrorCode == 504) {
+                                    int inputTokens = teamChatBuddyApplication.getRequestTotalTokens(requestBody);
+                                    teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getParamFromFile("emotion_Model","TeamChatBuddy.properties"),inputTokens,0);
+                                }
                             }
                         }
                     }

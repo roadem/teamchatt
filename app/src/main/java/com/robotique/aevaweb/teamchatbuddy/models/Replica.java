@@ -5,6 +5,8 @@ public class Replica {
     private String time;
     private String value;
     private String duration;
+    private String prix;
+
     public Replica() {
     }
 
@@ -46,6 +48,13 @@ public class Replica {
         this.value = value;
     }
 
+    public String getPrix() {
+        return prix;
+    }
+
+    public void setPrix(String prix) {
+        this.prix = prix;
+    }
 
     @Override
     public String toString() {
