@@ -4357,7 +4357,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         String modelsPrice = getParamFromFile("Models_price", "TeamChatBuddy.properties");
         if(modelsPrice == null || modelsPrice.isEmpty()){
-            modelsPrice = "gpt-3.5-turbo_0.0005_0.0015/gpt-3.5-turbo-instruct_0.0015_0.002/gpt-4_0.03_0.06/gpt-4-32k_0.06_0.12/whisper_0.006_0";
+            modelsPrice = "gpt-3.5-turbo_0.0005_0.0015/gpt-3.5-turbo-instruct_0.0015_0.002/gpt-4_0.03_0.06/gpt-4-32k_0.06_0.12/whisper-1_0.006_0";
         }
 
         List<OpenAiInfo> openAiInfoList = new ArrayList<>();
