@@ -1,35 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="5dp"
+    android:layout_marginTop="5dp"
+    android:background="@drawable/receive_message_shape"
+    android:padding="10dp">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
-        android:background="@drawable/receive_message_shape">
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/txt_receive_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Message receive"
-            android:padding="10dp"
-            android:textSize="20px"/>
-        <TextView
-            android:id="@+id/txt_response_time"
+            android:text="Message received"
+            android:textSize="20px"
+            android:paddingBottom="5dp" />
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/txt_receive_message"
-            android:layout_alignEnd="@+id/txt_receive_message"
-            android:padding="5dp"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_gravity="end">
 
-            android:text="Response Time"
-            android:textColor="@android:color/black"
-            android:textSize="18px" />
+            <TextView
+                android:id="@+id/openai_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="price"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:paddingEnd="18px" />
 
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/txt_response_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Response Time"
+                android:textColor="@android:color/black"
+                android:textSize="18px" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </RelativeLayout>

@@ -292,11 +292,7 @@ public class ConfigurationFile {
             props.addPropertyComment("show_openAI_prices","Consumption Parameters");
             props.addPropertyComment("show_openAI_prices","Ability to display/manage openAI prices (Yes/No)");
             setProperty("show_openAI_prices","No");
-            setProperty("Price_input_gpt3","0.0015");
-            setProperty("Price_output_gpt3","0.002");
-            setProperty("Price_input_gpt4","0.03");
-            setProperty("Price_output_gpt4","0.06");
-            setProperty("Price_whisper","0.006");
+            setProperty("Models_price","gpt-3.5-turbo_0.0005_0.0015/gpt-3.5-turbo-instruct_0.0015_0.002/gpt-4_0.03_0.06/gpt-4-32k_0.06_0.12/whisper-1_0.006_0");
 
             props.addPropertyComment("ChatGPT_url", "");
             props.addPropertyComment("ChatGPT_url", "ChatGPT parameters");

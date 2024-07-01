@@ -130,7 +130,7 @@
                             android:layout_height="60px"
                             android:layout_centerInParent="true"
                             android:src="@drawable/scan"
-                            app:tint="@color/white" />
+                            android:tint="@color/white" />
                     </RelativeLayout>
 
 
@@ -152,7 +152,7 @@
                             android:layout_width="60px"
                             android:layout_height="60px"
                             android:src="@drawable/stop_scan"
-                            app:tint="@color/white"
+                            android:tint="@color/white"
                             android:layout_centerInParent="true" />
                     </RelativeLayout>
 
@@ -175,7 +175,7 @@
                             android:layout_width="60px"
                             android:layout_height="60px"
                             android:src="@drawable/link"
-                            app:tint="@color/white"
+                            android:tint="@color/white"
                             android:layout_centerInParent="true" />
                     </RelativeLayout>
 
@@ -198,7 +198,7 @@
                             android:layout_width="60px"
                             android:layout_height="60px"
                             android:src="@drawable/unlink"
-                            app:tint="@color/white"
+                            android:tint="@color/white"
                             android:layout_centerInParent="true" />
                     </RelativeLayout>
 

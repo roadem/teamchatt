@@ -24,12 +24,6 @@
     <string name="menu_api_key_fr">Clé ChatBot</string>
     <string name="menu_option_projectID_fr">L\'identifiant du projet de CustomGPT</string>
     <string name="menu_option_projectID_hint_fr">Saisissez l\'ID du projet</string>
-    <string name="menu_consommation_openai_fr">Consommation d\'openAI en $</string>
-    <string name="menu_prix_input_gpt3_fr">Prix input gpt3.5-turbo: $/1K tokens</string>
-    <string name="menu_prix_output_gpt3_fr">Prix output gpt3.5-turbo: $/1K tokens</string>
-    <string name="menu_prix_input_gpt4_fr">Prix input gpt4: $/1K tokens</string>
-    <string name="menu_prix_output_gpt4_fr">Prix output gpt4: $/1K tokens</string>
-    <string name="menu_prix_whisper_fr">Prix Whisper: $/minute</string>
     <string name="destination_mail_texte_fr">e-mail du destinataire</string>
     <string name="destination_mail_Edittexte_fr">Saisissez l\'e-mail</string>
     <string name="menu_option_BI_fr">Stimulis</string>
@@ -63,12 +57,6 @@
     <string name="menu_api_key_en">ChatBot key</string>
     <string name="menu_option_projectID_en">CustomGPT project ID</string>
     <string name="menu_option_projectID_hint_en">Enter the project ID</string>
-    <string name="menu_consommation_openai_en">OpenAI consumption in $</string>
-    <string name="menu_prix_input_gpt3_en">GPT3.5-turbo input price: $/1K tokens</string>
-    <string name="menu_prix_output_gpt3_en">GPT3.5-turbo output price: $/1K tokens</string>
-    <string name="menu_prix_input_gpt4_en">GPT4 input price: $/1K tokens</string>
-    <string name="menu_prix_output_gpt4_en">GPT4 output price: $/1K tokens</string>
-    <string name="menu_prix_whisper_en">Whisper price: $/minute</string>
     <string name="destination_mail_texte">Recipient\'s Email</string>
     <string name="destination_mail_Edittexte">Enter the Email</string>
     <string name="menu_option_BI_en">Stimulis</string>
@@ -101,12 +89,6 @@
     <string name="menu_api_key_es">Clave ChatBot</string>
     <string name="menu_option_projectID_es">Identificador del proyecto CustomGPT</string>
     <string name="menu_option_projectID_hint_es">Introduzca el ID del proyecto</string>
-    <string name="menu_consommation_openai_es">Consumo openAI en $</string>
-    <string name="menu_prix_input_gpt3_es">Precio de entrada gpt3.5-turbo: $/1K tokens</string>
-    <string name="menu_prix_output_gpt3_es">Precio de salida gpt3.5-turbo: $/1K tokens</string>
-    <string name="menu_prix_input_gpt4_es">Precio de entrada gpt4: $/1K tokens</string>
-    <string name="menu_prix_output_gpt4_es">Precio de salida gpt4: $/1K tokens</string>
-    <string name="menu_prix_whisper_es">Precio Whisper: $/minuto</string>
     <string name="menu_option_tracking_activation_es">Activar el seguimiento</string>
     <string name="menu_option_tracking_camera_display_es">Pantalla de la cámara</string>
     <string name="menu_option_tracking_head_es">Habilitar cabezal</string>
@@ -137,12 +119,6 @@
     <string name="menu_api_key_de">ChatBot-Schlüssel</string>
     <string name="menu_option_projectID_de">Die Projekt-ID von CustomGPT</string>
     <string name="menu_option_projectID_hint_de">Geben Sie die Projekt-ID ein</string>
-    <string name="menu_consommation_openai_de">OpenAI-Verbrauch in $</string>
-    <string name="menu_prix_input_gpt3_de">GPT3.5-turbo-Eingabepreis: $/1K tokens</string>
-    <string name="menu_prix_output_gpt3_de">Ausgabe-GPT3.5-turbo-Preis: $/1K tokens</string>
-    <string name="menu_prix_input_gpt4_de">GPT4-Eingabepreis: $/1K tokens</string>
-    <string name="menu_prix_output_gpt4_de">Ausgabe-GPT4-Preis: $/1K tokens</string>
-    <string name="menu_prix_whisper_de">Whisper Preis: $/minute</string>
     <string name="menu_option_tracking_activation_de">Tracking aktivieren</string>
     <string name="menu_option_tracking_camera_display_de">Anzeige der Kamera</string>
     <string name="menu_option_tracking_head_de">Kopf Aktivieren</string>
@@ -151,7 +127,6 @@
     <string name="menu_option_tracking_invitation_de">Einladung</string>
     <string name="menu_option_tracking_invitation_chatGpt_de">ChatGPT-Einladung</string>
     <string name="menu_dialog_supported_languages_Android_STT_de">Unterstützte Sprachen</string>
-
 
 
     <!-- chatbot messages french-->
@@ -268,5 +243,37 @@
     <string name="toast_stt_android_indispo_es">STT Android no disponible</string>
     <!-- allemand -->
     <string name="toast_stt_android_indispo_de">STT Android nicht verfügbar</string>
+
+
+    <!-- Page openAi -->
+
+    <!--french-->
+    <string name="consommation_title_fr">Consommation OpenAI</string>
+    <string name="consommation_title_2_fr">Consommation d\'openAI en $</string>
+    <string name="model_fr">Modèle</string>
+    <string name="input_fr">Entrée ($)</string>
+    <string name="output_fr">Sortie ($)</string>
+    <string name="toast_pricing_indispo_fr">Prix OpenAi non disponible</string>
+    <!--english-->
+    <string name="consommation_title_en">OpenAI Consumption</string>
+    <string name="consommation_title_2_en">OpenAI consumption in $</string>
+    <string name="model_en">Model</string>
+    <string name="input_en">Input ($)</string>
+    <string name="output_en">Ouput ($)</string>
+    <string name="toast_pricing_indispo_en">OpenAI price not available</string>
+    <!-- spanish -->
+    <string name="consommation_title_es">Consumo OpenAI</string>
+    <string name="consommation_title_2_es">Consumo openAI en $</string>
+    <string name="model_es">Modelo</string>
+    <string name="input_es">Entrada ($)</string>
+    <string name="output_es">Salida ($)</string>
+    <string name="toast_pricing_indispo_es">Precio de OpenAI no disponible</string>
+    <!-- allemand -->
+    <string name="consommation_title_de">OpenAI Konsum</string>
+    <string name="consommation_title_2_de">OpenAI-Verbrauch in $</string>
+    <string name="model_de">Modell</string>
+    <string name="input_de">Eingabe ($)</string>
+    <string name="output_de">Ausgabe ($)</string>
+    <string name="toast_pricing_indispo_de">OpenAI-Preis nicht verfügbar</string>
 
 </resources>

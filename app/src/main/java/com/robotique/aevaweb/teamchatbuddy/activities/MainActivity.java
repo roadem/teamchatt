@@ -2262,6 +2262,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             String formattedTime= df.format(responseTime);
                             reponse.setType("reponse");
                             reponse.setDuration(formattedTime + " ms");
+                            DecimalFormat decimalFormatter = new DecimalFormat("0.00");
+                            String formattedValue = decimalFormatter.format(Double.parseDouble(teamChatBuddyApplication.getparam("Total_cons")));
+                            reponse.setPrix(formattedValue+" $");
                             listRep.add(reponse);
                             ArrayList<Replica> ll = new ArrayList<>();
                             for (int t = 0; t < listRep.size(); t++) {
@@ -2284,6 +2287,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 String formattedTime= df.format(responseTime);
                                 reponse.setType("reponse");
                                 reponse.setDuration(formattedTime + " ms");
+                                DecimalFormat decimalFormatter = new DecimalFormat("0.00");
+                                String formattedValue = decimalFormatter.format(Double.parseDouble(teamChatBuddyApplication.getparam("Total_cons")));
+                                reponse.setPrix(formattedValue+" $");
                                 listRep.add(reponse);
                                 Session session = new Session(new ArrayList<>(listRep));
                                 teamChatBuddyApplication.getListSession().add(session);
@@ -2303,7 +2309,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             lastReplica.setValue(lastReplica.getValue() + texte);
                                     }
                                     else lastReplica.setValue(texte);
-
+                                    DecimalFormat decimalFormatter = new DecimalFormat("0.00");
+                                    String formattedValue = decimalFormatter.format(Double.parseDouble(teamChatBuddyApplication.getparam("Total_cons")));
+                                    lastReplica.setPrix(formattedValue+" $");
                                 }
                             }
                         }
@@ -2361,6 +2369,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         String formattedTime= df.format(responseTime);
                         reponse.setType("reponse");
                         reponse.setDuration(formattedTime + " ms");
+                        DecimalFormat decimalFormatter = new DecimalFormat("0.00");
+                        String formattedValue = decimalFormatter.format(Double.parseDouble(teamChatBuddyApplication.getparam("Total_cons")));
+                        reponse.setPrix(formattedValue+" $");
                         listRep.add(reponse);
                         ArrayList<Replica> ll = new ArrayList<>();
                         for (int t = 0; t < listRep.size(); t++) {

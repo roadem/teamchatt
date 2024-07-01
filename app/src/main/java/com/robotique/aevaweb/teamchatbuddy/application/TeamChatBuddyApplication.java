@@ -71,6 +71,7 @@ import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ChatGptStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.CustomGPTStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.models.History;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
+import com.robotique.aevaweb.teamchatbuddy.models.OpenAiInfo;
 import com.robotique.aevaweb.teamchatbuddy.models.Replica;
 import com.robotique.aevaweb.teamchatbuddy.models.Session;
 import com.robotique.aevaweb.teamchatbuddy.models.Setting;
@@ -168,12 +169,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private int nmbrDefault = 0;
     private Langue langue;
 
-    public double totale_consommation;
-    private double prix_input_gpt3;
-    private double prix_output_gpt3;
-    private double prix_input_gpt4;
-    private double prix_output_gpt4;
-    private double prix_whisper;
     private List<Replica> listRepGlobale = new ArrayList<>();
     private String french = "Français";
     private String english = "Anglais";
@@ -215,12 +210,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private String cabecera ="Cabecera";
     private String kopfzeile ="Kopfzeile";
     private String openAIKey = "openAI_API_Key";
-    private String totalConsommationPseudo = "Total_cons";
-    private String prixInputgpt3Pseudo = "Prix_input_gpt3";
-    private String prixOutputgpt3Pseudo = "Prix_output_gpt3";
-    private String prixInputgpt4Pseudo = "Prix_input_gpt4";
-    private String prixOutputgpt4Pseudo = "Prix_output_gpt4";
-    private String prixWhisperPseudo = "Prix_whisper";
     private String langueInconfigurationFilePseudo = "Language";
     private Boolean initSharedpreferences = true;
     private Translator englishLanguageSelectedTranslator;
@@ -313,54 +302,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     public void setChosenTTS(String chosenTTS) {
         this.chosenTTS = chosenTTS;
-    }
-
-    public double getTotale_consommation() {
-        return totale_consommation;
-    }
-
-    public void setTotale_consommation(double totale_consommation) {
-        this.totale_consommation = totale_consommation;
-    }
-
-    public double getPrix_input_gpt3() {
-        return prix_input_gpt3;
-    }
-
-    public void setPrix_input_gpt3(double prix_input_gpt3) {
-        this.prix_input_gpt3 = prix_input_gpt3;
-    }
-
-    public double getPrix_output_gpt3() {
-        return prix_output_gpt3;
-    }
-
-    public void setPrix_output_gpt3(double prix_output_gpt3) {
-        this.prix_output_gpt3 = prix_output_gpt3;
-    }
-
-    public double getPrix_input_gpt4() {
-        return prix_input_gpt4;
-    }
-
-    public void setPrix_input_gpt4(double prix_input_gpt4) {
-        this.prix_input_gpt4 = prix_input_gpt4;
-    }
-
-    public double getPrix_output_gpt4() {
-        return prix_output_gpt4;
-    }
-
-    public void setPrix_output_gpt4(double prix_output_gpt4) {
-        this.prix_output_gpt4 = prix_output_gpt4;
-    }
-
-    public double getPrix_whisper() {
-        return prix_whisper;
-    }
-
-    public void setPrix_whisper(double prix_whisper) {
-        this.prix_whisper = prix_whisper;
     }
 
     public EncodingRegistry getRegistry() {
@@ -914,41 +855,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         notifyObservers("properties file done");
     }
     private void initOpenAiSettings() {
-
-        if(getparam(totalConsommationPseudo).equals("")){
-            totale_consommation=0;
-            setparam(totalConsommationPseudo,"0");
+        double totalConsumption = 0;
+        String totalConsumptionSaved = getparam("Total_cons");
+        if(totalConsumptionSaved != null && !totalConsumptionSaved.isEmpty()){
+            totalConsumption = Double.parseDouble(totalConsumptionSaved);
         }
-        totale_consommation = Float.parseFloat(getparam(totalConsommationPseudo));
-
-        if (getparam(prixInputgpt3Pseudo).equals("")) {
-            setparam(prixInputgpt3Pseudo, getParamFromFile("Price_input_gpt3", configurationFilePseudo));
-        }
-        prix_input_gpt3 = Double.parseDouble(getparam(prixInputgpt3Pseudo));
-
-        if (getparam(prixOutputgpt3Pseudo).equals("")) {
-            String prix_output_gpt3_config_file = getParamFromFile("Price_output_gpt3", configurationFilePseudo);
-            Log.w("app_debug","SharedPref do not contain prix_output_gpt3 ---> init SharedPref with value from configFile ["+prix_output_gpt3_config_file+"]");
-            setparam(prixOutputgpt3Pseudo, prix_output_gpt3_config_file);
-        }
-        prix_output_gpt3 = Double.parseDouble(getparam(prixOutputgpt3Pseudo));
-        Log.d("app_debug","SharedPref contain ["+getparam(prixOutputgpt3Pseudo)+"]");
-        Log.d("app_debug","DOUBLE prix_output_gpt3 = ["+prix_output_gpt3+"]");
-
-        if (getparam(prixInputgpt4Pseudo).equals("")) {
-            setparam(prixInputgpt4Pseudo, getParamFromFile("Price_input_gpt4", configurationFilePseudo));
-        }
-        prix_input_gpt4 = Double.parseDouble(getparam(prixInputgpt4Pseudo));
-
-        if (getparam(prixOutputgpt4Pseudo).equals("")) {
-            setparam(prixOutputgpt4Pseudo, getParamFromFile("Price_output_gpt4", configurationFilePseudo));
-        }
-        prix_output_gpt4 =Double.parseDouble(getparam(prixOutputgpt4Pseudo));
-
-        if (getparam(prixWhisperPseudo).equals("")) {
-            setparam(prixWhisperPseudo, getParamFromFile("Price_whisper", configurationFilePseudo));
-        }
-        prix_whisper = Double.parseDouble(getparam(prixWhisperPseudo));
+        setparam("Total_cons",totalConsumption+"");
     }
     private void initListeningSettings() {
         if (getparam(listeningDurationPseudo).equals("")) {
@@ -1305,7 +1217,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 .build();
         englishLanguageSelectedTranslator = Translation.getClient(options);
         DownloadConditions conditions = new DownloadConditions.Builder()
-                .requireWifi()
                 .build();
         englishLanguageSelectedTranslator.downloadModelIfNeeded(conditions)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -1327,7 +1238,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 .build();
         frenchLanguageSelectedTranslator = Translation.getClient(options1);
         DownloadConditions conditions1 = new DownloadConditions.Builder()
-                .requireWifi()
                 .build();
         frenchLanguageSelectedTranslator.downloadModelIfNeeded(conditions1)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -1349,7 +1259,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 .build();
         languageSelectedEnglishTranslator = Translation.getClient(options);
         DownloadConditions conditions2 = new DownloadConditions.Builder()
-                .requireWifi()
                 .build();
         languageSelectedEnglishTranslator.downloadModelIfNeeded(conditions2)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -2407,7 +2316,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                 double durationInMinutes = (double) getAudioDuration() / (60 * 1000);
                 Log.i("MYA", "Calling Whisper API is successful1------"+durationInMinutes);
-                calcul_consommation("whisper", (double) durationInMinutes,0);
+                calcul_consommation(getParamFromFile("Whisper_model","TeamChatBuddy.properties"), (double) durationInMinutes,0);
 
                 Gson gson = new Gson();
                 String responseBody = response.body().string();
@@ -2415,6 +2324,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 return result.text;
 
             } else {
+                int checkErrorCode = response.code();
+                // Calcul de la consommation openai de le cas d'echec
+                if (checkErrorCode == 500 || checkErrorCode == 503 || checkErrorCode == 504) {
+                    double durationInMinutes = (double) getAudioDuration() / (60 * 1000);
+                    calcul_consommation(getParamFromFile("Whisper_model","TeamChatBuddy.properties"), (double) durationInMinutes,0);
+                }
                 Log.i("MRA", "Calling Whisper API is failed");
                 throw new IOException("Unexpected response code: " + response.code());
             }
@@ -4395,29 +4310,111 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         return (int)Math.rint(x);
     }
 
-    public void calcul_consommation(String model, double q1, double q2){
+    public void calcul_consommation(String modelName, double inputTokens, double outputTokens) {
+        Log.i("USAGE","----------- calcul_consommation : modelName=" + modelName + " , inputTokens=" + inputTokens + " , outputTokens=" + outputTokens);
+
         String show_openAI_prices = getParamFromFile("show_openAI_prices", "TeamChatBuddy.properties");
-        if(show_openAI_prices != null && show_openAI_prices.trim().equalsIgnoreCase("Yes")){
-            totale_consommation = Double.parseDouble(getparam(totalConsommationPseudo));
+        if (show_openAI_prices != null && show_openAI_prices.trim().equalsIgnoreCase("yes")) {
 
-            Log.i("MYA", "calcul_consommation avant : "+getparam(totalConsommationPseudo));
+            List<OpenAiInfo> openAiInfoList = parseAndLoadPrices();
+            double totalConsumptionSaved = Double.parseDouble(getparam("Total_cons"));
+            Log.i("USAGE", "totalConsumption (avant calcul) : "+totalConsumptionSaved);
+
             double prixCalcul = 0;
+            boolean modelFound = false;
 
-            if(model.contains("gpt-3")){
-                Log.i("MYA", "model : "+model);
-                prixCalcul+=(double) (prix_input_gpt3*q1+prix_output_gpt3*q2)/1000;
-            }
-            else if (model.contains("whisper")){
-                prixCalcul+=(double) prix_whisper*q1;
-            }
-            else if (model.contains("gpt")){
-                prixCalcul+=(double) (prix_input_gpt4*q1+prix_output_gpt4*q2)/1000;
+            for (OpenAiInfo info : openAiInfoList) {
+                if (info.getModelName().equalsIgnoreCase(modelName)) {
+                    modelFound = true;
+                    if (modelName.toLowerCase().contains("whisper")) {
+                        Log.i("USAGE", "(is calculating) inputPrice="+info.getInputPrice() + " ,  duration=" + inputTokens + " --> "+info.getInputPrice() + " * " + inputTokens);
+                        prixCalcul += info.getInputPrice() * inputTokens;
+                    } else {
+                        prixCalcul += (info.getInputPrice() * inputTokens + info.getOutputPrice() * outputTokens) / 1000;
+                        Log.i("USAGE", "(is calculating) inputPrice="+info.getInputPrice() + " ,  inputTokens=" + inputTokens + " ,  outputPrice=" + info.getOutputPrice() + " ,  outputTokens=" + outputTokens
+                                + " --> ("+info.getInputPrice() + " * " + inputTokens+ " + " + info.getOutputPrice()+ " * " + outputTokens+ ")/1000");
+                    }
+                    break;
+                }
             }
 
-            totale_consommation += (double) prixCalcul;
-            setparam(totalConsommationPseudo, String.valueOf(totale_consommation));
+            if (!modelFound) {
+                Log.e("USAGE","Model ("+modelName+") not found !");
+                priceNotAvailable();
+            } else {
+                totalConsumptionSaved += prixCalcul;
+                setparam("Total_cons", String.valueOf(totalConsumptionSaved));
+                Log.i("USAGE", "totalConsumption (après calcul) : "+totalConsumptionSaved);
+            }
+        }
+        else{
+            Log.e("USAGE","show_openAI_prices is not set to 'YES' ");
+        }
+    }
 
-            Log.i("MYA", "calcul_consommation après : "+getparam(totalConsommationPseudo));
+
+    public List<OpenAiInfo> parseAndLoadPrices() {
+
+        String modelsPrice = getParamFromFile("Models_price", "TeamChatBuddy.properties");
+        if(modelsPrice == null || modelsPrice.isEmpty()){
+            modelsPrice = "gpt-3.5-turbo_0.0005_0.0015/gpt-3.5-turbo-instruct_0.0015_0.002/gpt-4_0.03_0.06/gpt-4-32k_0.06_0.12/whisper_0.006_0";
+        }
+
+        List<OpenAiInfo> openAiInfoList = new ArrayList<>();
+        String[] models = modelsPrice.split("/");
+
+        for (String model : models) {
+            String[] parts = model.split("_");
+            String modelName = parts[0].toLowerCase();
+            double defaultInputPrice = Double.parseDouble(parts[1]);
+            double defaultOutputPrice = Double.parseDouble(parts[2]);
+
+            // Check if SharedPreferences already contain the price
+            String savedInputPrice = getparam(modelName + "_inputPrice");
+            String savedOutputPrice = getparam(modelName + "_outputPrice");
+
+            double inputPrice = (savedInputPrice != null && !savedInputPrice.isEmpty()) ? Double.parseDouble(savedInputPrice) : defaultInputPrice;
+            double outputPrice = (savedOutputPrice != null && !savedOutputPrice.isEmpty()) ? Double.parseDouble(savedOutputPrice) : defaultOutputPrice;
+
+            if(modelName.contains("whisper")){
+                openAiInfoList.add(new OpenAiInfo(modelName, inputPrice, outputPrice, "$/minutes"));
+            }
+            else{
+                openAiInfoList.add(new OpenAiInfo(modelName, inputPrice, outputPrice, "$/K Tokens"));
+            }
+        }
+
+        return openAiInfoList;
+    }
+
+    public void priceNotAvailable(){
+        if (getLangue().getNom().equals("Anglais")){
+            showToast(getString(R.string.toast_pricing_indispo_en));
+        }
+        else if (getLangue().getNom().equals("Français")) {
+            showToast(getString(R.string.toast_pricing_indispo_fr));
+        }
+        else if (getLangue().getNom().equals("Espagnol")) {
+            showToast(getString(R.string.toast_pricing_indispo_de));
+        }
+        else if (getLangue().getNom().equals("Allemand")){
+            showToast(getString(R.string.toast_pricing_indispo_es));
+        }
+        else{
+            getEnglishLanguageSelectedTranslator()
+                    .translate(getString(R.string.toast_pricing_indispo_en))
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String translatedText) {
+                            showToast(translatedText);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            showToast(getString(R.string.toast_pricing_indispo_en));
+                        }
+                    });
         }
     }
 
