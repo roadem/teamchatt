@@ -165,8 +165,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private Boolean shouldPlayEmotion = false;
     private String currentEmotion = "";
     private Boolean messageError = false;
-    private Boolean isAndroid11 = false;
-    private int nmbrDefault = 0;
     private Langue langue;
 
     private List<Replica> listRepGlobale = new ArrayList<>();
@@ -500,6 +498,78 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         this.switchBIDisplay = switchBIDisplay;
     }
 
+    public int getCurrentIndexText() {
+        return currentIndexText;
+    }
+
+    public void setCurrentIndexText(int currentIndexText) {
+        this.currentIndexText = currentIndexText;
+    }
+
+    public boolean isAllTextPronoucedSuccess() {
+        return allTextPronoucedSuccess;
+    }
+
+    public void setAllTextPronoucedSuccess(boolean allTextPronoucedSuccess) {
+        this.allTextPronoucedSuccess = allTextPronoucedSuccess;
+    }
+
+    public boolean isStop_TTS_ReadSpeaker() {
+        return Stop_TTS_ReadSpeaker;
+    }
+
+    public void setStop_TTS_ReadSpeaker(boolean stop_TTS_ReadSpeaker) {
+        Stop_TTS_ReadSpeaker = stop_TTS_ReadSpeaker;
+    }
+
+    public boolean isAlreadyCalled() {
+        return alreadyCalled;
+    }
+
+    public void setAlreadyCalled(boolean alreadyCalled) {
+        this.alreadyCalled = alreadyCalled;
+    }
+
+    public boolean isRecording() {
+        return isRecording;
+    }
+
+    public void setRecording(boolean recording) {
+        isRecording = recording;
+    }
+
+    public String getCurrentState() {
+        return currentState;
+    }
+
+    public void setCurrentState(String currentState) {
+        this.currentState = currentState;
+    }
+
+    public Boolean getStopProcessus() {
+        return stopProcessus;
+    }
+
+    public void setStopProcessus(Boolean stopProcessus) {
+        this.stopProcessus = stopProcessus;
+    }
+
+    public Boolean getAlReadyHadSpoke() {
+        return alReadyHadSpoke;
+    }
+
+    public void setAlReadyHadSpoke(Boolean alReadyHadSpoke) {
+        this.alReadyHadSpoke = alReadyHadSpoke;
+    }
+
+    public Float getPreviousVolume() {
+        return previousVolume;
+    }
+
+    public void setPreviousVolume(Float previousVolume) {
+        this.previousVolume = previousVolume;
+    }
+
     public String getSwitchEmotion() {
         return switchEmotion;
     }
@@ -716,21 +786,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         this.messageError = messageError;
     }
 
-    public Boolean getAndroid11() {
-        return isAndroid11;
-    }
-
-    public void setAndroid11(Boolean android11) {
-        isAndroid11 = android11;
-    }
-
-    public int getNmbrDefault() {
-        return nmbrDefault;
-    }
-
-    public void setNmbrDefault(int nmbrDefault) {
-        this.nmbrDefault = nmbrDefault;
-    }
     public Langue getLangue() {
         return langue;
     }

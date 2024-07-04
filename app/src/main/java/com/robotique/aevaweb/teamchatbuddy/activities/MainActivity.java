@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -28,12 +29,14 @@ import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.speech.tts.TextToSpeech;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
@@ -65,9 +68,14 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.mediapipe.tasks.vision.core.RunningMode;
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult;
+import com.google.mlkit.nl.translate.Translator;
+import com.google.mlkit.nl.translate.TranslatorOptions;
+import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
+import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ChatGptStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.Commande;
+import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.CustomGPTStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ResponseFromChatbot;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.Replica;
@@ -75,10 +83,12 @@ import com.robotique.aevaweb.teamchatbuddy.models.Session;
 import com.robotique.aevaweb.teamchatbuddy.models.Setting;
 import com.robotique.aevaweb.teamchatbuddy.observers.IDBObserver;
 import com.robotique.aevaweb.teamchatbuddy.utilis.BIPlayer;
+import com.robotique.aevaweb.teamchatbuddy.utilis.BlueMic;
 import com.robotique.aevaweb.teamchatbuddy.utilis.CustomToast;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IBehaviourCallBack;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IMLKitDownloadCallback;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ITTSCallbacks;
+import com.robotique.aevaweb.teamchatbuddy.utilis.TtsGoogleC;
 import com.robotique.aevaweb.teamchatbuddy.utilis.WifiBroadcastReceiver;
 import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.MainViewModel;
 import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.OverlayView;
@@ -99,6 +109,8 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import darren.googlecloudtts.model.VoicesList;
 
 public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
@@ -490,6 +502,43 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
         }
         else {
+            teamChatBuddyApplication.setSpeaking(false);
+            teamChatBuddyApplication.setNotYet(true);
+           teamChatBuddyApplication.setActivityClosed(false);
+            teamChatBuddyApplication.setStartRecording(false);
+            teamChatBuddyApplication.setUsingEmotions(false);
+            teamChatBuddyApplication.setQuestionNumber(0);
+            teamChatBuddyApplication.setCurrentQuestionNubmer(0);
+            teamChatBuddyApplication.setAlreadyGetAnswer(false);
+            teamChatBuddyApplication.setOpenaialreadySwitchEmotion(false);
+            teamChatBuddyApplication.setTimeoutExpired(false);
+            teamChatBuddyApplication.setQuestionTime(0);
+            teamChatBuddyApplication.setStoredResponse("");
+            teamChatBuddyApplication.setBuddyFaceisTired(false);
+            teamChatBuddyApplication.setShouldPlayEmotion(false);
+            teamChatBuddyApplication.setCurrentEmotion("");
+            teamChatBuddyApplication.setMessageError(false);
+             teamChatBuddyApplication.setCurrentIndexText(0);
+             teamChatBuddyApplication.setAllTextPronoucedSuccess(true);
+            teamChatBuddyApplication.setStop_TTS_ReadSpeaker(false);
+            teamChatBuddyApplication.setInitSharedpreferences(true);
+            teamChatBuddyApplication.setLanguageDetected("");
+            teamChatBuddyApplication.setAlreadyCalled(false);
+            teamChatBuddyApplication.setRecording(false);
+            teamChatBuddyApplication.setCurrentState("");
+
+
+            teamChatBuddyApplication.setStopProcessus(false);
+            teamChatBuddyApplication.setAlReadyHadSpoke(false);
+
+            teamChatBuddyApplication.setGetResponseTime(0);
+            teamChatBuddyApplication.setAnswerHasExceededTimeOut(false);
+            teamChatBuddyApplication.setPreviousVolume(Float.valueOf(0));
+            teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
+            teamChatBuddyApplication.setChosenTTS("");
+            teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
+            teamChatBuddyApplication.setBIExecution(false);
+            teamChatBuddyApplication.setAlreadyChatting(false);
             Log.i(TAG_TRACKING,"First launch of application");
         }
 
@@ -2904,14 +2953,17 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         handlerTTSError.removeCallbacks(runnableTTSError);
                         handlerTTSError.removeCallbacksAndMessages(null);
                     }
+                    Log.d(TAG_TRACKING, "startListeningQuestion() if first");
                     if (!teamChatBuddyApplication.getSpeaking() && !mlKitIsDownloading){
                         teamChatBuddyApplication.setStartRecording(true);
                         teamChatBuddyApplication.setSpeaking(true);
                         if(!isListeningFreeSpeech ) {
+                            Log.d(TAG_TRACKING, "startListeningQuestion() if second");
                             isListeningFreeSpeech=true;
                             teamChatBuddyApplication.setActivityClosed(false);
                             startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
                         }
+                        Log.d(TAG_TRACKING, "startListeningQuestion() isListeningFreeSpeech="+isListeningFreeSpeech);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
