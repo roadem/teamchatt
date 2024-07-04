@@ -2532,6 +2532,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             sendInvitationPending = false;
                             if(!teamChatBuddyApplication.isAlreadyChatting()){
                                 stopListeningFreeSpeech();
+                                teamChatBuddyApplication.setStartRecording(false);
                                 try {
                                     BuddySDK.UI.stopListenAnimation();
                                 } catch (Exception e) {
