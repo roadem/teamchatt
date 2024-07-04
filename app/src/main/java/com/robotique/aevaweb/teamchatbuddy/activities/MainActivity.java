@@ -2582,14 +2582,16 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if(!teamChatBuddyApplication.isAlreadyChatting()){
                                 stopListeningFreeSpeech();
                                 teamChatBuddyApplication.setStartRecording(false);
+                                teamChatBuddyApplication.setSpeaking(false);
                                 try {
                                     BuddySDK.UI.stopListenAnimation();
                                 } catch (Exception e) {
                                     Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
 //                                invitation(null);
-                                if (isFirstLaunch && isFirstInvitaion){
-                                    isFirstInvitaion =false;
+                                if (isFirstLaunch && isFirstInvitaion) {
+                                    isFirstInvitaion = false;
+                                }
                                     invitation(new IInvitationCallback() {
                                         @Override
                                         public void onEnd(String s) {
@@ -2606,20 +2608,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         }
                                     });
 
-                                }
-                                else{
-                                    invitation(new IInvitationCallback() {
-                                        @Override
-                                        public void onEnd(String s) {
-                                            Log.e(TAG_TRACKING, "Invitation onEnd Callback : "+s);
-                                            iInvitationCallback = null;
-                                            if(!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
-                                                teamChatBuddyApplication.setAlreadyChatting(false);
-                                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
-                                            }
-                                        }
-                                    });
-                                }
                             }
                             else{
                                 Log.w(TAG_TRACKING, "Do not say invitation because the person is already chatting");
