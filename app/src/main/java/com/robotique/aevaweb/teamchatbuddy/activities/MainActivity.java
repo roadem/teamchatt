@@ -207,6 +207,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private boolean isProcessingReTrack = false;
     private boolean isTrackingAlreadyInitialised = false;
     private boolean isReTrack = false;
+    private boolean isFirstInvitaion = false;
 
     private CountDownTimer timerEcoute;
     private CountDownTimer responseTimeout;
@@ -2476,7 +2477,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT) {
                                 currentTrackingListeningState = StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT;
                                 Log.w(TAG_TRACKING, "A person has been looking directly at the camera for TRACKING_DELAY_START_LISTEN="+TRACKING_DELAY_START_LISTEN+" seconds (or more) --> start listening");
-                                startListeningQuestion();
+                                if (!isFirstInvitaion && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
+                                    startListeningQuestion();
+                                }
+                                else if (!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
+                                    startListeningQuestion();
+                                }
+                                Log.w(TAG_TRACKING, "isFirstInvitaion= "+isFirstInvitaion);
                             }
                         }
                     }
@@ -2530,7 +2537,39 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 } catch (Exception e) {
                                     Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
-                                invitation(null);
+//                                invitation(null);
+                                if (isFirstLaunch && isFirstInvitaion){
+                                    isFirstInvitaion =false;
+                                    invitation(new IInvitationCallback() {
+                                        @Override
+                                        public void onEnd(String s) {
+                                            Log.e(TAG_TRACKING, "Invitation onEnd Callback : "+s);
+                                            iInvitationCallback = null;
+                                            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                                startListeningQuestion();
+                                            }
+                                            else{
+                                                teamChatBuddyApplication.setAlreadyChatting(false);
+                                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                            }
+
+                                        }
+                                    });
+
+                                }
+                                else{
+                                    invitation(new IInvitationCallback() {
+                                        @Override
+                                        public void onEnd(String s) {
+                                            Log.e(TAG_TRACKING, "Invitation onEnd Callback : "+s);
+                                            iInvitationCallback = null;
+                                            if(!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                                teamChatBuddyApplication.setAlreadyChatting(false);
+                                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                            }
+                                        }
+                                    });
+                                }
                             }
                             else{
                                 Log.w(TAG_TRACKING, "Do not say invitation because the person is already chatting");
@@ -2616,25 +2655,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         }
 
         if(isFirstLaunch && !isReTrack && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
-            invitation(new IInvitationCallback() {
-                @Override
-                public void onEnd(String s) {
-                    Log.e(TAG_TRACKING, "Invitation onEnd Callback : "+s);
-                    iInvitationCallback = null;
-                    if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
-                        startListeningQuestion();
-                    }
-                    else{
-                        teamChatBuddyApplication.setAlreadyChatting(false);
-                    }
-                    startTracking();
-                }
-            });
+            sendInvitationPending = true;
+            isFirstInvitaion = true;
+            startTracking();
         }
-        else{
-            if(isFirstLaunch && !isReTrack && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
-                startListeningQuestion();
-            }
+        else {
             startTracking();
         }
     }
@@ -3023,6 +3048,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             String[] englishInvitations = TRACKING_WELCOME_EN.substring(1, TRACKING_WELCOME_EN.length() - 1).split("/");
                             String randomInvitationEN = englishInvitations[random.nextInt(englishInvitations.length)];
                             Log.d(TAG_TRACKING, "Random English Invitation: " + randomInvitationEN);
+                            teamChatBuddyApplication.setActivityClosed(false);
                             speak(randomInvitationEN, "INVITATION");
                         }
                         else {
@@ -3034,6 +3060,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             String[] frenchInvitations = TRACKING_WELCOME_FR.substring(1, TRACKING_WELCOME_FR.length() - 1).split("/");
                             String randomInvitationFR = frenchInvitations[random.nextInt(frenchInvitations.length)];
                             Log.d(TAG_TRACKING, "Random French Invitation: " + randomInvitationFR);
+                            teamChatBuddyApplication.setActivityClosed(false);
                             speak(randomInvitationFR, "INVITATION");
                         }
                         else {
@@ -3049,6 +3076,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         @Override
                                         public void onSuccess(String translatedText) {
                                             Log.d(TAG_TRACKING, "Translated Invitation: " + translatedText);
+                                            teamChatBuddyApplication.setActivityClosed(false);
                                             speak(translatedText, "INVITATION");
                                         }
                                     })
@@ -3056,6 +3084,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
                                             Log.d(TAG_TRACKING, "Translation failed, using English Invitation: " + randomInvitationEN);
+                                            teamChatBuddyApplication.setActivityClosed(false);
                                             speak(randomInvitationEN, "INVITATION");
                                         }
                                     });
