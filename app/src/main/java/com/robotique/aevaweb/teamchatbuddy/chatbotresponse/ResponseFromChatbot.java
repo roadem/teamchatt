@@ -833,35 +833,42 @@ public class ResponseFromChatbot {
                                                     // Géerer le cas où la réponse est vide
 
                                                     if (result.equals( "" )) {
-                                                        teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-                                                        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                        }
-                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                        }
-                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("es")){
-                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_es+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                        }
-                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("de")){
-                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_de+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                        }
-                                                        else {
-                                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
-                                                                @Override
-                                                                public void onSuccess(String translatedText) {
-
-                                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                                }
-
-                                                            }).addOnFailureListener(new OnFailureListener() {
-                                                                @Override
-                                                                public void onFailure(@NonNull Exception e) {
-                                                                    Log.e(tag,"translatedText exception  "+e);
-                                                                }
-                                                            });
-
-                                                        }
+//                                                        teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+//                                                        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
+//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+//                                                        }
+//                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
+//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+//                                                        }
+//                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("es")){
+//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_es+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+//                                                        }
+//                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("de")){
+//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_de+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+//                                                        }
+//                                                        else {
+//                                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
+//                                                                @Override
+//                                                                public void onSuccess(String translatedText) {
+//
+//                                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+//                                                                }
+//
+//                                                            }).addOnFailureListener(new OnFailureListener() {
+//                                                                @Override
+//                                                                public void onFailure(@NonNull Exception e) {
+//                                                                    Log.e(tag,"translatedText exception  "+e);
+//                                                                }
+//                                                            });
+//
+//                                                        }
+                                                        activity.runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                getEmotionResponseFromChatGTP(texte, numberOfQuestion);
+                                                                getResponseFromChatGPT( texte, numberOfQuestion );
+                                                            }
+                                                        });
                                                     }
                                                     // Play la suite de la réponse.
                                                     else {
