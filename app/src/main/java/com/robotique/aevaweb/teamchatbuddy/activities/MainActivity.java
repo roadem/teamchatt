@@ -364,7 +364,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         reGroup.setTranslationY(1000);
                     }
                     else if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
-                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen")) || !isFirstLaunch){
+                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
                             teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                         }
                         isReTrack = false;
