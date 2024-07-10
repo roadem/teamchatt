@@ -789,21 +789,21 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
-                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0].replace("[1]",action.split( " " )[1]));
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0].replace("[1]",getDescription(action)));
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_METEO(action.split( " " )[1]);
+                                    CMD_METEO(getDescription(action));
                                 }
                             },2000);
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
-                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.replace("[1]",action.split( " " )[1]));
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.replace("[1]",getDescription(action)));
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_METEO(action.split( " " )[1]);
+                                    CMD_METEO(getDescription(action));
                                 }
                             },2000);
                         }
@@ -814,7 +814,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_METEO(action.split( " " )[1]);
+                                    CMD_METEO(getDescription(action));
                                 }
                             },2000);
                         }
@@ -1899,15 +1899,53 @@ public class Commande {
                             double temp = tempObject.getDouble( "temp" );
                             int temperature = (int) Math.ceil(temp);
                             Log.i(TAG, "Réponse Météo : " +"Il fait " + description + " et " + temperature + " °C");
-                            translate("CMD_METEO", new ITranslationCallback() {
-                                @Override
-                                public void onTranslated(String translatedText) {
-                                    String verifyMessage = verifyCmdMessages(translatedText);
-                                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
-                                    }
+                                 if (!teamChatBuddyApplication.getLangue().getNom().equals("Français") ) {
+
+                                    teamChatBuddyApplication.getFrenchLanguageSelectedTranslator().translate(description)
+                                            .addOnSuccessListener(new OnSuccessListener<String>() {
+                                                @Override
+                                                public void onSuccess(String translatedText) {
+                                                    String descriptionTraduite = translatedText;
+                                                    Log.e(TAG, "Réponse Météo : " +"Il fait " + descriptionTraduite + " et " + temperature + " °C");
+                                                    translate("CMD_METEO", new ITranslationCallback() {
+                                                        @Override
+                                                        public void onTranslated(String translatedText) {
+                                                            String verifyMessage = verifyCmdMessages(translatedText);
+                                                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",descriptionTraduite).replace( "[3]", Integer.toString( temperature )));
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Log.e(TAG, "Réponse Météo : " +"Il fait " + "onfailure description traduction" + " et " + temperature + " °C");
+                                                    translate("CMD_METEO", new ITranslationCallback() {
+                                                        @Override
+                                                        public void onTranslated(String translatedText) {
+                                                            String verifyMessage = verifyCmdMessages(translatedText);
+                                                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            });
                                 }
-                            });
+                                 else{
+                                     translate("CMD_METEO", new ITranslationCallback() {
+                                         @Override
+                                         public void onTranslated(String translatedText) {
+                                             String verifyMessage = verifyCmdMessages(translatedText);
+                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
+                                             }
+                                         }
+                                     });
+                                 }
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
