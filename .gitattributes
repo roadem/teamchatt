@@ -3,4 +3,4 @@ app/installTeamChatBuddy/TeamChatBuddy/apk/Speech_Recognition_Synthesis_20240121
 app/installTeamChatBuddy/installTeamChatBuddy.bat filter=lfs diff=lfs merge=lfs -text
 app/src/main/assets/TeamChatBuddyTasks.json filter=lfs diff=lfs merge=lfs -text
 app/src/main/assets/teamchat.json filter=lfs diff=lfs merge=lfs -text
-app/TeamChatBuddy_2.2.18.rar filter=lfs diff=lfs merge=lfs -text
+app/TeamChatBuddy_2.2.19.rar filter=lfs diff=lfs merge=lfs -text

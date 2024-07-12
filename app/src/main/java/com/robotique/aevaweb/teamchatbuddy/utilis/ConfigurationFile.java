@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 23; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 24; // upgrade this whenever you want to overwrite the file
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -106,7 +106,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Speech_To_Text_List","Speech to Text : SpeechRecognizer/ApiGoogle/Whisper/Cerence");
             setProperty("Speech_To_Text_List","SpeechRecognizer/ApiGoogle/Whisper/Cerence");
             setProperty("Speech_To_Text","SpeechRecognizer");
-            setProperty("ApiGoogle_Key","AIzaSyAZDkir2v7wk1j-5rKrORCyOA_tlfSaa8E");
+            setProperty("ApiGoogle_Key","");
 
             props.addPropertyComment("Change_STT","");
             props.addPropertyComment("Change_STT","Possibility of changing the STT (Yes/No)");
@@ -125,7 +125,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Seuil_dBFS","Decibel threshold to control the sensitivity of the STT Whisper");
             setProperty("Seuil_dBFS","-30");
             setProperty("Whisper_model","whisper-1");
-            setProperty("Whisper_prompt","Tu t'appelles Buddy. Voici les noms des applications que tu dois reconnaître : CarteBlanche, Parle&Cartes, BuddyEmoi, JeuDeGeste, TeleBuddy, BuddyPlayer, Accueil, FreezeDance, Consignes, DiscoverBuddy, BuddyCal, PhotoBooth, Spark, BuddyLab, BuddyDiag.");
+            setProperty("Whisper_prompt","Buddy");
 
             props.addPropertyComment("Text_To_Speech_List", "");
             props.addPropertyComment("Text_To_Speech_List", "Text to Speech : ReadSpeaker/Android/ApiGoogle");
@@ -162,7 +162,7 @@ public class ConfigurationFile {
             props.addPropertyComment("hotword_fr", "");
             props.addPropertyComment("hotword_fr", "List of hot words in French, English, Spanish and German");
             setProperty("hotword_fr", "ok buddy/hello/bonjour/salut/bonsoir/écoute/écoute-moi");
-            setProperty("hotword_en","ok buddy/hello/good morning/good evening/listen/listen to me");
+            setProperty("hotword_en","okay buddy/hello/good morning/good evening/listen/listen to me");
             setProperty("hotword_es","hola/hola buddy");
             setProperty("hotword_de","hallo/hallo buddy");
 
@@ -298,8 +298,9 @@ public class ConfigurationFile {
             props.addPropertyComment("ChatGPT_url", "ChatGPT parameters");
             setProperty("ChatGPT_url", "https://api.openai.com");
             setProperty("ChatGPT_ApiEndpoint","/v1/chat/completions");
-            setProperty("Model","gpt-3.5-turbo");
-            props.addPropertyComment("Temperature", "Model=gpt-4");
+            props.addPropertyComment("Model", "Model=gpt-3.5-turbo");
+            props.addPropertyComment("Model", "Model=gpt-4");
+            setProperty("Model","gpt-4o");
             setProperty("Temperature",String.valueOf(0.5));
 
             props.addPropertyComment("Max_Tokens_req", "");
@@ -336,14 +337,14 @@ public class ConfigurationFile {
 
             props.addPropertyComment("COMMAND_Model","");
             props.addPropertyComment("COMMAND_Model","Commands parameters");
-            setProperty( "COMMAND_Model", "gpt-4o" );
+            setProperty( "COMMAND_Model", "gpt-3.5-turbo" );
             setProperty( "COMMAND_Temperature", "0" );
 
-            setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : Qu'est-ce que tu sais faire ? <CMD_NONE> /  Quel est ton niveau de batterie ? <CMD_BATTERIE> / Mets la température à zéro <CMD_TEMP 0> / Change le volume du son à 50 (entre 0 et 100) <CMD_SOUND 50>  /   Quel jour sommes-nous ? <CMD_DATE>  /   Quelle heure est-il ? <CMD_HOUR>    /   Avance sur 3 mètres <CMD_MOVE 3> / Tourne à droite de 30 degrés (entre -360 et 360) <CMD_TURN 30>  /   Baisse la tête au maximum (entre -45 et 35) <CMD_HEAD -45>  /   Regarde le plus à droite possible <CMD_LOOK 10> /   Arrête d’écouter <CMD_STOP> /   Quitte l’application <CMD_QUIT> /   Exécute une danse <CMD_DANCE>   /   Qu'est ce que tu vois <CMD_PHOTO> / Lance le comportement \"angry 02\" <CMD_BI angry 02>  /   Quelle est la météo à \"ville\" <CMD_METEO ville>  /   Mets-moi la radio \"RTL\" <CMD_RADIO RTL>   /   Connectes-toi sur \"Dorian\" <HEALYSA_CONNECT Dorian> /   Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3> /   Quel est mon rythme cardiaque <HEALYSA_HRV>    /   Prend ma tension <HEALYSA_BLOODP>  /   Récupère mon taux d'oxygène <HEALYSA_SPO2>  /   Fais mon check up <HEALYSA_CHECKUP>    /   Appelle \"Cyril\" <HEALYSA_CALL Cyril>  /   Où se trouve Nabila <HEALYSA_LOC Nabila>   /   Allume la lumière <SWITCHBOT_LIGHT On>  /   Montre-moi une image de \"chien rouge\" <CMD_IMAGE chien rouge>  /   Ferme l'image <CMD_CLOSE_IMAGE>  / Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais> / Génère une musique de \"jazz avec une trompette\" <CMD_MUSIC jazz avec une trompette>. Commande particulière : Lance l'application X parmi (CarteBlanche, Parle&Cartes, BuddyEmoi, JeuDeGeste, TeleBuddy, BuddyPlayer, Accueil, FreezeDance, Consignes, DiscoverBuddy, BuddyCal, PhotoBoot, Spark, BuddyLab, ou BuddyDiag). Si X ne se trouve pas dans la liste mais qu'il existe une application avec un nom similaire, choisis celle qui correspond le mieux. Répond seulement avec <CMD_RUN X> sinon rien" );
-            setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: What can you do? <CMD_NONE>/ What is your battery level? <CMD_BATTERIE> / Set the temperature to zero <CMD_TEMP 0> / Change the sound volume to 50 (between 0 and 100) <CMD_SOUND 50> / What day is it? <CMD_DATE> / What time is it? <CMD_HOUR> / Move forward 3 meters <CMD_MOVE 3> / Turn right 30 degrees (between -360 and 360) <CMD_TURN 30> / Lower your head as far as possible (between -45 and 35) <CMD_HEAD -45> / Look as far to the right as possible <CMD_LOOK 10> / Stop listening <CMD_STOP> / Exit the application <CMD_QUIT> / Execute a dance <CMD_DANCE> / What do you see <CMD_PHOTO > / Launch the behavior \"angry 02\" <CMD_BI angry 02> / What is the weather in \"city\" <CMD_METEO city> / Start the \"RTL\" radio <CMD_RADIO RTL> / Connect to \"Dorian\" <HEALYSA_CONNECT Dorian> / Give the cat 3 portions of food <HEALYSA_FEEDCAT 3> / What's my pace heart rate <HEALYSA_HRV> / Take my blood pressure <HEALYSA_BLOODP> / Get my oxygen level <HEALYSA_SPO2> / Do my check-up <HEALYSA_CHECKUP> / Call \"Cyril\" <HEALYSA_CALL Cyril> / Where is Nabila <HEALYSA_LOC Nabila> / Turn on the light < SWITCHBOT_LIGHT On> / Show me an image of a \"red dog\" <CMD_IMAGE red dog> / Close the image <CMD_CLOSE_IMAGE> / Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français> / Generate music \"jazz  with a trumpet\" <CMD_MUSIC jazz with a trumpet>.Specific Command: Launch application X from the following list (CarteBlanche, Parle&Cartes, BuddyEmoi, JeuDeGeste, TeleBuddy, BuddyPlayer, Accueil, FreezeDance, Consignes, DiscoverBuddy, BuddyCal, PhotoBooth, Spark, BuddyLab, or BuddyDiag). If X is not in the list but there is an application with a similar name, choose the one that best matches. Respond only with <CMD_RUN X> otherwise nothing" );
+            setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : Qu'est-ce que tu sais faire ? <CMD_NONE> /  Quel est ton niveau de batterie ? <CMD_BATTERIE> / Mets la température à zéro <CMD_TEMP 0> / Change le volume du son à 50 (entre 0 et 100) <CMD_SOUND 50>  /   Quel jour sommes-nous ? <CMD_DATE>  /   Quelle heure est-il ? <CMD_HOUR>    /   Avance sur 3 mètres <CMD_MOVE 3> / Tourne à droite de 30 degrés (entre -360 et 360) <CMD_TURN 30>  /   Baisse la tête au maximum (entre -45 et 35) <CMD_HEAD -45>  /   Regarde le plus à droite possible <CMD_LOOK 10> /   Arrête d’écouter <CMD_STOP> /   Quitte l’application <CMD_QUIT> /  Lance l’application Buddylab <CMD_RUN Buddylab> / Lance l’application BuddyPlayer <CMD_RUN BuddyPlayer> / Lance l’application TeleBuddy <CMD_RUN TeleBuddy> / Lance l’application Parle&Cartes <CMD_RUN Parle&Cartes> /  Lance l’application BuddyEmoi <CMD_RUN BuddyEmoi>  / Lance l’application JeuDeGeste <CMD_RUN JeuDeGeste> /Lance l’application CarteBlanche <CMD_RUN CarteBlanche> /Lance l’application Accueil <CMD_RUN Accueil> /  Lance l’application FreezeDance <CMD_RUN FreezeDance> / Lance l’application Consignes <CMD_RUN Consignes> / Lance l’application DiscoverBuddy <CMD_RUN DiscoverBuddy> / Lance l’application BuddyCal <CMD_RUN BuddyCal>/ Lance l’application PhotoBooth <CMD_RUN PhotoBooth>/ Lance l’application Spark <CMD_RUN Spark>/Lance l’application BuddyDiag <CMD_RUN BuddyDiag>/ Exécute une danse <CMD_DANCE>   /   Qu'est ce que tu vois <CMD_PHOTO> / Lance le comportement angry 02 <CMD_BI angry 02>  /   Quelle est la météo à ville <CMD_METEO ville>  /   Mets-moi la radio RTL <CMD_RADIO RTL>   /   Connectes-toi sur Dorian <HEALYSA_CONNECT Dorian> /   Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3> /   Quel est mon rythme cardiaque <HEALYSA_HRV>    /   Prend ma tension <HEALYSA_BLOODP>  /   Récupère mon taux d'oxygène <HEALYSA_SPO2>  /   Fais mon check up <HEALYSA_CHECKUP>    /   Appelle Cyril <HEALYSA_CALL Cyril>  /   Où se trouve Nabila <HEALYSA_LOC Nabila>   /   Allume la lumière <SWITCHBOT_LIGHT On>  /   Montre-moi une image de chien rouge <CMD_IMAGE chien rouge>  /   Ferme l'image <CMD_CLOSE_IMAGE>  / Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais> / Génère une musique de jazz avec une trompette <CMD_MUSIC jazz avec une trompette>" );
+            setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: What can you do? <CMD_NONE>/ What is your battery level? <CMD_BATTERIE> / Set the temperature to zero <CMD_TEMP 0> / Change the sound volume to 50 (between 0 and 100) <CMD_SOUND 50> / What day is it? <CMD_DATE> / What time is it? <CMD_HOUR> / Move forward 3 meters <CMD_MOVE 3> / Turn right 30 degrees (between -360 and 360) <CMD_TURN 30> / Lower your head as far as possible (between -45 and 35) <CMD_HEAD -45> / Look as far to the right as possible <CMD_LOOK 10> / Stop listening <CMD_STOP> / Exit the application <CMD_QUIT> / Launch application Buddylab <CMD_RUN Buddylab> / Launch application BuddyPlayer <CMD_RUN BuddyPlayer> / Launch application TeleBuddy <CMD_RUN TeleBuddy> / Launch application Parle&Cartes <CMD_RUN Parle&Cartes> /  Launch application BuddyEmoi <CMD_RUN BuddyEmoi> / Launch application JeuDeGeste <CMD_RUN JeuDeGeste> /Launch application CarteBlanche <CMD_RUN CarteBlanche> /Launch application Accueil <CMD_RUN Accueil> /  Launch application FreezeDance <CMD_RUN FreezeDance> / Launch application Consignes <CMD_RUN Consignes> / Launch application DiscoverBuddy <CMD_RUN DiscoverBuddy> / Launch application BuddyCal <CMD_RUN BuddyCal>/ Launch application PhotoBooth <CMD_RUN PhotoBooth>/ Launch application Spark <CMD_RUN Spark>/Launch application BuddyDiag <CMD_RUN BuddyDiag> / Execute a dance <CMD_DANCE> / What do you see <CMD_PHOTO > / Launch the behavior angry 02 <CMD_BI angry 02> / What is the weather in city <CMD_METEO city> / Start the RTL radio <CMD_RADIO RTL> / Connect to Dorian <HEALYSA_CONNECT Dorian> / Give the cat 3 portions of food <HEALYSA_FEEDCAT 3> / What's my pace heart rate <HEALYSA_HRV> / Take my blood pressure <HEALYSA_BLOODP> / Get my oxygen level <HEALYSA_SPO2> / Do my check-up <HEALYSA_CHECKUP> / Call Cyril <HEALYSA_CALL Cyril> / Where is Nabila <HEALYSA_LOC Nabila> / Turn on the light < SWITCHBOT_LIGHT On> / Show me an image of a red dog <CMD_IMAGE red dog> / Close the image <CMD_CLOSE_IMAGE> / Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français> / Generate music jazz  with a trumpet <CMD_MUSIC jazz with a trumpet>" );
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
-            setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done." );
+            setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done" );
 
             setProperty( "CMD_DATE_fr", "// Nous sommes aujourd'hui le [1]" );
             setProperty( "CMD_DATE_en", "// Today is [1]" );
@@ -375,14 +376,14 @@ public class ConfigurationFile {
             setProperty( "CMD_STOP_fr", "Ok j'arrête // " );
             setProperty( "CMD_STOP_en", "Ok I'll stop // " );
 
-            setProperty( "CMD_QUIT_fr", "D'accord, je vais fermer l'application. // " );
+            setProperty( "CMD_QUIT_fr", "D'accord, je vais fermer l'application // " );
             setProperty( "CMD_QUIT_en", "Ok I'll close the app // " );
 
-            setProperty( "CMD_RUN_fr", "D'accord, je vais lancer l'application [1]. // L'application [1] n'existe pas. " );
-            setProperty( "CMD_RUN_en", "Ok I'll run the app [1]. // Application [1] does not exist." );
+            setProperty( "CMD_RUN_fr", "D'accord, je vais lancer l'application [1] // L'application [1] n'existe pas " );
+            setProperty( "CMD_RUN_en", "Ok I'll run the app [1] // Application [1] does not exist" );
 
-            setProperty( "CMD_DANCE_fr", "Ok je vais danser,  // T'as vu comment je danse bien" );
-            setProperty( "CMD_DANCE_en", "Ok I'm going to dance, // Have you seen how well I dance" );
+            setProperty( "CMD_DANCE_fr", "Ok je vais danser  // T'as vu comment je danse bien" );
+            setProperty( "CMD_DANCE_en", "Ok I'm going to dance // Have you seen how well I dance" );
 
             setProperty( "CMD_METEO_fr", "Je vérifie la météo à [1] // Le temps à [1] est [2], il fait [3]°C" );
             setProperty( "CMD_METEO_en", "I'm checking the weather at [1] // The weather at [1] is [2], it's [3]°C" );
@@ -391,7 +392,7 @@ public class ConfigurationFile {
             setProperty( "CMD_RADIO_en", "I'm starting the radio [1] //" );
 
             setProperty( "SWITCHBOT_LIGHT_fr", "Je mets la lumière [1] // C'est fait" );
-            setProperty( "SWITCHBOT_LIGHT_en", "I'm turning [1] the light // Done." );
+            setProperty( "SWITCHBOT_LIGHT_en", "I'm turning [1] the light // Done" );
 
             setProperty( "HEALYSA_CONNECT_fr", "Je te connecte à la plateforme Healysa // Tu es connecté" );
             setProperty( "HEALYSA_CONNECT_en", "I am connecting you to the Healysa platform // You are connected" );
@@ -409,7 +410,7 @@ public class ConfigurationFile {
             setProperty( "HEALYSA_CHECKUP_en", "I'm doing your check up // Your heart rate is [1], your blood pressure is [2] [3], your oxygen level is [4]" );
 
             setProperty( "HEALYSA_CALL_fr", "Je lance l'appel // Voila" );
-            setProperty( "HEALYSA_CALL_en", "I'll start the call // Done." );
+            setProperty( "HEALYSA_CALL_en", "I'll start the call // Done" );
 
             setProperty( "HEALYSA_LOC_fr", "Un instant je cherche // Il est à [1]" );
             setProperty( "HEALYSA_LOC_en", "Wait I'm searching // He's at [1]" );
@@ -420,14 +421,14 @@ public class ConfigurationFile {
             setProperty( "CMD_IMAGE_fr", "Je vais vous montrer une image correspondant à votre demande // Voici l'image" );
             setProperty( "CMD_IMAGE_en", "I will show you an image corresponding to your request // Here is the image" );
 
-            setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image. // C'est bon" );
-            setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image. // Done." );
+            setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image // C'est bon" );
+            setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image // Done" );
 
             setProperty("CMD_PHOTO_fr","Je vais prendre une photo // Voila");
-            setProperty("CMD_PHOTO_en","I will take a picture // Done.");
+            setProperty("CMD_PHOTO_en","I will take a picture // Done");
 
             setProperty( "CMD_BI_fr", "Je lance le comportement [1] // C'est bon // Le fichier de comportement [1] est introuvable" );
-            setProperty( "CMD_BI_en", "I'm starting the behaviour [1] // Done. // Behavior file [1] could not be found" );
+            setProperty( "CMD_BI_en", "I'm starting the behaviour [1] // Done // Behavior file [1] could not be found" );
 
 
             props.addPropertyComment("Image_URL","");
