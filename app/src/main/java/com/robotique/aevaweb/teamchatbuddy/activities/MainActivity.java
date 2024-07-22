@@ -109,6 +109,7 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import darren.googlecloudtts.model.VoicesList;
 
@@ -500,6 +501,46 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     Log.i(TAG_TRACKING,"is back from ChatWindow");
                 }
             }
+            else {
+                teamChatBuddyApplication.setSpeaking(false);
+                teamChatBuddyApplication.setNotYet(true);
+                teamChatBuddyApplication.setActivityClosed(false);
+                teamChatBuddyApplication.setStartRecording(false);
+                teamChatBuddyApplication.setUsingEmotions(false);
+                teamChatBuddyApplication.setQuestionNumber(0);
+                teamChatBuddyApplication.setCurrentQuestionNubmer(0);
+                teamChatBuddyApplication.setAlreadyGetAnswer(false);
+                teamChatBuddyApplication.setOpenaialreadySwitchEmotion(false);
+                teamChatBuddyApplication.setTimeoutExpired(false);
+                teamChatBuddyApplication.setQuestionTime(0);
+                teamChatBuddyApplication.setStoredResponse("");
+                teamChatBuddyApplication.setBuddyFaceisTired(false);
+                teamChatBuddyApplication.setShouldPlayEmotion(false);
+                teamChatBuddyApplication.setCurrentEmotion("");
+                teamChatBuddyApplication.setMessageError(false);
+                teamChatBuddyApplication.setCurrentIndexText(0);
+                teamChatBuddyApplication.setAllTextPronoucedSuccess(true);
+                teamChatBuddyApplication.setStop_TTS_ReadSpeaker(false);
+                teamChatBuddyApplication.setInitSharedpreferences(true);
+                teamChatBuddyApplication.setLanguageDetected("");
+                teamChatBuddyApplication.setAlreadyCalled(false);
+                teamChatBuddyApplication.setRecording(false);
+                teamChatBuddyApplication.setCurrentState("");
+
+
+                teamChatBuddyApplication.setStopProcessus(false);
+                teamChatBuddyApplication.setAlReadyHadSpoke(false);
+
+                teamChatBuddyApplication.setGetResponseTime(0);
+                teamChatBuddyApplication.setAnswerHasExceededTimeOut(false);
+                teamChatBuddyApplication.setPreviousVolume(Float.valueOf(0));
+                teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
+                teamChatBuddyApplication.setChosenTTS("");
+                teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
+                teamChatBuddyApplication.setBIExecution(false);
+                teamChatBuddyApplication.setAlreadyChatting(false);
+                Log.i(TAG,"First launch of application myIntent!=null 2");
+            }
         }
         else {
             teamChatBuddyApplication.setSpeaking(false);
@@ -539,7 +580,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
             teamChatBuddyApplication.setBIExecution(false);
             teamChatBuddyApplication.setAlreadyChatting(false);
-            Log.i(TAG_TRACKING,"First launch of application");
+            Log.i(TAG,"First launch of application");
         }
 
         /**
@@ -629,6 +670,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         teamChatBuddyApplication.removeObserver(this);
         teamChatBuddyApplication.stopTTS();
         teamChatBuddyApplication.setActivityClosed(true);
+        teamChatBuddyApplication.setStartRecording(false);
+        teamChatBuddyApplication.setSpeaking(false);
         stopListeningFreeSpeech();
         CustomToast.getInstance().hideToast();
         try {
@@ -763,7 +806,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (curr<0){
                                 curr=0;
                             }
-                            teamChatBuddyApplication.setVolume(curr);
+                            teamChatBuddyApplication.setVolume(curr,AudioManager.FLAG_SHOW_UI);
                             teamChatBuddyApplication.setparam("speak_volume", String.valueOf(curr));
                             teamChatBuddyApplication.setSpeakVolume(curr);
                             settingClass.setVolume(String.valueOf(curr));
@@ -786,7 +829,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (curr>100){
                                 curr=100;
                             }
-                            teamChatBuddyApplication.setVolume(curr);
+                            teamChatBuddyApplication.setVolume(curr,AudioManager.FLAG_SHOW_UI);
                             teamChatBuddyApplication.setparam("speak_volume", String.valueOf(curr));
                             teamChatBuddyApplication.setSpeakVolume(curr);
                             settingClass.setVolume(String.valueOf(curr));
@@ -857,6 +900,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             }
                         }
                         else if (teamChatBuddyApplication.getSpeaking() && !mlKitIsDownloading) {
+                            currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
+                            totalTimeLookingAtCamera = 0L;
                             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence") || !teamChatBuddyApplication.getAppIsListeningToTheQuestion() || teamChatBuddyApplication.getParamFromFile("Processing_the_audio_sequence","TeamChatBuddy.properties").trim().equalsIgnoreCase("No")) {
                                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
                                 teamChatBuddyApplication.setStartRecording(false);
@@ -1335,7 +1380,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         }
                     }
                     else if (action.equals("INVITATION")) {
-                        Log.d(TAG_TRACKING, "ChatGPT Invitation: " + value);
+                        Log.e(TAG_TRACKING, "ChatGPT Invitation: " + value);
+                        teamChatBuddyApplication.setActivityClosed(false);
                         speak(value, "INVITATION");
                     }
                 });
@@ -1647,7 +1693,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         refreshSTTLangue();
 
         //set volume
-        teamChatBuddyApplication.setVolume(Integer.parseInt(teamChatBuddyApplication.getparam("speak_volume")));
+        teamChatBuddyApplication.setVolume(Integer.parseInt(teamChatBuddyApplication.getparam("speak_volume")),AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 
         //create Log file
         if (teamChatBuddyApplication.getFileCreate()) {
@@ -2244,7 +2290,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
      */
 
     private void speak(final String texte, String type) {
-        Log.d(TAG," --- speak("+texte+") ---");
+        Log.e("TEAMCHAT_BUDDY_TRACKING"," --- speak("+texte+") ---type="+type+" isActivityClosed="+teamChatBuddyApplication.isActivityClosed());
         isSpeaking = true;
         runOnUiThread(new Runnable() {
             @Override
@@ -2436,6 +2482,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         teamChatBuddyApplication.speakTTS( texte, LabialExpression.SPEAK_NEUTRAL, type );
                     }
                     else if(type.equals("INVITATION")){
+                        Log.e("TEAMCHAT_BUDDY_TRACKING"," --- speakTTS from speak Main");
                         teamChatBuddyApplication.speakTTS(texte, LabialExpression.SPEAK_NEUTRAL,type);
                     }
                 }
@@ -2521,11 +2568,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                  */
                 if (isPersonDetected) {
                     if (regarde_camera) {
-                        Log.w(TAG_TRACKING_DEBUG, "A person is visible again and is looking directly at the CAMERA");
+                        Log.w(TAG_TRACKING_DEBUG, "A person is visible again and is looking directly at the CAMERA totalTimeLookingAtCamera= "+totalTimeLookingAtCamera+" currentTrackingListeningState= "+currentTrackingListeningState);
                         if (totalTimeLookingAtCamera  >= TRACKING_DELAY_START_LISTEN * 1000L) {
                             if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT) {
                                 currentTrackingListeningState = StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT;
-                                Log.w(TAG_TRACKING, "A person has been looking directly at the camera for TRACKING_DELAY_START_LISTEN="+TRACKING_DELAY_START_LISTEN+" seconds (or more) --> start listening");
+                                Log.w(TAG_TRACKING_DEBUG, "A person has been looking directly at the camera for TRACKING_DELAY_START_LISTEN="+TRACKING_DELAY_START_LISTEN+" seconds (or more) --> start listening");
+                                Log.e(TAG_TRACKING_DEBUG,"isFirstInvitaion = "+isFirstInvitaion+"Tracking_Invitation= "+Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation")));
                                 if (!isFirstInvitaion && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                                     startListeningQuestion();
                                 }
@@ -2577,7 +2625,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     if (totalTimeLookingAtCamera >= TRACKING_DURATION_WELCOME * 1000L) {
                         if (currentTrackingWelcomeState != StateTrackingWelcome.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT) {
                             currentTrackingWelcomeState = StateTrackingWelcome.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT;
-                            Log.w(TAG_TRACKING, "A person has been looking directly at the camera for TRACKING_DURATION_WELCOME="+TRACKING_DURATION_WELCOME+" seconds (or more) --> Invitation");
+                            Log.e(TAG_TRACKING, "A person has been looking directly at the camera for TRACKING_DURATION_WELCOME="+TRACKING_DURATION_WELCOME+" seconds (or more) --> Invitation");
                             sendInvitationPending = false;
                             if(!teamChatBuddyApplication.isAlreadyChatting()){
                                 stopListeningFreeSpeech();
@@ -2610,7 +2658,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                             }
                             else{
-                                Log.w(TAG_TRACKING, "Do not say invitation because the person is already chatting");
+                                Log.e(TAG_TRACKING, "Do not say invitation because the person is already chatting");
                             }
                         }
                     }
@@ -2701,12 +2749,48 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             startTracking();
         }
     }
+    private void stopTrackingTest() {
+        // Arrêter l'analyse d'image
+        if (imageAnalyzer != null) {
+            imageAnalyzer.clearAnalyzer();
+            imageAnalyzer = null;
+        }
+
+        // Arrêter et libérer les ressources de la caméra
+        if (cameraProvider != null) {
+            cameraProvider.unbindAll();
+            cameraProvider = null;
+        }
+        if (preview != null) {
+            preview.setSurfaceProvider(null);
+            preview = null;
+        }
+
+        // Stop and release resources from the PoseLandmarkerHelper
+        if (poseLandmarkerHelper != null) {
+            poseLandmarkerHelper.clearPoseLandmarker();
+            poseLandmarkerHelper = null;
+        }
+        // Arrêter l'exécuteur de thread
+        if (backgroundExecutor != null && !backgroundExecutor.isShutdown()) {
+            backgroundExecutor.shutdownNow();
+            backgroundExecutor = null;
+        }
+    }
 
     private void startTracking(){
         Log.d(TAG_TRACKING, "startTracking(isReTrack="+isReTrack+")");
 
+        stopTrackingTest();
+        if (poseTracking != null) {
+            poseTracking.stopMovingAndCancelRunnables();
+            poseTracking = null;
+        }
         poseTracking= new PoseTracking();
-        if(backgroundExecutor != null) backgroundExecutor.shutdownNow();
+        if (backgroundExecutor != null) {
+            backgroundExecutor.shutdownNow();
+            backgroundExecutor = null;
+        }
         backgroundExecutor = Executors.newSingleThreadExecutor();
         cameraSelector = new CameraSelector.Builder().requireLensFacing(cameraFacing).build();
         viewModel = new ViewModelProvider(MainActivity.this).get(MainViewModel.class);
@@ -2725,6 +2809,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         previewView.post(() -> {
             try {
                 cameraProvider = ProcessCameraProvider.getInstance(this).get();
+                if (preview != null) {
+                    preview.setSurfaceProvider(null);
+                    preview = null;
+                }
+
+                if (imageAnalyzer != null) {
+                    imageAnalyzer.clearAnalyzer();
+                    imageAnalyzer = null;
+                }
                 preview = new Preview.Builder()
                         .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                         .build();
@@ -2961,7 +3054,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void stopListeningEverything(){
-        Log.d(TAG_TRACKING, "stopListeningEverything()");
+        Log.e(TAG_TRACKING, "stopListeningEverything()");
         runOnUiThread( new Runnable() {
             @Override
             public void run() {
@@ -3038,7 +3131,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void invitation(IInvitationCallback iInvitationCallback){
-        Log.d(TAG_TRACKING, "invitation()");
+        Log.e(TAG_TRACKING, "invitation()");
         this.iInvitationCallback = iInvitationCallback;
         runOnUiThread(new Runnable() {
             @Override

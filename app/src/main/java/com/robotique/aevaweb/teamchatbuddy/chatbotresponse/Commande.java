@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
@@ -624,6 +625,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -634,6 +636,7 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -643,6 +646,7 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
@@ -878,7 +882,7 @@ public class Commande {
                                 public void run() {
                                     CMD_BI(getDescription(action));
                                 }
-                            },5000);
+                            },3000);
 
                         }
                         else if (verifyBIMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
@@ -888,7 +892,7 @@ public class Commande {
                                 public void run() {
                                     CMD_BI(getDescription(action));
                                 }
-                            },5000);
+                            },3000);
                         }
                         else if(verifyBIMessage.equals("EMPTY")){
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
@@ -899,7 +903,7 @@ public class Commande {
                                 public void run() {
                                     CMD_BI(getDescription(action));
                                 }
-                            },5000);
+                            },3000);
                         }
                     }
                 });
@@ -1605,7 +1609,7 @@ public class Commande {
         });
     }
     public void CMD_SOUND(String sound){
-        teamChatBuddyApplication.setVolume( Integer.parseInt( sound ) );
+        teamChatBuddyApplication.setVolume( Integer.parseInt( sound ), AudioManager.FLAG_SHOW_UI );
         teamChatBuddyApplication.setparam("speak_volume", sound);
         teamChatBuddyApplication.setSpeakVolume( Integer.parseInt( sound ) );
         settingClass.setVolume(sound);
@@ -1782,13 +1786,14 @@ public class Commande {
         Missions mission = new Missions();
         Log.e(TAG," trigger  ="+"TeamChatLaunch"+application);
         String packageApp = "";
-        packageApp=mission.getTaskForTrigger("TeamChatLaunch"+application);
+        String result[]=mission.getTaskForTrigger("TeamChatLaunch"+application);
+        packageApp=result[0];
 
-
+        Log.e(TAG," triggerGetFromFile  ="+result[1]);
         if (packageApp!=null){
             if(teamChatBuddyApplication.isAppInstalled(activity,packageApp)){
                 Log.e(TAG," package  ="+packageApp);
-                BuddySDK.Companion.raiseEvent("TeamChatLaunch"+application.trim());
+                BuddySDK.Companion.raiseEvent(result[1]);
             }
             else{
                 Log.e(TAG," application n'existe pas ");

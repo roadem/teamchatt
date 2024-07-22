@@ -63,12 +63,14 @@ public class Missions {
         return missions;
     }
 
-    public static String getTaskForTrigger( String trigger) {
+    public static String[] getTaskForTrigger( String trigger) {
         List<Missions> missions = loadMissionsFromJsonFile();
         for (Missions mission : missions) {
-            if (mission.getTrigger().equals(trigger)) {
-                String extracted = mission.getTask().substring("runActivity(".length(), mission.getTask().length() - 1);
-                return extracted;
+            if (mission.getTrigger().equalsIgnoreCase(trigger)) {
+                String [] result = new String[2];
+                result[0] = mission.getTask().substring("runActivity(".length(), mission.getTask().length() - 1);
+                result[1] = mission.getTrigger();
+                return result;
             }
         }
         return null;

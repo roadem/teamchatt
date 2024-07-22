@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Rect;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -871,7 +872,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 
-                teamChatBuddyApplication.setVolume(progress);
+                teamChatBuddyApplication.setVolume(progress, AudioManager.FLAG_SHOW_UI);
                 volume_seekbar_value.setText(progress + " %");
                 teamChatBuddyApplication.setparam(speakVolume, Integer.toString(progress));
                 set.setVolume(Integer.toString(progress));
@@ -1522,7 +1523,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         Log.d(TAG," --- onResume() ---");
 
         teamChatBuddyApplication.hideSystemUI(this);
-        teamChatBuddyApplication.setVolume(Integer.parseInt(teamChatBuddyApplication.getparam("speak_volume")));
+        teamChatBuddyApplication.setVolume(Integer.parseInt(teamChatBuddyApplication.getparam("speak_volume")),AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     }
 
     @Override
@@ -1577,7 +1578,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 int defaultVolume = teamChatBuddyApplication.getClosestInt((double) (speakVolume * 100) / max);
                 Log.e("FCH","volumeMedia  "+String.valueOf(defaultVolume));
                 teamChatBuddyApplication.setparam("speak_volume", String.valueOf(defaultVolume));
-                teamChatBuddyApplication.setVolume(defaultVolume);
+                teamChatBuddyApplication.setVolume(defaultVolume,AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
                 volume_seekbar_value.setText(defaultVolume + " %");
                 set.setVolume(Integer.toString(defaultVolume));
                 volume_seekbar.setProgress(defaultVolume);

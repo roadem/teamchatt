@@ -4318,7 +4318,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     /**
      * Cette fonction permet de changer le volume du device
      */
-    public void setVolume(int percentage) {
+    public void setVolume(int percentage,int type) {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
@@ -4335,7 +4335,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             audioManager.setBluetoothScoOn(true);
             audioManager.setStreamVolume(6, volume, AudioManager.FLAG_SHOW_UI);
         } else {
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, AudioManager.FLAG_SHOW_UI);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,type );
         }
     }
 
