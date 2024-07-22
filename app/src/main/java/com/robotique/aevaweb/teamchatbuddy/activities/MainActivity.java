@@ -247,6 +247,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private AnimationDrawable animationTimerPhoto;
     private ImageCapture imageCapture;
     private String initOrMajOrNone="";
+    private Boolean useListeningNumberWithAutomaicListening=false;
 
     private IMLKitDownloadCallback imlKitDownloadCallback = new IMLKitDownloadCallback() {
         @Override
@@ -1005,6 +1006,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         if (message.split(";SPLIT;").length > 1){
                             String phraseToPronounce = message.split(";SPLIT;")[1];
                             speak(phraseToPronounce, "nothealysa");
+                            if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation")) &&Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                useListeningNumberWithAutomaicListening= true;
+                            }
                         }
                     }
                 });
@@ -1371,10 +1375,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         }
                                     }
                                 }
+
                                 if (!teamChatBuddyApplication.isTimeoutExpired()) {
                                     speak(value, "nothealysa");
                                 } else {
                                     teamChatBuddyApplication.setStoredResponse(value);
+                                }
+                                if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation")) &&Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                    useListeningNumberWithAutomaicListening= true;
                                 }
                             }
                         }
@@ -1383,6 +1391,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         Log.e(TAG_TRACKING, "ChatGPT Invitation: " + value);
                         teamChatBuddyApplication.setActivityClosed(false);
                         speak(value, "INVITATION");
+                        if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                            useListeningNumberWithAutomaicListening= true;
+                        }
                     }
                 });
             }
@@ -2569,9 +2580,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 if (isPersonDetected) {
                     if (regarde_camera) {
                         Log.w(TAG_TRACKING_DEBUG, "A person is visible again and is looking directly at the CAMERA totalTimeLookingAtCamera= "+totalTimeLookingAtCamera+" currentTrackingListeningState= "+currentTrackingListeningState);
+                        useListeningNumberWithAutomaicListening = false;
                         if (totalTimeLookingAtCamera  >= TRACKING_DELAY_START_LISTEN * 1000L) {
                             if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT) {
                                 currentTrackingListeningState = StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT;
+
                                 Log.w(TAG_TRACKING_DEBUG, "A person has been looking directly at the camera for TRACKING_DELAY_START_LISTEN="+TRACKING_DELAY_START_LISTEN+" seconds (or more) --> start listening");
                                 Log.e(TAG_TRACKING_DEBUG,"isFirstInvitaion = "+isFirstInvitaion+"Tracking_Invitation= "+Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation")));
                                 if (!isFirstInvitaion && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
@@ -2590,7 +2603,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_VISIBLE_BUT_IS_NOT_LOOKING_AT_CAMERA_TIMEOUT) {
                                 currentTrackingListeningState = StateTrackingListening.PERSON_IS_VISIBLE_BUT_IS_NOT_LOOKING_AT_CAMERA_TIMEOUT;
                                 Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
-                                stopListeningEverything();
+                                if (!useListeningNumberWithAutomaicListening){
+                                    stopListeningEverything();
+                                }
+
                             }
                         }
                     }
@@ -2599,8 +2615,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     Log.w(TAG_TRACKING_DEBUG, "No person is visible");
                     if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT) {
                         currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
-                        Log.w(TAG_TRACKING, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
-                        stopListeningEverything();
+                        Log.w(TAG_TRACKING_DEBUG, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
+                        if (!useListeningNumberWithAutomaicListening){
+                            stopListeningEverything();
+                        }
                     }
                 }
             }
@@ -2804,7 +2822,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void setUpCamera() {
-        Log.i(TAG_TRACKING,"setUpCamera(isReTrack="+isReTrack+")");
+        Log.e(TAG_TRACKING_DEBUG,"setUpCamera(isReTrack="+isReTrack+")");
         isTrackingAlreadyInitialised = false;
         previewView.post(() -> {
             try {
@@ -2975,7 +2993,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        reGroup.setTranslationY(0);
+                                        if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Camera_Display"))) {
+                                            reGroup.setTranslationY(0);
+
+                                        } else {
+                                            reGroup.setTranslationY(1000);
+                                        }
                                     }
                                 });
                             }

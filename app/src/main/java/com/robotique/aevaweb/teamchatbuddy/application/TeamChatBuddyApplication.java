@@ -1699,7 +1699,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                             break;
                                         case SpeechRecognizer.ERROR_NO_MATCH:
                                             Log.d(TAG, "No match");
-                                            logErrorSTTAndroid(i,"SpeechRecognizer.ERROR_NO_MATCH","No match");
                                             break;
                                         case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
                                             Log.d(TAG, "RecognitionService busy");
@@ -1991,7 +1990,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         break;
                                     case SpeechRecognizer.ERROR_NO_MATCH:
                                         Log.d(TAG, "No match");
-                                        logErrorSTTAndroid(i,"SpeechRecognizer.ERROR_NO_MATCH","No match");
                                         break;
                                     case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
                                         Log.d(TAG, "RecognitionService busy");

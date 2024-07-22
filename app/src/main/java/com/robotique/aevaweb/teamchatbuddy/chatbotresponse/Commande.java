@@ -1787,34 +1787,47 @@ public class Commande {
         Log.e(TAG," trigger  ="+"TeamChatLaunch"+application);
         String packageApp = "";
         String result[]=mission.getTaskForTrigger("TeamChatLaunch"+application);
-        packageApp=result[0];
+        if (result!=null) {
+            packageApp = result[0];
 
-        Log.e(TAG," triggerGetFromFile  ="+result[1]);
-        if (packageApp!=null){
-            if(teamChatBuddyApplication.isAppInstalled(activity,packageApp)){
-                Log.e(TAG," package  ="+packageApp);
-                BuddySDK.Companion.raiseEvent(result[1]);
-            }
-            else{
-                Log.e(TAG," application n'existe pas ");
+            Log.e(TAG, " triggerGetFromFile  =" + result[1]);
+            if (packageApp != null) {
+                if (teamChatBuddyApplication.isAppInstalled(activity, packageApp)) {
+                    Log.e(TAG, " package  =" + packageApp);
+                    BuddySDK.Companion.raiseEvent(result[1]);
+                } else {
+                    Log.e(TAG, " application n'existe pas ");
+                    translate("CMD_RUN", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
+                            }
+                        }
+                    });
+                }
+            } else {
+                Log.e(TAG, " trigger n'existe pas ");
                 translate("CMD_RUN", new ITranslationCallback() {
                     @Override
                     public void onTranslated(String translatedText) {
                         String verifyMessage = verifyCmdMessages(translatedText);
-                        if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",application));
+                        if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                         }
                     }
                 });
             }
-        }else{
-            Log.e(TAG," trigger n'existe pas ");
+        }
+        else {
+            Log.e(TAG, " trigger n'existe pas ");
             translate("CMD_RUN", new ITranslationCallback() {
                 @Override
                 public void onTranslated(String translatedText) {
                     String verifyMessage = verifyCmdMessages(translatedText);
-                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",application));
+                    if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                     }
                 }
             });
