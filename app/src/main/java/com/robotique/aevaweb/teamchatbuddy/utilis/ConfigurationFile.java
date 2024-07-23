@@ -472,9 +472,9 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_watch", "Tracking is performed as soon as the robot detects that the target is looking at it.");
             setProperty("TRACKING_watch","Yes");
             props.addPropertyComment("TRACKING_delay_nowatch", "The time delay in seconds for re-tracking and re-centering the gaze and head when the person is no longer looking at it depends on the specific operation of the tracking system being used.");
-            setProperty("TRACKING_delay_nowatch","10");
+            setProperty("TRACKING_delay_nowatch","0");
             props.addPropertyComment("TRACKING_delay_notrack", "The time delay in seconds for re-tracking and re-centering the gaze and head after losing sight of the tracked person depends on the specific settings and capabilities of the tracking system in use.");
-            setProperty("TRACKING_delay_notrack","30");
+            setProperty("TRACKING_delay_notrack","0");
             props.addPropertyComment("TRACKING_listening", "Start listening when someone watchs");
             setProperty("TRACKING_listening","Yes");
             props.addPropertyComment("TRACKING_delay_startlisten", "Delay in seconds for listening when someone watchs");

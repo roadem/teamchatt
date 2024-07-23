@@ -12,7 +12,7 @@ android {
         minSdk 28
         targetSdk 30
         versionCode 48
-        versionName "2.2.20"
+        versionName "2.2.20C"
         multiDexEnabled = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -25,7 +25,7 @@ android {
                 install "pydub"
 
             }
-            buildPython "C:/Users/mehra/myenv/Scripts/python.exe"
+            buildPython "C:/Users/z.amrani/AppData/Local/Programs/Python/Python38/python.exe"
         }
         sourceSets {
             main {

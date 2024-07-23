@@ -226,7 +226,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private CountDownTimer responseTimeout;
     private CountDownTimer timerDownloading;
     private CountDownTimer timerPhoto;
-
+    private CountDownTimer timerToApplyBI;
     private static final Random random = new Random();
     private WifiBroadcastReceiver wifiBroadCastReceiver = new WifiBroadcastReceiver();
     private ArrayList<Replica> listRep=new ArrayList();
@@ -248,6 +248,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private ImageCapture imageCapture;
     private String initOrMajOrNone="";
     private Boolean useListeningNumberWithAutomaicListening=false;
+    private Boolean applyBIAfterDelay=false;
 
     private IMLKitDownloadCallback imlKitDownloadCallback = new IMLKitDownloadCallback() {
         @Override
@@ -644,6 +645,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         super.onPause();
         Log.d(TAG," --- onPause() ---");
         if (responseTimeout!=null) responseTimeout.cancel();
+        if (timerToApplyBI!=null) timerToApplyBI.cancel();
         if(teamChatBuddyApplication.getChatGptStreamMode() != null){
             teamChatBuddyApplication.getChatGptStreamMode().reset();
         }
@@ -1407,7 +1409,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
                 stopListeningFreeSpeech();
                 SystemClock.sleep(200);
-                teamChatBuddyApplication.startListeningHotwor(this);
+                if(!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+                    teamChatBuddyApplication.startListeningHotwor(this);
+                }
+                else if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+                    if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                        teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                    }
+                }
             }
 
             else if (message.contains("end of cycle")){
@@ -1679,6 +1688,18 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             BuddySDK.Companion.raiseEvent("disableLeftEye");
             BuddySDK.Companion.raiseEvent("disableHeadSensors");
             BuddySDK.Companion.raiseEvent("disableBodySensors");
+            timerToApplyBI=new CountDownTimer(10*1000,1000) {
+                @Override
+                public void onTick(long l) {
+
+                }
+
+                @Override
+                public void onFinish() {
+                    applyBIAfterDelay=true;
+                }
+            };
+            timerToApplyBI.start();
         }else {
             if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
                 Log.e("MRARA","enable Raise event Yes");
@@ -2044,25 +2065,32 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void executeBI(String behaviour){
-        Log.i("DEBUG_BI", "executeBI : "+behaviour);
-        teamChatBuddyApplication.setBIExecution(true);
-        mlKitIsDownloading = true;
-        stopListeningFreeSpeech();
-        BuddySDK.UI.stopListenAnimation();
-        BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
-        BIPlayer.getInstance().playBI(this, getTheRightBINameFromConfigFile(behaviour), new IBehaviourCallBack() {
-            @Override
-            public void onEnd(boolean hasAborted, String reason) {
-                Log.e("DEBUG_BI","on END BI execution");
-                BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
-                BuddySDK.UI.lookAt(GazePosition.CENTER, true);
-                mlKitIsDownloading = false;
-                teamChatBuddyApplication.setBIExecution(false);
-                teamChatBuddyApplication.notifyObservers("end of timer");
-            }
-            @Override
-            public void onRun(String s) {}
-        });
+        if (applyBIAfterDelay) {
+            Log.i("DEBUG_BI", "executeBI : " + behaviour);
+            teamChatBuddyApplication.setBIExecution(true);
+            mlKitIsDownloading = true;
+            stopListeningFreeSpeech();
+            BuddySDK.UI.stopListenAnimation();
+            BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
+            BIPlayer.getInstance().playBI(this, getTheRightBINameFromConfigFile(behaviour), new IBehaviourCallBack() {
+                @Override
+                public void onEnd(boolean hasAborted, String reason) {
+                    Log.e("DEBUG_BI", "on END BI execution");
+                    BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
+                    BuddySDK.UI.lookAt(GazePosition.CENTER, true);
+                    mlKitIsDownloading = false;
+                    teamChatBuddyApplication.setBIExecution(false);
+                    teamChatBuddyApplication.notifyObservers("end of timer");
+                    currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
+                    totalTimeLookingAtCamera = 0L;
+                    teamChatBuddyApplication.setSpeaking(false);
+                }
+
+                @Override
+                public void onRun(String s) {
+                }
+            });
+        }
     }
 
     private void refreshSTTLangue() {
@@ -2686,18 +2714,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
 
             //#region re-tracking, re-centering gaze and head
-            if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_DELAY_NO_WATCH * 1000L) {
-                Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_DELAY_NO_WATCH=" + TRACKING_DELAY_NO_WATCH + " seconds --> re-tracking + re-centering the gaze and head");
-                re_track_and_center_head_and_gaze();
-            }
-            else if (!isPersonDetected && currentTime - lastVisibleTime >= TRACKING_DELAY_NO_TRACK * 1000L) {
-                Log.w(TAG_TRACKING, "No person has been visible for TRACKING_DELAY_NO_TRACK=" + TRACKING_DELAY_NO_TRACK + " seconds --> re-tracking + re-centering the gaze and head");
-                re_track_and_center_head_and_gaze();
-            }
-
-            if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_REGARD_CENTER * 1000L) {
-                Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_REGARD_CENTER=" + TRACKING_REGARD_CENTER + " seconds --> refocus the pupils");
-                poseTracking.lookAtCenter();
+            if(TRACKING_DELAY_NO_WATCH!=0||TRACKING_DELAY_NO_TRACK!=0){
+                Log.i(TAG_TRACKING," +++++++++++++++++++++++++re-tracking++++++++++++++++++++++++++");
+                if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_DELAY_NO_WATCH * 1000L) {
+                    Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_DELAY_NO_WATCH=" + TRACKING_DELAY_NO_WATCH + " seconds --> re-tracking + re-centering the gaze and head");
+                    re_track_and_center_head_and_gaze();
+                }
+                else if (!isPersonDetected && currentTime - lastVisibleTime >= TRACKING_DELAY_NO_TRACK * 1000L) {
+                    Log.w(TAG_TRACKING, "No person has been visible for TRACKING_DELAY_NO_TRACK=" + TRACKING_DELAY_NO_TRACK + " seconds --> re-tracking + re-centering the gaze and head");
+                    re_track_and_center_head_and_gaze();
+                }
+                if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_REGARD_CENTER * 1000L) {
+                    Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_REGARD_CENTER=" + TRACKING_REGARD_CENTER + " seconds --> refocus the pupils");
+                    poseTracking.lookAtCenter();
+                }
+            }else{
+                Log.i(TAG_TRACKING," +++++++++++++++++++++++pas de re-tracking++++++++++++++++++++++++++");
             }
             //#endregion re-tracking, re-centering gaze and head
 
