@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 26; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 28; // upgrade this whenever you want to overwrite the file
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -472,9 +472,7 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_watch", "Tracking is performed as soon as the robot detects that the target is looking at it.");
             setProperty("TRACKING_watch","Yes");
             props.addPropertyComment("TRACKING_delay_nowatch", "The time delay in seconds for re-tracking and re-centering the gaze and head when the person is no longer looking at it depends on the specific operation of the tracking system being used.");
-            setProperty("TRACKING_delay_nowatch","0");
-            props.addPropertyComment("TRACKING_delay_notrack", "The time delay in seconds for re-tracking and re-centering the gaze and head after losing sight of the tracked person depends on the specific settings and capabilities of the tracking system in use.");
-            setProperty("TRACKING_delay_notrack","0");
+            setProperty("TRACKING_delay_nowatch","10");
             props.addPropertyComment("TRACKING_listening", "Start listening when someone watchs");
             setProperty("TRACKING_listening","Yes");
             props.addPropertyComment("TRACKING_delay_startlisten", "Delay in seconds for listening when someone watchs");
@@ -485,7 +483,6 @@ public class ConfigurationFile {
             setProperty("TRACKING_regard_center","30");
             props.addPropertyComment("TRACKING_timeout", "Time in seconds to close TeamChatBuddy if no person is tracked within this duration ");
             setProperty("TRACKING_timeout","0");
-
             props.addPropertyComment("TRACKING_Welcome","");
             props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
             props.addPropertyComment("TRACKING_Welcome", "Start Welcome");

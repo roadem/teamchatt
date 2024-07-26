@@ -1170,7 +1170,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         languageCode="fr-FR";
                     }
                     else if (langueDisponible.get(i).equalsIgnoreCase("en")){
-                        languageCode="en-US";
+                        languageCode="en-EN";
                     }
                     else {
                         languageCode=getFirstFullLanguageCode(langueDisponible.get(i));
@@ -1203,7 +1203,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         languageCode="fr-FR";
                     }
                     else if (langueDisponible.get(i).equalsIgnoreCase("en")){
-                        languageCode="en-US";
+                        languageCode="en-EN";
                     }
                     else {
                         languageCode=getFirstFullLanguageCode(langueDisponible.get(i));
@@ -1854,7 +1854,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
 
     public void refresh(String langue,Activity activity) {
-
+        Log.e("zomilito", "Langue Stt refresh  : " + langue);
         speechRecognizer = android.speech.SpeechRecognizer.createSpeechRecognizer(activity);
         if (getParamFromFile("Language_Specification_STT",configurationFilePseudo).trim().equalsIgnoreCase("Yes")) {
             if (getparam("STT_chosen").equalsIgnoreCase("Android")) {
@@ -1875,7 +1875,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 speechRecognizerIntent2.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
                 speechRecognizerIntent2.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,Integer.parseInt(getParamFromFile("Android_Speech_minimum_length",configurationFilePseudo))*1000);
                 speechRecognizerIntent2.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,Integer.parseInt(getParamFromFile("Android_Speech_silence_length",configurationFilePseudo))*1000);
-                speechRecognizerIntent2.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+                speechRecognizerIntent2.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-EN");
 
             } else {
                 speechRecognizerIntent2.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -2016,10 +2016,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             public void onResults(Bundle bundle) {
                                 ArrayList<String> data = bundle.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
                                 if (data!=null && data.size()>0) {
-                                    Log.e(TAG, "question result onResults  : " + data.get(0));
-                                    notifyObservers("STTQuestion_success;"+data.get(0));
-                                    BuddySDK.UI.stopListenAnimation();
-                                    setLed("neutral");
+                                    if(!data.get(0).trim().equals("")) {
+                                        Log.e("zomilito", "question result onResults  : " + data.get(0));
+                                        notifyObservers("STTQuestion_success;" + data.get(0));
+                                        BuddySDK.UI.stopListenAnimation();
+                                        setLed("neutral");
+                                    }else{
+                                        Log.e("zomilito", "question result onResults  : vide " + data.get(0));
+                                    }
                                 }
                                 else {
                                     Log.e(TAG, "question result onResults size = 0 : " );
@@ -2032,10 +2036,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 Log.i(TAG, "onPartialResults listen");
                                 ArrayList<String> data = bundle.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
                                 if (data!=null && data.size()>0) {
-                                    Log.e(TAG, "question result onPartialResults  : " + data.get(0));
-                                    notifyObservers("STTQuestion_success;"+data.get(0));
-                                    BuddySDK.UI.stopListenAnimation();
-                                    setLed("neutral");
+                                    Log.e("zomilito", "data langth  : " + data.size());
+                                    if(!data.get(0).trim().equals("")) {
+                                        Log.e("zomilito", "question result onPartialResults  : " + data.get(0));
+                                        notifyObservers("STTQuestion_success;" + data.get(0));
+                                        BuddySDK.UI.stopListenAnimation();
+                                        setLed("neutral");
+                                    }else{
+                                        Log.e("zomilito", "question result onPartialResults  : vide " + data.get(0));
+                                    }
                                 }
                                 else {
                                     Log.e(TAG, "question result onPartialResults size = 0 : " );
@@ -3379,7 +3388,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 }
                                 else {
                                     usingReadSpeaker = false;
-                                    speakGoogleCloudTTS("en-US",texteToSpeak,type);
+                                    speakGoogleCloudTTS("en-EN",texteToSpeak,type);
                                 }
 
                             break;
@@ -3483,7 +3492,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             switch(language){
                 case "en":
                     if (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker")){
-                        if (getLangue().getLanguageCode().equals("en-US")){
+                        if (getLangue().getLanguageCode().equals("en-EN")){
                             BuddySDK.Speech.setSpeakerVoice("kate");
                             Log.e("MRAA","english kate");
                             usingReadSpeaker = true;
@@ -3681,7 +3690,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 }
             }
             if (!languageCodeExist){
-                languageCode = "en-US";
+                languageCode = "en-EN";
                 voice = "en-US-Standard-C";
             }
         }
@@ -3915,38 +3924,36 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             @Override
             protected Void doInBackground(Void... voids) {
                 try {
-
                     voiceList = googleCloudTTS.load();
-
-
-
                 } catch (Exception e) {
                     Log.e("MRA","load  Exception-----------  "+e);
                     Log.e(TAG,"Exception "+e);
                     try {
-                        int startIndex = e.getMessage().indexOf('{');
-                        // Trouver la fin de la réponse JSON
-                        int endIndex = e.getMessage().lastIndexOf('}') + 1;
-                        // Extraire la réponse JSON
-                        String jsonContent = e.getMessage().substring(startIndex, endIndex);
-                        JsonObject errorLOG = JsonParser.parseString(jsonContent).getAsJsonObject();
+                        if (e.getMessage()!=null && e.getMessage().contains("{") && e.getMessage().contains("}")) {
+                            int startIndex = e.getMessage().indexOf('{');
+                            // Trouver la fin de la réponse JSON
+                            int endIndex = e.getMessage().lastIndexOf('}') + 1;
+                            // Extraire la réponse JSON
+                            String jsonContent = e.getMessage().substring(startIndex, endIndex);
+                            JsonObject errorLOG = JsonParser.parseString(jsonContent).getAsJsonObject();
 
-                        //Mettre   le fichier le plus récent reçu
-                        String fileName = "ERROR-LOG";
-                        File file1 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName + ".json");
-                        if (file1.exists() && file1.isFile()) {
-                            file1.delete();
-                        }
-                        FileWriter fileWriter = new FileWriter(file1);
-                        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                        String jsonStringF=gson.toJson(errorLOG);
-                        fileWriter.write(jsonStringF);
-                        fileWriter.close();
-                        String errorTXT= new Date().toString()+", GoogleCloudTTSERROR,ERROR CODE= "+errorLOG.getAsJsonObject("error").get("code")+", ERROR Body{ message= "+errorLOG.getAsJsonObject("error").get("message")+", status= "+errorLOG.getAsJsonObject("error").get("status")+"}"+System.getProperty("line.separator");
-                        File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
-                            FileWriter fileWriter2 = new FileWriter(file2,true);
+                            //Mettre   le fichier le plus récent reçu
+                            String fileName = "ERROR-LOG";
+                            File file1 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName + ".json");
+                            if (file1.exists() && file1.isFile()) {
+                                file1.delete();
+                            }
+                            FileWriter fileWriter = new FileWriter(file1);
+                            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+                            String jsonStringF = gson.toJson(errorLOG);
+                            fileWriter.write(jsonStringF);
+                            fileWriter.close();
+                            String errorTXT = new Date().toString() + ", GoogleCloudTTSERROR,ERROR CODE= " + errorLOG.getAsJsonObject("error").get("code") + ", ERROR Body{ message= " + errorLOG.getAsJsonObject("error").get("message") + ", status= " + errorLOG.getAsJsonObject("error").get("status") + "}" + System.getProperty("line.separator");
+                            File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
+                            FileWriter fileWriter2 = new FileWriter(file2, true);
                             fileWriter2.write(errorTXT);
                             fileWriter2.close();
+                        }
 
                     } catch (IOException ej) {
                         e.printStackTrace();
