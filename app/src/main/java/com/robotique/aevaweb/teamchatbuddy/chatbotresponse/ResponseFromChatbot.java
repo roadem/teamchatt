@@ -873,7 +873,7 @@ public class ResponseFromChatbot {
                                                     // Play la suite de la réponse.
                                                     else {
                                                         if(!commande.start_action( commande.regex( result ))) {
-//                                            returnCommand = false;
+//                                                            returnCommand = false;
                                                             Log.e(tag, "COMMANDE NON RECONNUE : Start Emotion + ReponseFromChatGPT");
                                                             activity.runOnUiThread(new Runnable() {
                                                                 @Override

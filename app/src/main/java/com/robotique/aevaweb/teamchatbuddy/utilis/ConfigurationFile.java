@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 28; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 29; // upgrade this whenever you want to overwrite the file
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -469,10 +469,10 @@ public class ConfigurationFile {
             setProperty("TRACKING_Body","No");
 
             props.addPropertyComment("TRACKING_watch","");
-            props.addPropertyComment("TRACKING_watch", "Tracking is performed as soon as the robot detects that the target is looking at it.");
+            props.addPropertyComment("TRACKING_watch", "Tracking is performed only if the robot detects that the target is looking at it");
             setProperty("TRACKING_watch","Yes");
-            props.addPropertyComment("TRACKING_delay_nowatch", "The time delay in seconds for re-tracking and re-centering the gaze and head when the person is no longer looking at it depends on the specific operation of the tracking system being used.");
-            setProperty("TRACKING_delay_nowatch","10");
+            props.addPropertyComment("TRACKING_delay_nowatching", "The time delay in seconds for re-tracking and re-centering the gaze and head when the person is no longer looking at it depends on the specific operation of the tracking system being used.");
+            setProperty("TRACKING_delay_nowatching","10");
             props.addPropertyComment("TRACKING_listening", "Start listening when someone watchs");
             setProperty("TRACKING_listening","Yes");
             props.addPropertyComment("TRACKING_delay_startlisten", "Delay in seconds for listening when someone watchs");
