@@ -1768,6 +1768,7 @@ public class Commande {
         teamChatBuddyApplication.setSpeaking(false);
         teamChatBuddyApplication.setStartRecording(false);
         teamChatBuddyApplication.notifyObservers("end of timer");
+        teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(false);
         translate("CMD_STOP", new ITranslationCallback() {
             @Override
             public void onTranslated(String translatedText) {

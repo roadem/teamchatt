@@ -260,6 +260,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private boolean alreadyChatting = false; // pour savoir si BUDDY doit prononcer l'invitation au dialogue ou non
     private String imeiDevice;
     private String tokenHealysa;
+    private boolean shouldLaunchListeningAfterGetingHotWord = true;
 
     public boolean isAlreadyChatting() {
         return alreadyChatting;
@@ -269,7 +270,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         this.alreadyChatting = alreadyChatting;
     }
 
+    public boolean isShouldLaunchListeningAfterGetingHotWord() {
+        return shouldLaunchListeningAfterGetingHotWord;
+    }
 
+    public void setShouldLaunchListeningAfterGetingHotWord(boolean shouldLaunchListeningAfterGetingHotWord) {
+        this.shouldLaunchListeningAfterGetingHotWord = shouldLaunchListeningAfterGetingHotWord;
+    }
 
     public Boolean getBIExecution() {
         return BIExecution;

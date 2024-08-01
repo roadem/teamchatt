@@ -546,6 +546,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
                 teamChatBuddyApplication.setBIExecution(false);
                 teamChatBuddyApplication.setAlreadyChatting(false);
+                teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
                 Log.i(TAG,"First launch of application myIntent!=null 2");
             }
         }
@@ -586,6 +587,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
             teamChatBuddyApplication.setBIExecution(false);
             teamChatBuddyApplication.setAlreadyChatting(false);
+            teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
             Log.i(TAG,"First launch of application");
         }
 
@@ -681,6 +683,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         teamChatBuddyApplication.setActivityClosed(true);
         teamChatBuddyApplication.setStartRecording(false);
         teamChatBuddyApplication.setSpeaking(false);
+        teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
         stopListeningFreeSpeech();
         CustomToast.getInstance().hideToast();
         try {
@@ -1040,11 +1043,46 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        teamChatBuddyApplication.setSpeaking(true);
-                        isListeningFreeSpeech = true;
-                        teamChatBuddyApplication.setActivityClosed(false);
-                        teamChatBuddyApplication.setStartRecording(true);
-                        startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                        Log.e("TEST_HOT","hotword Success");
+                        if(!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+                            teamChatBuddyApplication.setSpeaking(true);
+                            isListeningFreeSpeech = true;
+                            teamChatBuddyApplication.setActivityClosed(false);
+                            teamChatBuddyApplication.setStartRecording(true);
+                            startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                        }
+                        else if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+                            if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                teamChatBuddyApplication.setSpeaking(true);
+                                isListeningFreeSpeech = true;
+                                teamChatBuddyApplication.setActivityClosed(false);
+                                teamChatBuddyApplication.setStartRecording(true);
+                                startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                            }
+                            else{
+                                if (teamChatBuddyApplication.isShouldLaunchListeningAfterGetingHotWord()){
+                                    Log.e("TEST_HOT","hotword Success isShouldLaunchListeningAfterGetingHotWord()");
+                                    teamChatBuddyApplication.setSpeaking(true);
+                                    isListeningFreeSpeech = true;
+                                    teamChatBuddyApplication.setActivityClosed(false);
+                                    teamChatBuddyApplication.setStartRecording(true);
+                                    startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                }
+                                else{
+                                    Log.e("TEST_HOT","hotword Success !isShouldLaunchListeningAfterGetingHotWord()");
+                                    if (regarde_camera){
+                                        Log.e("TEST_HOT","hotword Success regarde_camera");
+                                        teamChatBuddyApplication.setSpeaking(true);
+                                        isListeningFreeSpeech = true;
+                                        teamChatBuddyApplication.setActivityClosed(false);
+                                        teamChatBuddyApplication.setStartRecording(true);
+                                        teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
+                                        startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                    }
+                                }
+                            }
+                        }
+
                     }
                 });
             }
