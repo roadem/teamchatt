@@ -24,6 +24,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.mlkit.nl.languageid.IdentifiedLanguage;
 import com.google.mlkit.nl.languageid.LanguageIdentification;
 import com.google.mlkit.nl.languageid.LanguageIdentifier;
 import com.robotique.aevaweb.teamchatbuddy.R;
@@ -45,6 +46,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -785,21 +787,35 @@ public class CustomGPTStreamMode {
                 if(phraseToPronounce != null){
                     if (teamChatBuddyApplication.getparam("Detection_de_langue").equals("true") && teamChatBuddyApplication.nombreDeMotsCheck(phraseToPronounce)) {
                         LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
-                        languageIdentifier.identifyLanguage(phraseToPronounce)
-                                .addOnSuccessListener(new OnSuccessListener<String>() {
-                                    @Override
-                                    public void onSuccess(String languageCode) {
-                                        if (languageCode.equals("und")) {
-                                            Log.e(TAG, "languageIdentifier : Can't identify language of : " + phraseToPronounce);
-                                            pronouncePhrase(phraseToPronounce);
-                                        }
-                                        else{
-                                            Log.i(TAG, "languageIdentifier : Language of : [ " + phraseToPronounce + " ] is : " + languageCode);
+                        languageIdentifier.identifyPossibleLanguages(phraseToPronounce)
+                                .addOnSuccessListener(
+                        new OnSuccessListener<List<IdentifiedLanguage>>() {
+                            @Override
+                            public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
+                                if (identifiedLanguages.isEmpty()) {
+                                    Log.e("MRA_idetifyLanguage", "languageIdentifier : Can't identify language of : " + phraseToPronounce);
+                                    pronouncePhrase(phraseToPronounce);
+                                } else {
+                                    // Utiliser la première langue identifiée
+                                    IdentifiedLanguage language = identifiedLanguages.get(0);
+                                    String languageCode = language.getLanguageTag();
+                                    float confidence = language.getConfidence();
+
+                                    Log.i("MRA_idetifyLanguage", "Language of : [ " + phraseToPronounce + " ] is : " + languageCode + ", Confidence: " + confidence);
+                                    if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")) {
+                                        if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) >= (confidence * 100)) {
                                             teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
+                                            pronouncePhrase(phraseToPronounce);
+                                        } else {
                                             pronouncePhrase(phraseToPronounce);
                                         }
                                     }
-                                })
+                                    else {
+                                        pronouncePhrase(phraseToPronounce);
+                                    }
+                                }
+                            }
+                        })
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {

@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 29; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 30; // upgrade this whenever you want to overwrite the file
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -201,6 +201,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Number_of_words","");
             props.addPropertyComment("Number_of_words","Minimum number of words in the response for activating language detection");
             setProperty("Number_of_words","3");
+            setProperty("Detection_confidence_rate","90");
 
             props.addPropertyComment("Pattern_End_Phrase","");
             props.addPropertyComment("Pattern_End_Phrase","Set characters marking the end of a sentence using a regular expression for streaming TTS");
@@ -339,9 +340,11 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Model","Commands parameters");
             setProperty( "COMMAND_Model", "gpt-3.5-turbo" );
             setProperty( "COMMAND_Temperature", "0" );
+            setProperty("COMMAND_histo","NO");
+            setProperty("COMMAND_maxdialog","30");
 
-            setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : Qu'est-ce que tu sais faire ? <CMD_NONE> /  Quel est ton niveau de batterie ? <CMD_BATTERIE> / Mets la température à zéro <CMD_TEMP 0> / Change le volume du son à 50 (entre 0 et 100) <CMD_SOUND 50>  /   Quel jour sommes-nous ? <CMD_DATE>  /   Quelle heure est-il ? <CMD_HOUR>    /   Avance sur 3 mètres <CMD_MOVE 3> / Tourne à droite de 30 degrés (entre -360 et 360) <CMD_TURN 30>  /   Baisse la tête au maximum (entre -45 et 35) <CMD_HEAD -45>  /   Regarde le plus à droite possible <CMD_LOOK 10> /   Arrête d’écouter <CMD_STOP> /   Quitte l’application <CMD_QUIT> /  Lance l’application (Buddylab/Spark)  <CMD_RUN Buddylab> /  Exécute une danse <CMD_DANCE>   /   Qu'est ce que tu vois <CMD_PHOTO> / Lance le comportement énervé <CMD_BI angry>  /   Quelle est la météo à ville <CMD_METEO ville>  /   Mets-moi la radio « RTL »  <CMD_RADIO RTL>   /   Connectes-toi sur Dorian <HEALYSA_CONNECT Dorian> /   Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3> /   Quel est mon rythme cardiaque <HEALYSA_HRV>    /   Prend ma tension <HEALYSA_BLOODP>  /   Récupère mon taux d'oxygène <HEALYSA_SPO2>  /   Fais mon check up <HEALYSA_CHECKUP>    /   Appelle Cyril <HEALYSA_CALL Cyril>  /   Où se trouve Nabila <HEALYSA_LOC Nabila>   /   Allume la lumière <SWITCHBOT_LIGHT On>  /   Montre-moi une image de chien rouge <CMD_IMAGE chien rouge>  /   Ferme l'image <CMD_CLOSE_IMAGE>  / Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais> / Génère une musique de jazz avec une trompette <CMD_MUSIC jazz avec une trompette>" );
-            setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: What can you do? <CMD_NONE>/ What is your battery level? <CMD_BATTERIE> / Set the temperature to zero <CMD_TEMP 0> / Change the sound volume to 50 (between 0 and 100) <CMD_SOUND 50> / What day is it? <CMD_DATE> / What time is it? <CMD_HOUR> / Move forward 3 meters <CMD_MOVE 3> / Turn right 30 degrees (between -360 and 360) <CMD_TURN 30> / Lower your head as far as possible (between -45 and 35) <CMD_HEAD -45> / Look as far to the right as possible <CMD_LOOK 10> / Stop listening <CMD_STOP> / Exit the application <CMD_QUIT> / Launch application (Buddylab/Spark) <CMD_RUN Buddylab> /  Execute a dance <CMD_DANCE> / What do you see <CMD_PHOTO > / Launch the behavior angry <CMD_BI angry> / What is the weather in city <CMD_METEO city> / Start the « RTL » radio <CMD_RADIO RTL> / Connect to Dorian <HEALYSA_CONNECT Dorian> / Give the cat 3 portions of food <HEALYSA_FEEDCAT 3> / What's my pace heart rate <HEALYSA_HRV> / Take my blood pressure <HEALYSA_BLOODP> / Get my oxygen level <HEALYSA_SPO2> / Do my check-up <HEALYSA_CHECKUP> / Call Cyril <HEALYSA_CALL Cyril> / Where is Nabila <HEALYSA_LOC Nabila> / Turn on the light < SWITCHBOT_LIGHT On> / Show me an image of a red dog <CMD_IMAGE red dog> / Close the image <CMD_CLOSE_IMAGE> / Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français> / Generate music jazz  with a trumpet <CMD_MUSIC jazz with a trumpet>" );
+            setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : Qu'est-ce que tu sais faire ? <CMD_NONE> /  Quel est ton niveau de batterie ? <CMD_BATTERIE> / Mets la température à zéro <CMD_TEMP 0> / Change le volume du son à 50 (entre 0 et 100) <CMD_SOUND 50>  /   Quel jour sommes-nous ? <CMD_DATE>  /   Quelle heure est-il ? <CMD_HOUR>    /   Avance sur 3 mètres <CMD_MOVE 3> / Tourne à droite de 30 degrés (entre -360 et 360) <CMD_TURN 30>  /   Baisse la tête au maximum (entre -45 et 35) <CMD_HEAD -45>  /   Regarde le plus à droite possible <CMD_LOOK 10> /   Arrête d’écouter <CMD_STOP> /   Quitte l’application <CMD_QUIT> /  Lance l’application (Buddylab/Spark)  <CMD_RUN Buddylab> /  Exécute une danse <CMD_DANCE>   /   Qu'est ce que tu vois <CMD_PHOTO %DESCRIBE_PHOTO%> / Résout le problème que je te montre <CMD_PHOTO %RESOLVE_PHOTO%>/ Traduit en français ce que je te montre <CMD_PHOTO %TRANSLATE_PHOTO%> / Lance le comportement énervé <CMD_BI angry>  /   Quelle est la météo à ville <CMD_METEO ville>  /   Mets-moi la radio « RTL »  <CMD_RADIO RTL>   /   Connectes-toi sur Dorian <HEALYSA_CONNECT Dorian> /   Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3> /   Quel est mon rythme cardiaque <HEALYSA_HRV>    /   Prend ma tension <HEALYSA_BLOODP>  /   Récupère mon taux d'oxygène <HEALYSA_SPO2>  /   Fais mon check up <HEALYSA_CHECKUP>    /   Appelle Cyril <HEALYSA_CALL Cyril>  /   Où se trouve Nabila <HEALYSA_LOC Nabila>   /   Allume la lumière <SWITCHBOT_LIGHT On>  /   Montre-moi une image de chien rouge <CMD_IMAGE chien rouge>  /   Ferme l'image <CMD_CLOSE_IMAGE>  / Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais> / Génère une musique de jazz avec une trompette <CMD_MUSIC jazz avec une trompette> / J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%> / Parle-moi de Blue Frog <CMD_PROMPT %BFR%> " );
+            setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: What can you do? <CMD_NONE>/ What is your battery level? <CMD_BATTERIE> / Set the temperature to zero <CMD_TEMP 0> / Change the sound volume to 50 (between 0 and 100) <CMD_SOUND 50> / What day is it? <CMD_DATE> / What time is it? <CMD_HOUR> / Move forward 3 meters <CMD_MOVE 3> / Turn right 30 degrees (between -360 and 360) <CMD_TURN 30> / Lower your head as far as possible (between -45 and 35) <CMD_HEAD -45> / Look as far to the right as possible <CMD_LOOK 10> / Stop listening <CMD_STOP> / Exit the application <CMD_QUIT> / Launch application (Buddylab/Spark) <CMD_RUN Buddylab> /  Execute a dance <CMD_DANCE> / What do you see <CMD_PHOTO %DESCRIBE_PHOTO%> / Solve the problem I show you <CMD_PHOTO %RESOLVE_PHOTO%>/ Translate into French what I show you <CMD_PHOTO %TRANSLATE_PHOTO> / Launch the behavior angry <CMD_BI angry> / What is the weather in city <CMD_METEO city> / Start the « RTL » radio <CMD_RADIO RTL> / Connect to Dorian <HEALYSA_CONNECT Dorian> / Give the cat 3 portions of food <HEALYSA_FEEDCAT 3> / What's my pace heart rate <HEALYSA_HRV> / Take my blood pressure <HEALYSA_BLOODP> / Get my oxygen level <HEALYSA_SPO2> / Do my check-up <HEALYSA_CHECKUP> / Call Cyril <HEALYSA_CALL Cyril> / Where is Nabila <HEALYSA_LOC Nabila> / Turn on the light < SWITCHBOT_LIGHT On> / Show me an image of a red dog <CMD_IMAGE red dog> / Close the image <CMD_CLOSE_IMAGE> / Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français> / Generate music jazz  with a trumpet <CMD_MUSIC jazz with a trumpet> / I have a real problem can you help me <CMD_PROMPT %POURQUOI%> / Tell me about Blue Frog <CMD_PROMPT %BFR%> " );
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
             setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done" );
@@ -430,6 +433,9 @@ public class ConfigurationFile {
             setProperty( "CMD_BI_fr", "Je lance le comportement [1] // C'est bon // Le fichier de comportement [1] est introuvable" );
             setProperty( "CMD_BI_en", "I'm starting the behaviour [1] // Done // Behavior file [1] could not be found" );
 
+            setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
+            setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");
+
 
             props.addPropertyComment("Image_URL","");
             setProperty( "Image_URL", "https://api.openai.com/" );
@@ -445,10 +451,20 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Picture_Description_URL","");
             setProperty("Picture_Description_URL","https://api.openai.com/");
-            setProperty("Picture_Description_model","gpt-4-vision-preview");
-            setProperty("Picture_Description_max_tokens","300");
-            setProperty("Picture_Description_question_fr","Décris moi cette image?");
-            setProperty("Picture_Description_question_en","Describe this image to me?");
+            setProperty("Picture_Description_model","gpt-4o");
+            setProperty("Picture_Description_max_tokens","500");
+            setProperty("Picture_Description_resolution","Low/Medium/High");
+            setProperty("DESCRIBE_PHOTO","Décris moi cette image de façon détaillée sans * ni markdown");
+            setProperty("RESOLVE_PHOTO","Résout le problème sur la photo de manière claire et détaillé");
+            setProperty("TRANSLATE_PHOTO","traduit en français ce que tu lis sur la photo");
+
+            props.addPropertyComment("Meteo_URL","");
+            setProperty("Meteo_URL","https://api.openweathermap.org");
+            setProperty("Meteo_API_Key","060ec1f9ecb0a63e0045980f1cf480b9");
+
+            props.addPropertyComment("Radio_URL","");
+            setProperty("Radio_URL","https:/bluefrogrobotics-bhqtj3.api.radioline.fr");
+            setProperty("Radio_XCSRF_Token","MGdbCYLTMspN84n4QMZOIAhrLcyTBTAcPEc9feb7xe05oBnQoDwOyLMmsHAppZVI");
 
             props.addPropertyComment("BI_danse","");
             setProperty( "BI_danse", "Dance01/Victory02" );

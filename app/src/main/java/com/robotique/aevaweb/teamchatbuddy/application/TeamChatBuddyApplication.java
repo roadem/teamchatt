@@ -954,6 +954,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         if (getparam("firstLaunch").equals("true")) {
             setparam("messages", "[]");
+            setparam("commandes", "[]");
             if (getparam(openAIKey).equals("")) {
                 setparam(openAIKey, getParamFromFile(openAIKey, configurationFilePseudo));
             }

@@ -18,6 +18,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.mlkit.nl.languageid.IdentifiedLanguage;
 import com.google.mlkit.nl.languageid.LanguageIdentification;
 import com.google.mlkit.nl.languageid.LanguageIdentifier;
 import com.ibm.icu.text.BreakIterator;
@@ -35,7 +36,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,6 +65,7 @@ public class ResponseFromChatbot {
     private String langueDe = "Allemand";
     private String tag ="ResponceFromChatbotClass";
     private String result = "";
+    private JSONArray existingHistoryArray;
     Commande commande;
     private String prompt_cmd;
 
@@ -85,6 +89,7 @@ public class ResponseFromChatbot {
 
         int Max_LIMIT = Integer.parseInt(teamChatBuddyApplication.getparam("Max_Tokens_req"));
         String RoleBuddy;
+        existingHistoryArray = new JSONArray();
 
         // vérifie si la langue actuelle de l'application est l'anglais.
         if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn) ){
@@ -125,7 +130,7 @@ public class ResponseFromChatbot {
 
             // get the historic messages :
             String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
-            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+            existingHistoryArray = new JSONArray(jsonArrayString);
 
 
             if (existingHistoryArray.length() != 0){
@@ -144,6 +149,7 @@ public class ResponseFromChatbot {
 
                             systemContent = messageObject.getString("content");
                             Log.e("FCH","systemContent list "+systemContent);
+                            i=existingHistoryArray.length();
                         }
                     }
                     if (systemContent!=null && !systemContent.equalsIgnoreCase(RoleBuddy)){
@@ -157,6 +163,20 @@ public class ResponseFromChatbot {
                                 break;
                             }
                         }
+                    }else if (systemContent == null){
+                        JSONObject Role = new JSONObject();
+                        Role.put("role", "system");
+                        Role.put(content, RoleBuddy);
+
+                        ArrayList<JSONObject> jsonObjectList = new ArrayList<>();
+                        for (int i = 0; i < existingHistoryArray.length(); i++) {
+                            jsonObjectList.add(existingHistoryArray.getJSONObject(i));
+                        }
+                        jsonObjectList.add(0, Role);
+                        // Reconvertir en JSONArray
+                        JSONArray newJsonArray = new JSONArray(jsonObjectList);
+                        existingHistoryArray = newJsonArray;
+
                     }
                 } catch (JSONException e) {
                     Log.e("FCH","exception "+e);
@@ -172,10 +192,11 @@ public class ResponseFromChatbot {
                 existingHistoryArray.put(Role);
             }
 
-            JSONObject Question = new JSONObject();
-            Question.put("role", "user");
-            Question.put(content, texte);
-            existingHistoryArray.put(Question);
+                JSONObject Question = new JSONObject();
+                Question.put("role", "user");
+                Question.put(content, texte);
+                existingHistoryArray.put(Question);
+
             jsonParams.put(historicMessages, existingHistoryArray);
 
             //Mettre  le dernier fichier json envoyé à l’API
@@ -401,18 +422,32 @@ public class ResponseFromChatbot {
 
                                             LanguageIdentifier languageIdentifier =
                                                     LanguageIdentification.getClient();
-                                            languageIdentifier.identifyLanguage(result)
+                                            languageIdentifier.identifyPossibleLanguages(result)
                                                     .addOnSuccessListener(
-                                                            new OnSuccessListener<String>() {
+                                                            new OnSuccessListener<List<IdentifiedLanguage>>() {
                                                                 @Override
-                                                                public void onSuccess(@Nullable String languageCode) {
-                                                                    if (languageCode.equals("und")) {
-                                                                        Log.i("MRA", "Can't identify language.");
+                                                                public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
+                                                                    if (identifiedLanguages.isEmpty()) {
+                                                                        Log.i("MRA_idetifyLanguage", "Can't identify language.");
                                                                         teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+result+";SPLIT;"+String.valueOf(numberOfQuestion));
                                                                     } else {
-                                                                        Log.i("MRA", "Language: " + languageCode);
-                                                                        teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+result+";SPLIT;"+String.valueOf(numberOfQuestion));
+                                                                        // Utiliser la première langue identifiée
+                                                                        IdentifiedLanguage language = identifiedLanguages.get(0);
+                                                                        String languageCode = language.getLanguageTag();
+                                                                        float confidence = language.getConfidence();
+
+                                                                        Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
+                                                                        if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")) {
+                                                                            if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) >= (confidence * 100)) {
+                                                                                teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
+                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                                            } else {
+                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                                            }
+                                                                        }
+                                                                        else {
+                                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                                        }
                                                                     }
                                                                 }
                                                             })
@@ -700,16 +735,66 @@ public class ResponseFromChatbot {
                                 jsonParams.put( "temperature", Double.parseDouble( teamChatBuddyApplication.getparam( "COMMAND_Temperature" ) ) );
                                 jsonParams.put( "max_tokens", Double.parseDouble( teamChatBuddyApplication.getparam( "Max_Tokens_resp" ) ) );
 
-                                JSONArray requestArray = new JSONArray();
-                                JSONObject Role = new JSONObject();
-                                Role.put( "role", "system" );
-                                Role.put( content, prompt_cmd );
-                                requestArray.put( Role );
+
+
+
+                                // get the historic commandes :
+                                Log.e("DLA","get the historic commandes ");
+                                String jsonArrayString = teamChatBuddyApplication.getparam("commandes");
+                                Log.e("DLA","get the historic commandes  "+jsonArrayString);
+                                Log.e("DLA","get the historic commandes 1");
+                                JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                Log.e("DLA","get the historic commandes 2");
+
+                                if (existingHistoryArray.length() != 0){
+                                    Log.e("FCH","!!!!!existinghistory 0");
+
+
+                                    try {
+                                        String systemContent = null;
+                                        // Parcourir les éléments du tableau
+                                        for (int i = 0; i < existingHistoryArray.length(); i++) {
+                                            JSONObject messageObject = existingHistoryArray.getJSONObject(i);
+
+                                            // Vérifier si le rôle est "system"
+                                            if (messageObject.getString("role").equals("system")) {
+                                                // Récupérer le contenu correspondant
+
+                                                systemContent = messageObject.getString("content");
+                                                Log.e("FCH","systemContent list "+systemContent);
+                                            }
+                                        }
+                                        if (systemContent!=null && !systemContent.equalsIgnoreCase(prompt_cmd)){
+                                            // Recherche de l'objet "system" dans le JSONArray
+                                            for (int i = 0; i < existingHistoryArray.length(); i++) {
+                                                JSONObject roleObj = existingHistoryArray.getJSONObject(i);
+                                                if (roleObj.has("role") && roleObj.getString("role").equals("system")) {
+                                                    // Mettre à jour la valeur de 'content' dans l'objet "system"
+                                                    roleObj.put(content, prompt_cmd);
+                                                    // Sortie de la boucle après la mise à jour
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    } catch (JSONException e) {
+                                        Log.e("FCH","exception "+e);
+                                        e.printStackTrace();
+                                    }
+                                    // define the role
+                                }
+                                else {
+                                    Log.e("FCH","existinghistory 0");
+                                    JSONObject Role = new JSONObject();
+                                    Role.put("role", "system");
+                                    Role.put(content, prompt_cmd);
+                                    existingHistoryArray.put(Role);
+                                }
+
                                 JSONObject Question = new JSONObject();
                                 Question.put( "role", "user" );
                                 Question.put( content, texte );
-                                requestArray.put( Question );
-                                jsonParams.put( "messages", requestArray );
+                                existingHistoryArray.put( Question );
+                                jsonParams.put( "messages", existingHistoryArray );
 
                                 //logger CMD-sent.json
                                 try {
@@ -723,6 +808,7 @@ public class ResponseFromChatbot {
                                     fileWriter.write(jsonString);
                                     fileWriter.close();
                                 } catch (Exception e) {
+                                    Log.e("DLA","exception create file send cmd "+e);
                                     e.printStackTrace();
                                 }
 
@@ -830,38 +916,27 @@ public class ResponseFromChatbot {
                                                     result = messageObject.getString( content );
 
                                                     Log.i("DLA", "Commande : Réponse "+ result);
-                                                    // Géerer le cas où la réponse est vide
+                                                    if (teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")) {
+                                                        // Géerer le cas où la réponse est vide
+                                                        JSONObject history1 = new JSONObject();
+                                                        history1.put("role", "assistant");
+                                                        history1.put(content, result);
 
+                                                        existingHistoryArray.put(history1);
+                                                        // Stocker la nouvelle version de l'historique
+                                                        Log.i("DLA", "Commande : Réponse existingHistoryArray.length()= " + existingHistoryArray.length());
+                                                        if (existingHistoryArray.length() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("COMMAND_maxdialog", "TeamChatBuddy.properties"))) {
+
+                                                            existingHistoryArray.remove(1);
+                                                            existingHistoryArray.remove(1);
+
+                                                            teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
+
+                                                        } else {
+                                                            teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
+                                                        }
+                                                    }
                                                     if (result.equals( "" )) {
-//                                                        teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-//                                                        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-//                                                        }
-//                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-//                                                        }
-//                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("es")){
-//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_es+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-//                                                        }
-//                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("de")){
-//                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_de+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-//                                                        }
-//                                                        else {
-//                                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
-//                                                                @Override
-//                                                                public void onSuccess(String translatedText) {
-//
-//                                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-//                                                                }
-//
-//                                                            }).addOnFailureListener(new OnFailureListener() {
-//                                                                @Override
-//                                                                public void onFailure(@NonNull Exception e) {
-//                                                                    Log.e(tag,"translatedText exception  "+e);
-//                                                                }
-//                                                            });
-//
-//                                                        }
                                                         activity.runOnUiThread(new Runnable() {
                                                             @Override
                                                             public void run() {
@@ -872,7 +947,7 @@ public class ResponseFromChatbot {
                                                     }
                                                     // Play la suite de la réponse.
                                                     else {
-                                                        if(!commande.start_action( commande.regex( result ))) {
+                                                        if(!commande.start_action( commande.regex( result ),numberOfQuestion,texte)) {
 //                                                            returnCommand = false;
                                                             Log.e(tag, "COMMANDE NON RECONNUE : Start Emotion + ReponseFromChatGPT");
                                                             activity.runOnUiThread(new Runnable() {
@@ -883,7 +958,21 @@ public class ResponseFromChatbot {
                                                                 }
                                                             });
                                                         }
+                                                        else if(!commande.regex(result).split( " " )[0].equals("CMD_PROMPT")) {
+                                                            // get the historic commandes :
+
+                                                            String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
+
+                                                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                                                            JSONObject Question = new JSONObject();
+                                                            Question.put( "role", "user" );
+                                                            Question.put( content, texte );
+                                                            existingHistoryArray.put( Question );
+                                                            teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
+                                                        }
                                                     }
+
 
                                                 } catch (Exception e) {
                                                     teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
@@ -1015,6 +1104,7 @@ public class ResponseFromChatbot {
                                     }
                                 } );
                             } catch (Exception e) {
+                                Log.e("DLA","get the historic commandes exception "+e);
                                 teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                                 teamChatBuddyApplication.setGetResponseTime( System.currentTimeMillis() );
                                 Log.e( tag, "Exception pendant la récupération de la réponse ChatGPT : " + e );
@@ -1066,18 +1156,17 @@ public class ResponseFromChatbot {
         }
     }
 
-    public void getQuestionToDescribePicture(Bitmap bitmap){
-        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-            traitementPhotoByChatGpt(bitmap,teamChatBuddyApplication.getParamFromFile("Picture_Description_question_en","TeamChatBuddy.properties"));
-        } else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-            traitementPhotoByChatGpt(bitmap,teamChatBuddyApplication.getParamFromFile("Picture_Description_question_fr","TeamChatBuddy.properties"));
+    public void getQuestionToDescribePicture(Bitmap bitmap,String prompt){
+        Bitmap bitmapReszeResolution = imageResolution(bitmap);
+         if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
+            traitementPhotoByChatGpt(bitmapReszeResolution,prompt);
         }
         else{
-            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate( teamChatBuddyApplication.getParamFromFile("Picture_Description_question_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
+            teamChatBuddyApplication.getFrenchLanguageSelectedTranslator().translate( prompt).addOnSuccessListener(new OnSuccessListener<String>() {
                 @Override
                 public void onSuccess(String translatedText) {
-                    Log.e("ChatGPT_Picture_Description","send photo to chatGPT "+translatedText);
-                    traitementPhotoByChatGpt(bitmap,translatedText);
+                    Log.e("MRRM","send photo to chatGPT translated question "+translatedText);
+                    traitementPhotoByChatGpt(bitmapReszeResolution,translatedText);
                 }
 
             }).addOnFailureListener(new OnFailureListener() {
@@ -1089,6 +1178,25 @@ public class ResponseFromChatbot {
 
         }
     }
+    public Bitmap imageResolution(Bitmap bitmap){
+        String resolution="";
+        if (teamChatBuddyApplication.getParamFromFile("Picture_Description_resolution","TeamChatBuddy.properties")!= null && !teamChatBuddyApplication.getParamFromFile("Picture_Description_resolution","TeamChatBuddy.properties").trim().equals("")){
+            if (teamChatBuddyApplication.getParamFromFile("Picture_Description_resolution","TeamChatBuddy.properties").contains("/")){
+                resolution = teamChatBuddyApplication.getParamFromFile("Picture_Description_resolution","TeamChatBuddy.properties").split("/")[0].trim().toLowerCase();
+            }
+        }
+        switch (resolution){
+            case "low":
+                return resizeImage(bitmap,640,480);
+            case "medium":
+                return resizeImage(bitmap,1280,960);
+            default:
+                return bitmap;
+        }
+    }
+    public Bitmap resizeImage(Bitmap originalImage, int width, int height) {
+        return Bitmap.createScaledBitmap(originalImage, width, height, false);
+    }
     public void traitementPhotoByChatGpt(Bitmap bitmap, String question) {
         activity.runOnUiThread(new Runnable() {
             @Override
@@ -1098,6 +1206,7 @@ public class ResponseFromChatbot {
 
                 try {
                     String base64Image = encodeImageToBase64(bitmap);
+                    Log.e("ChatGPT_Picture_Description","base64Image length= "+base64Image.length());
 
                     // Create JSON request body
                     JSONObject jsonParams = new JSONObject();
@@ -1143,7 +1252,26 @@ public class ResponseFromChatbot {
                                         .getAsJsonObject("message")
                                         .get("content").getAsString();
                                 Log.d("CameraX", "Response: " + chatgptResponse);
+                                    try {
+
+
+                                        String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
+
+                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                                        JSONObject history1 = new JSONObject();
+                                        history1.put("role", "assistant");
+                                        history1.put(content, chatgptResponse);
+
+                                        existingHistoryArray.put(history1);
+                                        // Stocker la nouvelle version de l'historique
+
+                                        teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + chatgptResponse);
+                                Log.e("ChatGPT_Picture_Description", "Réponse ChatGPT photoDescription: "+chatgptResponse);
                                 //Toast.makeText(getApplicationContext(), chatgptResponse, Toast.LENGTH_LONG).show();
                             } else {
                                 if (response != null && response.errorBody() != null) {
@@ -1200,6 +1328,9 @@ public class ResponseFromChatbot {
         }
     }
     public String encodeImageToBase64(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        Log.d("ChatGPT_Picture_Description", "encodeImageToBase64 Width: " + width + ", Height: " + height);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
@@ -1537,21 +1668,35 @@ public class ResponseFromChatbot {
                                 if (teamChatBuddyApplication.getparam("Detection_de_langue").equals("true") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
 
                                     LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
-                                    languageIdentifier.identifyLanguage(result)
+                                    languageIdentifier.identifyPossibleLanguages(result)
                                             .addOnSuccessListener(
-                                                    new OnSuccessListener<String>() {
-                                                        @Override
-                                                        public void onSuccess(@Nullable String languageCode) {
-                                                            if(languageCode.equals("und")) {
-                                                                Log.i("TEAMCHAT_BUDDY_TRACKING", "Can't identify language.");
-                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
-                                                            } else {
-                                                                Log.i("TEAMCHAT_BUDDY_TRACKING", "Language: " + languageCode);
-                                                                teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
-                                                            }
-                                                        }
-                                                    })
+                                    new OnSuccessListener<List<IdentifiedLanguage>>() {
+                                        @Override
+                                        public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
+                                            if (identifiedLanguages.isEmpty()) {
+                                                Log.i("MRA_idetifyLanguage", "Can't identify language.");
+                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
+                                            } else {
+                                                // Utiliser la première langue identifiée
+                                                IdentifiedLanguage language = identifiedLanguages.get(0);
+                                                String languageCode = language.getLanguageTag();
+                                                float confidence = language.getConfidence();
+
+                                                Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
+                                                if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")) {
+                                                    if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) >= (confidence * 100)) {
+                                                        teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
+                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
+                                                    } else {
+                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
+                                                    }
+                                                }
+                                                else {
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
+                                                }
+                                            }
+                                        }
+                                    })
                                             .addOnFailureListener(
                                                     new OnFailureListener() {
                                                         @Override

@@ -97,6 +97,10 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.OverlayView;
 import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.PoseLandmarkerHelper;
 import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.PoseTracking;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -362,6 +366,35 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             public void onTranslated(String translatedText) {
                                 String verifyMessage = commande.verifyCmdMessages(translatedText);
                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                    if (teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")) {
+                                        try {
+                                            // get the historic commandes :
+                                            Log.e("DLA", "get the historic commandes ");
+                                            String jsonArrayString = teamChatBuddyApplication.getparam("commandes");
+                                            Log.e("DLA", "get the historic commandes  " + jsonArrayString);
+                                            Log.e("DLA", "get the historic commandes 1");
+                                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                            Log.e("DLA", "get the historic commandes 2");
+                                            JSONObject history1 = new JSONObject();
+                                            history1.put("role", "assistant");
+                                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                            existingHistoryArray.put(history1);
+                                            // Stocker la nouvelle version de l'historique
+                                            if (existingHistoryArray.length() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("COMMAND_maxdialog", "TeamChatBuddy.properties"))) {
+
+                                                existingHistoryArray.remove(1);
+                                                existingHistoryArray.remove(1);
+
+                                                teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
+
+                                            } else {
+                                                teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
+                                            }
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -1667,7 +1700,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        startCameraForCommand();
+                        Log.e("MRRM","prompt CMD_TAKE_PHOTO"+message.split(";SPLIT;")[1]);
+                        startCameraForCommand(message.split(";SPLIT;")[1]);
                     }
                 });
             }
@@ -1691,6 +1725,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             isReTrack = true;
                             initTracking();
                         }
+                    }
+                });
+            }
+            else if (message.contains("ExecuteCMDPROMPT")){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1],Integer.parseInt(message.split(";SPLIT;")[2]));
                     }
                 });
             }
@@ -1862,7 +1904,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if(dialog != null && dialog.isShowing()) dialog.dismiss();
     }
 
-    private void startCameraForCommand() {
+    private void startCameraForCommand(String promptPhoto) {
         Log.e("CameraX", " starting camera1");
         preViewViewLyt = findViewById(R.id.previewView_lyt);
         previewViewphoto = findViewById(R.id.previewView);
@@ -1895,7 +1937,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                 // Liaison de la caméra aux use cases
                 camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
-                capturePhoto();
+                capturePhoto(promptPhoto);
                 Log.i(TAG, "Camera use cases bound successfully");
             } catch (Exception e) {
                 Log.e(TAG, "Use case binding failed", e);
@@ -1903,7 +1945,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         });
     }
 
-    public void capturePhoto() {
+    public void capturePhoto(String promptPhoto) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -1920,7 +1962,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 commande.phototakedMessage();
                                 Bitmap bitmap = imageProxyToBitmap(image);
                                 showImageInDialog(bitmap);
-                                responseFromChatbot.getQuestionToDescribePicture(bitmap);
+                                responseFromChatbot.getQuestionToDescribePicture(bitmap,promptPhoto);
                                 if(timerPhoto != null) timerPhoto.cancel();
                                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
                                     isReTrack = true;
