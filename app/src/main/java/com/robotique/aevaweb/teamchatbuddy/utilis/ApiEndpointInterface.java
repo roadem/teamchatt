@@ -100,9 +100,10 @@ public interface ApiEndpointInterface {
     /**
      *   -------------------------------  Healysa FIN  ---------------------------------------------------------------
      */
-    @Headers("Authorization: cab994318104af7295dc7a46611782b563ddf6870afd84a36851b37089cbf405edc9e065decb2c7cf587c6bca586ed80")
-    @POST("/v1.0/devices/F66153776451/commands")
-    Call<JsonObject> getSwitchBot1Result(
+    @POST("/v1.0/devices/{id}/commands")
+    Call<JsonObject> getSwitchBotResult(
+            @Path(value = "id",encoded = true) String id,
+            @Header("Authorization") String token,
             @Body RequestBody jsonList
     );
 

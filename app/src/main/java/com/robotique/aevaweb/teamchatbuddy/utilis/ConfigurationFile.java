@@ -334,6 +334,10 @@ public class ConfigurationFile {
             setProperty("CustomGPT_cabecera","");
             setProperty("CustomGPT_kopfzeile","");
 
+            props.addPropertyComment("SwitchBot","");
+            setProperty("Switchbot_token","" );
+            setProperty("Switchbot_id","" );
+
             //-------------------------- COMMAND PARAMETERS ---------------------------
 
             props.addPropertyComment("COMMAND_Model","");
@@ -400,17 +404,18 @@ public class ConfigurationFile {
             setProperty( "HEALYSA_CONNECT_fr", "Je te connecte à la plateforme Healysa // Tu es connecté" );
             setProperty( "HEALYSA_CONNECT_en", "I am connecting you to the Healysa platform // You are connected" );
 
-            setProperty( "HEALYSA_HRV_fr", "Je prend ton rythme cardiaque // Ta fréquence cardiaque est de [1] bpm" );
-            setProperty( "HEALYSA_HRV_en", "I'm taking your heart rate // Your heart rate is [1] bpm" );
+            setProperty( "HEALYSA_HRV_fr", "Je prend ton rythme cardiaque // Ta fréquence cardiaque est de [1] bpm // Aucune mesure de rythme cardiaque n'a été effectuée aujourd'hui." );
+            setProperty( "HEALYSA_HRV_en", "I'm taking your heart rate // Your heart rate is [1] bpm // No heart rate measurement was taken today." );
 
-            setProperty( "HEALYSA_BLOODP_fr", "Je prend ta tesion // Ta tension est de [1] [2]" );
-            setProperty( "HEALYSA_BLOODP_en", "I'm taking your blood pressure // Your blood pressure is [1] [2]" );
+            setProperty( "HEALYSA_BLOODP_fr", "Je prends ta tesion // Ta tension systolique est de [1] et diastolique de [2] // Aucune mesure de tension n'a été effectuée aujourd'hui.");
+            setProperty( "HEALYSA_BLOODP_en", "I'm taking your blood pressure // Your systolic blood pressure is [1] and diastolic is [2] // No blood pressure measurement was taken today.");
 
-            setProperty( "HEALYSA_SPO2_fr", "Je prend ton taux d'oxygène // Ton taux d'oxygène est de [1]" );
-            setProperty( "HEALYSA_SPO2_en", "I'm taking your oxygen level // Your oxygen level is [1]" );
+            setProperty( "HEALYSA_SPO2_fr", "Je prend ton taux d'oxygène // Ton taux d'oxygène est de [1] // Aucune valeur de taux d'oxygène n'a été mesurée aujourd'hui");
+            setProperty( "HEALYSA_SPO2_en", "I'm taking your oxygen level // Your oxygen level is [1] // No oxygen level value was measured today.");
 
-            setProperty( "HEALYSA_CHECKUP_fr", "Je fais ton check up // Ta fréquence cardiaque est de [1], ta tension est de [2] [3], ton taux d'oxygène est de [4]" );
-            setProperty( "HEALYSA_CHECKUP_en", "I'm doing your check up // Your heart rate is [1], your blood pressure is [2] [3], your oxygen level is [4]" );
+            setProperty( "HEALYSA_CHECKUP_fr", "Je fais ton check up // Ta fréquence cardiaque est de [1], ta tension systolique est de [2] et dystolique de [3], ton taux d'oxygène est de [4]" );
+            setProperty( "HEALYSA_CHECKUP_en", "I'm doing your check up // Your heart rate is [1], your systolic blood pressure is [2] and diastolic blood pressure is [3], your oxygen level is [4]" );
+
 
             setProperty( "HEALYSA_CALL_fr", "Je lance l'appel // Voila" );
             setProperty( "HEALYSA_CALL_en", "I'll start the call // Done" );
