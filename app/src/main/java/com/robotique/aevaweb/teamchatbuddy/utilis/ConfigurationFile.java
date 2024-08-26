@@ -413,7 +413,7 @@ public class ConfigurationFile {
             setProperty( "HEALYSA_SPO2_fr", "Je prend ton taux d'oxygène // Ton taux d'oxygène est de [1] // Aucune valeur de taux d'oxygène n'a été mesurée aujourd'hui");
             setProperty( "HEALYSA_SPO2_en", "I'm taking your oxygen level // Your oxygen level is [1] // No oxygen level value was measured today.");
 
-            setProperty( "HEALYSA_CHECKUP_fr", "Je fais ton check up // Ta fréquence cardiaque est de [1], ta tension systolique est de [2] et dystolique de [3], ton taux d'oxygène est de [4]" );
+            setProperty( "HEALYSA_CHECKUP_fr", "Je fais ton check up // Ta fréquence cardiaque est de [1], ta tension systolique est de [2] et diastolique de [3], ton taux d'oxygène est de [4]" );
             setProperty( "HEALYSA_CHECKUP_en", "I'm doing your check up // Your heart rate is [1], your systolic blood pressure is [2] and diastolic blood pressure is [3], your oxygen level is [4]" );
 
 

@@ -2694,6 +2694,7 @@ public class Commande {
         try {
             jsonParams.put("email",teamChatBuddyApplication.getParamFromFile("Healysa_mail",configFile) );
             jsonParams.put("password",teamChatBuddyApplication.getParamFromFile("Healysa_password",configFile));
+
             RequestBody body = RequestBody.create(okhttp3.MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
             Call<JsonObject> callAuth = api.getTokenHealysa(body);
             callAuth.enqueue(new Callback() {
@@ -2969,6 +2970,7 @@ public class Commande {
                                         JSONArray array = new JSONArray(reponse.getString("BLOOD_PRESSURE_SYSTOLIC"));
                                         JSONObject data = array.getJSONObject(0);
                                         tensionS = data.getString("dataValue");
+                                        tensionS = tensionS.replace(".",",");
                                         Log.i(TAG, "Réponse GET Tension Healysa [successful] : " + tensionS);
                                         Call<JsonObject> callGetTensionD = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_DIASTOLIC", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                         callGetTensionD.enqueue(new Callback() {
@@ -2981,6 +2983,7 @@ public class Commande {
                                                         JSONArray array = new JSONArray(reponse.getString("BLOOD_PRESSURE_DIASTOLIC"));
                                                         JSONObject data = array.getJSONObject(0);
                                                         tensionD = data.getString("dataValue");
+                                                        tensionD = tensionD.replace(".",",");
                                                         Log.i(TAG, "Réponse GET Tension Healysa [successful] : " + tensionD);
 
                                                         Log.i(TAG, "Réponse GET Tension Healysa [successful] : " + tensionS + tensionD);
@@ -3259,6 +3262,7 @@ public class Commande {
                                                         JSONArray array = new JSONArray(reponse.getString( "BLOOD_PRESSURE_SYSTOLIC" ));
                                                         JSONObject data = array.getJSONObject( 0 );
                                                         tensionS = data.getString( "dataValue" );
+                                                        tensionS = tensionS.replace(".",",");
                                                         Log.i(TAG, "Réponse GET Tension Healysa [successful] : "+ tensionS);
                                                         Call<JsonObject> callGetTension2 = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_DIASTOLIC", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                                         callGetTension2.enqueue( new Callback() {
@@ -3272,6 +3276,7 @@ public class Commande {
                                                                         JSONArray array = new JSONArray(reponse.getString( "BLOOD_PRESSURE_DIASTOLIC" ));
                                                                         JSONObject data = array.getJSONObject( 0 );
                                                                         tensionD = data.getString( "dataValue" );
+                                                                        tensionD = tensionD.replace(".",",");
                                                                         Log.i(TAG, "Réponse GET Tension Healysa [successful] : "+ tensionD);
                                                                         Call<JsonObject> callGetSPO2 = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "SPO2", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                                                         callGetSPO2.enqueue( new Callback() {
@@ -3301,7 +3306,7 @@ public class Commande {
 
                                                                                                         JSONObject history1 = new JSONObject();
                                                                                                         history1.put("role", "assistant");
-                                                                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionD).replace("[3]",tensionS).replace("[4]",spo2));
+                                                                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionS).replace("[3]",tensionD).replace("[4]",spo2));
 
                                                                                                         existingHistoryArray.put(history1);
                                                                                                         // Stocker la nouvelle version de l'historique
@@ -3310,7 +3315,7 @@ public class Commande {
                                                                                                         e.printStackTrace();
                                                                                                     }
 
-                                                                                                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionD).replace("[3]",tensionS).replace("[4]",spo2));
+                                                                                                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionS).replace("[3]",tensionD).replace("[4]",spo2));
                                                                                                 }
                                                                                             }
                                                                                         });
