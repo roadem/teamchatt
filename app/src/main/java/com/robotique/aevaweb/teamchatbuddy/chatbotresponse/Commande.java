@@ -1459,12 +1459,286 @@ public class Commande {
                 is_command = false;
                 Log.i(TAG,"CMD_NONE : "+ action);
                 break;
+            case "CMD_JOKE":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_JOKE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split( "//" )[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_JOKE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_JOKE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_JOKE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
             default:
                 is_command = false;
                 Log.i(TAG,"DEFAULT : "+ action);
         }
         return is_command;
     }
+
+
+    public void CMD_JOKE(String description){
+        Log.i("HOO", "CMD JOKE '"+ description +"' début." );
+
+        if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
+            String joke_prompt = teamChatBuddyApplication.getParamFromFile("JOKE_PROMPT_fr",configFile);
+            String joke_url = teamChatBuddyApplication.getParamFromFile("JOKE_URL",configFile);
+            if(joke_url == null || joke_url.isEmpty()) joke_url = "https://blague-api.vercel.app/";
+
+            Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,joke_url, 50);
+            ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
+            Call<JsonObject> call = api.getJoke(joke_url+"api",description);
+
+
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            JsonObject jsonObject = response.body();
+                            String joke = jsonObject.get("blague").getAsString();
+                            String jokeResponse = jsonObject.get("reponse").getAsString();
+                            Log.i("HOO","joke "+ joke+" \n response "+jokeResponse);
+
+                            handleJokeByChatGpt(joke+" "+jokeResponse, joke_prompt);
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else {
+                        if (response != null && response.errorBody() != null) {
+                            translate("CMD_JOKE", new ITranslationCallback() {
+                                @Override
+                                public void onTranslated(String translatedText) {
+                                    String verifyMessage = verifyCmdMessages(translatedText);
+                                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    t.printStackTrace();
+                    translate("CMD_JOKE", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+        else{
+            String lang = "en";
+            String blacklistFlags = "nsfw,sexist,explicit";
+            if(teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
+                lang = "en";
+            }
+            else if(teamChatBuddyApplication.getLangue().getNom().equals("Allemand")){
+                lang="de";
+            }
+            else if(teamChatBuddyApplication.getLangue().getNom().equals("Espagnol")){
+                lang="es";
+            }
+
+            String joke_url = "https://v2.jokeapi.dev/joke/";
+
+            Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,joke_url,50);
+            ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
+            Call<JsonObject> call = api.getJoke(joke_url+"/"+description,blacklistFlags,lang);
+
+            String joke_prompt = teamChatBuddyApplication.getParamFromFile("JOKE_PROMPT_en",configFile);
+
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            JsonObject jsonObject = response.body();
+                            if (jsonObject.has("joke")) {
+                                String joke = jsonObject.get("joke").getAsString();
+                                handleJokeByChatGpt(joke, joke_prompt);
+                                Log.i("HOO","joke --> "+joke);
+                            } else if (jsonObject.has("setup") && jsonObject.has("delivery")) {
+                                String setup = jsonObject.get("setup").getAsString();
+                                String delivery = jsonObject.get("delivery").getAsString();
+                                handleJokeByChatGpt(setup+" "+delivery, joke_prompt);
+                                Log.i("HOO","joke --> "+setup+" "+delivery);
+                            } else {
+                                translate("CMD_JOKE", new ITranslationCallback() {
+                                    @Override
+                                    public void onTranslated(String translatedText) {
+                                        String verifyMessage = verifyCmdMessages(translatedText);
+                                        if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                                        }
+                                    }
+                                });
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else {
+                        if (response != null && response.errorBody() != null) {
+                            translate("CMD_JOKE", new ITranslationCallback() {
+                                @Override
+                                public void onTranslated(String translatedText) {
+                                    String verifyMessage = verifyCmdMessages(translatedText);
+                                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    t.printStackTrace();
+                    translate("CMD_JOKE", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+
+    public void handleJokeByChatGpt(String joke, String joke_prompt){
+
+        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getparam("ChatGPT_url"), 50);
+        ApiEndpointInterface api = retrofit.create( ApiEndpointInterface.class );
+
+        //     String joke_prompt = "Raconte cette blague à ta manière en une seule phrase et utilise exactement vingt points ('.') entre les deux phrases";
+        String joke_model = teamChatBuddyApplication.getParamFromFile("JOKE_Model",configFile);
+        if(joke_model == null || joke_model.isEmpty()) joke_model = "gpt-3.5-turbo";
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+//            jsonObject.put("model", joke_model);
+//            JSONArray requestArray = new JSONArray();
+//            JSONObject roleObject = new JSONObject();
+//            roleObject.put("role", "user");
+//            roleObject.put("content", joke_prompt + " " + joke);
+//            requestArray.put(roleObject);
+//            jsonObject.put("messages", requestArray);
+
+            jsonObject.put("model", joke_model);
+            JSONObject userMessage = new JSONObject();
+            userMessage.put("role", "user");
+
+            JSONArray contentArray = new JSONArray();
+            JSONArray requestArray = new JSONArray();
+
+            JSONObject textContent = new JSONObject();
+            textContent.put("type", "text");
+            textContent.put("text", joke_prompt);
+            contentArray.put(textContent);
+
+            JSONObject jokeContent = new JSONObject();
+            jokeContent.put("type", "text");
+            jokeContent.put("text", joke);
+            contentArray.put(jokeContent);
+
+            userMessage.put("content", contentArray);
+            requestArray.put(userMessage);
+
+            jsonObject.put("messages", requestArray);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonObject.toString());
+        Call<JsonObject> call = api.getChatGPT(requestBody, "Bearer " + teamChatBuddyApplication.getparam( "openAI_API_Key" ), "application/json");
+        call.enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
+                if (response.isSuccessful()) {
+                    JsonObject responseBody = response.body();
+                    String chatgptResponse = responseBody.getAsJsonArray("choices")
+                            .get(0).getAsJsonObject()
+                            .getAsJsonObject("message")
+                            .get("content").getAsString();
+                    Log.d("HOO", "Response from chatGpt : " + chatgptResponse);
+                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;"+chatgptResponse);
+                    translate("CMD_JOKE", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                            }
+                        }
+                    });
+                } else {
+                    if (response != null && response.errorBody() != null) {
+                        translate("CMD_JOKE", new ITranslationCallback() {
+                            @Override
+                            public void onTranslated(String translatedText) {
+                                String verifyMessage = verifyCmdMessages(translatedText);
+                                if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+
+            }
+        });
+    }
+
 
     public void CMD_MUSIC(String description){
         Log.i( TAG, "CMD MUSIC '"+ description +"' début." );

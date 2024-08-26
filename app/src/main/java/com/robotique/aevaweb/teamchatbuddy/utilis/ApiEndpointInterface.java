@@ -152,4 +152,13 @@ public interface ApiEndpointInterface {
             @Url String endpoint,
             @Body RequestBody requestBody
     );
+
+    /**
+     *   -------------------------------  JOKE  ---------------------------------------------------------------
+     */
+    @GET
+    Call<JsonObject> getJoke(@Url String url, @Query("mode") String mode);
+
+    @GET
+    Call<JsonObject> getJoke(@Url String url, @Query("blacklistFlags") String blacklistFlags, @Query("lang") String lang);
 }
