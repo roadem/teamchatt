@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 31; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 30; // upgrade this whenever you want to overwrite the file
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -258,7 +258,7 @@ public class ConfigurationFile {
             props.addPropertyComment("emotion_Temperature", "openAI settings for emotion detection");
             setProperty("emotion_Temperature","0");
             setProperty("emotion_Max_tokens","50");
-            setProperty("emotion_Model","gpt-3.5-turbo");
+            setProperty("emotion_Model","gpt-4o");
             setProperty("prompt_fr"," Réponds toujours et seulement le nom de l'émotion ou du sentiment parmi 'joyeux, pensif, malade, amoureux, fatigué, attentif, surpris, grincheux, effrayé, en colère, triste’ et si tu ne le trouves pas, répond neutre. ");
             setProperty("prompt_en","Answer always and only the name of the emotion or feeling among 'happy, thoughtful, sick, in love, tired, attentive, surprised, grumpy, scared, angry, sad' and if you can't find it, answer neutral.");
             setProperty("BuddyFace_Happy","joyeux/happy");
@@ -337,6 +337,11 @@ public class ConfigurationFile {
             props.addPropertyComment("SwitchBot","");
             setProperty("Switchbot_token","" );
             setProperty("Switchbot_id","" );
+
+
+            props.addPropertyComment("MLkit_timeout_in_seconds", "");
+            props.addPropertyComment("MLkit_timeout_in_seconds", "Maximum waiting time (in seconds) for MLkit download before timing out");
+            setProperty("MLkit_timeout_in_seconds","10");
 
             //-------------------------- COMMAND PARAMETERS ---------------------------
 

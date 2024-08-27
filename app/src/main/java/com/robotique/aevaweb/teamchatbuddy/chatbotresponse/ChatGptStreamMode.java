@@ -402,7 +402,7 @@ public class ChatGptStreamMode {
                 isReadyToSpeak = false;
                 String phraseToPronounce = phrasesQueue.poll();
                 if(phraseToPronounce != null){
-                    if (app.getparam("Detection_de_langue").equals("true") && app.nombreDeMotsCheck(phraseToPronounce)) {
+                    if (app.getparam("Detection_de_langue").contains("yes") && app.nombreDeMotsCheck(phraseToPronounce)) {
                         LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
                         languageIdentifier.identifyPossibleLanguages(phraseToPronounce)
                                 .addOnSuccessListener(
@@ -466,7 +466,7 @@ public class ChatGptStreamMode {
         if(!isReset){
             if (!app.isTimeoutExpired()) {
                 Log.i(TAG_STREAM, "TTS : [ " + phraseToPronounce + " ]");
-                if (app.getparam("switch_visibility").equals("true")) {
+                if (app.getparam("switch_visibility").contains("yes")) {
                     showPhrase(phraseToPronounce);
                 }
                 else{

@@ -33,6 +33,7 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.BIPlayer;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IBehaviourCallBack;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ImageGenerator;
 import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -4270,6 +4271,7 @@ public class Commande {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        createJsonFile("ImageGeneration-sent", jsonObject);
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject.toString());
 
         Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,image_URL, 50);
@@ -4287,6 +4289,7 @@ public class Commande {
                     try {
                         String responseBodyString = response.body().string();
                         JSONObject responseObject = new JSONObject(responseBodyString);
+                        createJsonFile("ImageGeneration-recv",responseObject);
                         JSONArray dataArray = responseObject.getJSONArray("data");
                         if (dataArray.length() > 0) {
                             JSONObject imageObject = dataArray.getJSONObject(0);
@@ -4559,6 +4562,26 @@ public class Commande {
             musicPlayer.release();
             musicPlayer = null;
         }
+    }
+
+    public void createJsonFile(String fileName, JSONObject jsonObject){
+        File file1 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName + ".json");
+
+
+        try {
+            if (file1.exists() && file1.isFile()) {
+                file1.delete();
+            }
+            FileWriter fileWriter = new FileWriter(file1);
+            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+            String jsonString=gson.toJson(jsonObject);
+            fileWriter.write(jsonString);
+            fileWriter.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
 

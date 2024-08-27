@@ -177,7 +177,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private String cabecera ="Cabecera";
     private String kopfzeile ="Kopfzeile";
     private String openAIKey = "openAI_API_Key";
-    private Boolean modelDownloading = false;
+    static Boolean modelDownloading = false;
     private boolean english_is_downloaded = false;
     private boolean french_is_downloaded = false;
     private WifiBroadcastReceiver wifiBroadCastReceiver = new WifiBroadcastReceiver();
@@ -191,6 +191,18 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private LinearLayout popupLanguageListContent;
     private ImageView dollar_icon;
 
+    private LinearLayout menuOptionBIlyt;
+    private LinearLayout menu_option_detection_language_lyt;
+    private LinearLayout menu_option_stream_mode_lyt;
+    private LinearLayout menu_option_commande_lyt;
+    private LinearLayout menu_option_affichage_lyt;
+
+
+    Runnable runnableToast;
+    private Handler handlerToast = new Handler(Looper.getMainLooper());
+    private boolean isConnected = true;
+    private boolean isClosingSettings = false;
+    private Toast currentToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -280,6 +292,12 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchTrackingInvitationChatGpt = findViewById(R.id.switchTrackingInvitationChatGpt);
         dollar_icon = findViewById(R.id.dollar_icon);
 
+        menuOptionBIlyt = findViewById(R.id.menu_option_BI_lyt);
+        menu_option_detection_language_lyt = findViewById(R.id.menu_option_detection_language_lyt);
+        menu_option_stream_mode_lyt = findViewById(R.id.menu_option_stream_mode_lyt);
+        menu_option_commande_lyt = findViewById(R.id.menu_option_commande_lyt);
+        menu_option_affichage_lyt = findViewById(R.id.menu_option_affichage_lyt);
+
         set=new Setting();
         setting=new Setting();
         teamChatBuddyApplication.registerObserver(this);
@@ -344,40 +362,90 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
          *  Gestion de la liste déroulante pour le choix de langue [ Français | Anglais ]
          */
 
+        teamChatBuddyApplication.setparam("previousLanguage",new Gson().toJson(teamChatBuddyApplication.getLangue()));
         handlerLangue();
 
         /**
          *  Gestion de l'affichage des paroles
          */
 
-        switchVisibility.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam(visibilityString)));
-        set.setSwitchVisibility(teamChatBuddyApplication.getparam(visibilityString));
-        setting.setSwitchVisibility(teamChatBuddyApplication.getparam(visibilityString));
-        teamChatBuddyApplication.setSwitchVisibility(teamChatBuddyApplication.getparam(visibilityString));
+        if(teamChatBuddyApplication.getparam(visibilityString).contains("yes")){
+            switchVisibility.setChecked(true);
+            set.setSwitchVisibility("true");
+            setting.setSwitchVisibility("true");
+            teamChatBuddyApplication.setSwitchVisibility("true");
+            if(teamChatBuddyApplication.getparam(visibilityString).equals("yeshid")){
+                menu_option_affichage_textView.setVisibility(View.GONE);
+                switchVisibility.setVisibility(View.GONE);
+            }
+            else{
+                menu_option_affichage_textView.setVisibility(View.VISIBLE);
+                switchVisibility.setVisibility(View.VISIBLE);
+            }
+        }
+        else{
+            switchVisibility.setChecked(false);
+            set.setSwitchVisibility("false");
+            setting.setSwitchVisibility("false");
+            teamChatBuddyApplication.setSwitchVisibility("false");
+            if(teamChatBuddyApplication.getparam(visibilityString).equals("nohid")){
+                menu_option_affichage_textView.setVisibility(View.GONE);
+                switchVisibility.setVisibility(View.GONE);
+            }
+            else{
+                menu_option_affichage_textView.setVisibility(View.VISIBLE);
+                switchVisibility.setVisibility(View.VISIBLE);
+            }
+        }
         switchVisibility.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchVisibility(String.valueOf(b));
-            teamChatBuddyApplication.setparam(visibilityString,String.valueOf(b));
+            if(b){
+                teamChatBuddyApplication.setparam(visibilityString,"yes");
+            }else{
+                teamChatBuddyApplication.setparam(visibilityString,"no");
+            }
             set.setSwitchVisibility(String.valueOf(b));
 
         });
+
         /**
          *  Gestion de la lecture des BI
          */
-
-        switchBIDisplay.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Stimulis")));
-        set.setSwitchBIDisplay(teamChatBuddyApplication.getparam("Stimulis"));
-        setting.setSwitchBIDisplay(teamChatBuddyApplication.getparam("Stimulis"));
-        teamChatBuddyApplication.setSwitchBIDisplay(teamChatBuddyApplication.getparam("Stimulis"));
+        if(teamChatBuddyApplication.getparam("Stimulis").contains("yes")){
+            switchBIDisplay.setChecked(true);
+            set.setSwitchBIDisplay("true");
+            setting.setSwitchBIDisplay("true");
+            teamChatBuddyApplication.setSwitchBIDisplay("true");
+            if(teamChatBuddyApplication.getparam("Stimulis").equals("yeshid")){
+                menuOptionBIlyt.setVisibility(View.GONE);
+            }
+            else{
+                menuOptionBIlyt.setVisibility(View.VISIBLE);
+            }
+        }
+        else{
+            switchBIDisplay.setChecked(false);
+            set.setSwitchBIDisplay("false");
+            setting.setSwitchBIDisplay("false");
+            teamChatBuddyApplication.setSwitchBIDisplay("false");
+            if(teamChatBuddyApplication.getparam("Stimulis").equals("nohid")){
+                menuOptionBIlyt.setVisibility(View.GONE);
+            }
+            else{
+                menuOptionBIlyt.setVisibility(View.VISIBLE);
+            }
+        }
         switchBIDisplay.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchBIDisplay(String.valueOf(b));
-            teamChatBuddyApplication.setparam("Stimulis",String.valueOf(b));
-            if (teamChatBuddyApplication.getparam("Stimulis").equals("true")){
-                Log.e("MRARA","disnable Raise event Stimilus");
+            if(b){
+                teamChatBuddyApplication.setparam("Stimulis","yes");
                 BuddySDK.Companion.raiseEvent("disableRightEye");
                 BuddySDK.Companion.raiseEvent("disableLeftEye");
                 BuddySDK.Companion.raiseEvent("disableHeadSensors");
                 BuddySDK.Companion.raiseEvent("disableBodySensors");
-            }else {
+            }
+            else{
+                teamChatBuddyApplication.setparam("Stimulis","no");
                 if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
                     Log.e("MRARA","enable Raise event Yes");
                     BuddySDK.Companion.raiseEvent("enableRightEye");
@@ -394,61 +462,175 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 }
             }
             set.setSwitchBIDisplay(String.valueOf(b));
-
         });
+
+
         /**
          *  Gestion de l'affichage des émotions
          */
+        if(teamChatBuddyApplication.getparam(emotionString).contains("yes")){
+            switchEmotion.setChecked(true);
+            set.setSwitchEmotion("true");
+            setting.setSwitchEmotion("true");
+            teamChatBuddyApplication.setSwitchEmotion("true");
 
-        switchEmotion.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam(emotionString)));
-        set.setSwitchEmotion(teamChatBuddyApplication.getparam(emotionString));
-        setting.setSwitchEmotion(teamChatBuddyApplication.getparam(emotionString));
-        teamChatBuddyApplication.setSwitchEmotion(teamChatBuddyApplication.getparam(emotionString));
+            if(teamChatBuddyApplication.getparam(emotionString).equals("yeshid")){
+                menu_option_emotion_textView.setVisibility(View.GONE);
+                switchEmotion.setVisibility(View.GONE);
+            }
+            else{
+                menu_option_emotion_textView.setVisibility(View.VISIBLE);
+                switchEmotion.setVisibility(View.VISIBLE);
+            }
+        }
+        else{
+            switchEmotion.setChecked(false);
+            set.setSwitchEmotion("false");
+            setting.setSwitchEmotion("false");
+            teamChatBuddyApplication.setSwitchEmotion("false");
+
+            if(teamChatBuddyApplication.getparam(emotionString).equals("nohid")){
+                menu_option_emotion_textView.setVisibility(View.GONE);
+                switchEmotion.setVisibility(View.GONE);
+            }
+            else{
+                menu_option_emotion_textView.setVisibility(View.VISIBLE);
+                switchEmotion.setVisibility(View.VISIBLE);
+            }
+        }
+
         switchEmotion.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchEmotion(String.valueOf(b));
-            teamChatBuddyApplication.setparam(emotionString,String.valueOf(b));
+            if(b){
+                teamChatBuddyApplication.setparam(emotionString,"yes");
+            }
+            else{
+                teamChatBuddyApplication.setparam(emotionString,"no");
+            }
             set.setSwitchEmotion(String.valueOf(b));
         });
         /**
          *  Gestion de la detection des langues
          */
-
-        switchLanguageDetection.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam(detectionLanguageString)));
-        set.setSwitchLanguageDetection(teamChatBuddyApplication.getparam(detectionLanguageString));
-        setting.setSwitchLanguageDetection(teamChatBuddyApplication.getparam(detectionLanguageString));
-        teamChatBuddyApplication.setSwitchdetectLanguage(teamChatBuddyApplication.getparam(detectionLanguageString));
+        if(teamChatBuddyApplication.getparam(detectionLanguageString).contains("yes")){
+            switchLanguageDetection.setChecked(true);
+            set.setSwitchLanguageDetection("true");
+            setting.setSwitchLanguageDetection("true");
+            teamChatBuddyApplication.setSwitchdetectLanguage("true");
+            if(teamChatBuddyApplication.getparam(detectionLanguageString).equals("yeshid")){
+                menu_option_detection_language_lyt.setVisibility(View.GONE);
+            }else{
+                menu_option_detection_language_lyt.setVisibility(View.VISIBLE);
+            }
+        }
+        else{
+            switchLanguageDetection.setChecked(false);
+            set.setSwitchLanguageDetection("false");
+            setting.setSwitchLanguageDetection("false");
+            teamChatBuddyApplication.setSwitchdetectLanguage("false");
+            if(teamChatBuddyApplication.getparam(detectionLanguageString).equals("nohid")){
+                menu_option_detection_language_lyt.setVisibility(View.GONE);
+            }else{
+                menu_option_detection_language_lyt.setVisibility(View.VISIBLE);
+            }
+        }
         switchLanguageDetection.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchdetectLanguage(String.valueOf(b));
-            teamChatBuddyApplication.setparam(detectionLanguageString,String.valueOf(b));
+            if(b){
+                teamChatBuddyApplication.setparam(detectionLanguageString,"yes");
+            }
+            else{
+                teamChatBuddyApplication.setparam(detectionLanguageString,"no");
+            }
+
             set.setSwitchLanguageDetection(String.valueOf(b));
         });
+
 
 
         /**
          *  Gestion du switch mode stream
          */
-        switchModeStream.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam(modeStreamString)));
-        set.setSwitchModeStream(teamChatBuddyApplication.getparam(modeStreamString));
-        setting.setSwitchModeStream(teamChatBuddyApplication.getparam(modeStreamString));
-        teamChatBuddyApplication.setSwitchModeStream(teamChatBuddyApplication.getparam(modeStreamString));
+        if(teamChatBuddyApplication.getparam(modeStreamString).contains("yes")){
+            switchModeStream.setChecked(true);
+            set.setSwitchModeStream("true");
+            setting.setSwitchModeStream("true");
+            teamChatBuddyApplication.setSwitchModeStream("true");
+            if(teamChatBuddyApplication.getparam(modeStreamString).equals("yeshid")){
+                menu_option_stream_mode_lyt.setVisibility(View.GONE);
+            }else{
+                menu_option_stream_mode_lyt.setVisibility(View.VISIBLE);
+            }
+        }
+        else{
+            switchModeStream.setChecked(false);
+            set.setSwitchModeStream("false");
+            setting.setSwitchModeStream("false");
+            teamChatBuddyApplication.setSwitchModeStream("false");
+            if(teamChatBuddyApplication.getparam(modeStreamString).equals("nohid")){
+                menu_option_stream_mode_lyt.setVisibility(View.GONE);
+            }else{
+                menu_option_stream_mode_lyt.setVisibility(View.VISIBLE);
+            }
+        }
+
         switchModeStream.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchModeStream(String.valueOf(b));
-            teamChatBuddyApplication.setparam(modeStreamString,String.valueOf(b));
+            if(b){
+                teamChatBuddyApplication.setparam(modeStreamString,"yes");
+            }
+            else{
+                teamChatBuddyApplication.setparam(modeStreamString,"no");
+            }
             set.setSwitchModeStream(String.valueOf(b));
         });
 
         /**
          *  Gestion du switch commande
          */
-        switchCommande.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam(commandeString)));
-        set.setSwitchCommande(teamChatBuddyApplication.getparam(commandeString));
-        setting.setSwitchCommande(teamChatBuddyApplication.getparam(commandeString));
-        teamChatBuddyApplication.setSwitchCommande(teamChatBuddyApplication.getparam(commandeString));
+        if(teamChatBuddyApplication.getparam(commandeString).contains("yes")){
+            switchCommande.setChecked(true);
+            set.setSwitchCommande("true");
+            setting.setSwitchCommande("true");
+            teamChatBuddyApplication.setSwitchCommande("true");
+            if(teamChatBuddyApplication.getparam(commandeString).equals("yeshid")){
+                menu_option_commande_lyt.setVisibility(View.GONE);
+            }else{
+                menu_option_commande_lyt.setVisibility(View.VISIBLE);
+            }
+        }
+        else {
+            switchCommande.setChecked(false);
+            set.setSwitchCommande("false");
+            setting.setSwitchCommande("false");
+            teamChatBuddyApplication.setSwitchCommande("false");
+            if(teamChatBuddyApplication.getparam(commandeString).equals("nohid")){
+                menu_option_commande_lyt.setVisibility(View.GONE);
+            }else{
+                menu_option_commande_lyt.setVisibility(View.VISIBLE);
+            }
+        }
+
         switchCommande.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setSwitchCommande(String.valueOf(b));
-            teamChatBuddyApplication.setparam(commandeString,String.valueOf(b));
+            if(b){
+                teamChatBuddyApplication.setparam(commandeString,"yes");
+            }
+            else{
+                teamChatBuddyApplication.setparam(commandeString,"no");
+            }
+
             set.setSwitchCommande(String.valueOf(b));
         });
+
+
+
+        if(teamChatBuddyApplication.getparam(visibilityString).contains("hid") && teamChatBuddyApplication.getparam(emotionString).contains("hid")){
+            menu_option_affichage_lyt.setVisibility(View.GONE);
+        }
+        else{
+            menu_option_affichage_lyt.setVisibility(View.VISIBLE);
+        }
 
 
         /**
@@ -509,7 +691,71 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
         });
 
+        timerEcoute = new CountDownTimer((long)
+                Integer.parseInt(teamChatBuddyApplication.getParamFromFile("MLkit_timeout_in_seconds", "TeamChatBuddy.properties")) * 2000,
+                1000) {
+            @Override
+            public void onTick(long l) {
+                Log.i("HHO","--- onTick s---");
+                if (modelDownloading) {
+                    if(isConnected){
+                        handlerToast.post(runnableToast);
+                    }
+                }
+            }
+            @Override
+            public void onFinish() {
+                handlerToast.removeCallbacks(runnableToast);
+                launch_view.setVisibility(View.INVISIBLE);
+                teamChatBuddyApplication.setLangue(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class));
+                setPreviousLanguage();
+                Log.i("HHO","--- onfinish s---"+teamChatBuddyApplication.getLangue().getNom());
+                Toast.makeText(getApplicationContext(),R.string.toast_message_error_downloading_en, Toast.LENGTH_LONG).show();
+                modelDownloading = false;
+                setLanguageText();
+            }
+        };
+
     }
+
+    private Runnable runnableProgressBar = new Runnable() {
+        @Override
+        public void run() {
+            launch_view.setVisibility(View.VISIBLE);
+            timerEcoute.start();
+        }
+    };
+
+    public void setPreviousLanguage(){
+
+        if(langues!=null && !langues.isEmpty()){
+            for (int index = 0; index < langues.size(); index++) {
+                langues.get(index).setChosen(false);
+                if (langues.get(index).getNom().equalsIgnoreCase(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class).getNom())) {
+                    langues.get(index).setChosen(true);
+                    teamChatBuddyApplication.setLangue(langues.get(index));
+                    menu_option_langue_spinner.setSelection(index);
+                    menu_option_langue_spinner.setEnabled(true);
+                }
+                if(langues.get(index).getNom().equals("Français")){
+                    teamChatBuddyApplication.setparam("Français",new Gson().toJson(langues.get(index)));
+                }
+                else if(langues.get(index).getNom().equals("Anglais")){
+                    teamChatBuddyApplication.setparam("Anglais",new Gson().toJson(langues.get(index)));
+                }
+                else if (langues.get(index).getNom().equals("Espagnol")){
+                    teamChatBuddyApplication.setparam("Espagnol",new Gson().toJson(langues.get(index)));
+                }
+                else if (langues.get(index).getNom().equals("Allemand")){
+                    teamChatBuddyApplication.setparam("Allemand",new Gson().toJson(langues.get(index)));
+                }else{
+                    teamChatBuddyApplication.setparam(langues.get(index).getNom(),new Gson().toJson(langues.get(index)));
+                }
+            }
+        }
+    }
+
+
     // Vérifie si les coordonnées de l'événement sont à l'intérieur de la vue spécifiée
     private boolean isViewInsideBounds(View view, int x, int y) {
         int[] location = new int[2];
@@ -518,23 +764,42 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         int viewY = location[1];
         return !(x < viewX || x > viewX + view.getWidth() || y < viewY || y > viewY + view.getHeight());
     }
+
+
     private void handlerTracking(){
 
         //Tracking activation
-        if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
-            menu_option_tracking_camera_display_lyt.setVisibility(View.VISIBLE);
-            menu_option_tracking_head_lyt.setVisibility(View.VISIBLE);
-            menu_option_tracking_body_lyt.setVisibility(View.VISIBLE);
-            menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
-            menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
-            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
-                menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
-            }
-            else{
+        if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
+            if(!teamChatBuddyApplication.getparam("Tracking_Activation").equals("yeshid")){
+                menu_option_tracking_camera_display_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_head_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_body_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_activation_lyt.setVisibility(View.VISIBLE);
+                if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
+                    menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
+                }
+                else{
+                    menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.GONE);
+                }
+            }else{
+                menu_option_tracking_camera_display_lyt.setVisibility(View.GONE);
+                menu_option_tracking_head_lyt.setVisibility(View.GONE);
+                menu_option_tracking_body_lyt.setVisibility(View.GONE);
+                menu_option_tracking_auto_listen_lyt.setVisibility(View.GONE);
+                menu_option_tracking_invitation_lyt.setVisibility(View.GONE);
                 menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.GONE);
+                menu_option_tracking_activation_lyt.setVisibility(View.GONE);
             }
         }
         else{
+            if(!teamChatBuddyApplication.getparam("Tracking_Activation").equals("nohid")){
+                menu_option_tracking_activation_lyt.setVisibility(View.VISIBLE);
+            }
+            else{
+                menu_option_tracking_activation_lyt.setVisibility(View.GONE);
+            }
             menu_option_tracking_camera_display_lyt.setVisibility(View.GONE);
             menu_option_tracking_head_lyt.setVisibility(View.GONE);
             menu_option_tracking_body_lyt.setVisibility(View.GONE);
@@ -542,10 +807,20 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             menu_option_tracking_invitation_lyt.setVisibility(View.GONE);
             menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.GONE);
         }
-        switchTrackingActivation.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation")));
+        if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
+            switchTrackingActivation.setChecked(true);
+        }
+        else{
+            switchTrackingActivation.setChecked(false);
+        }
         switchTrackingActivation.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
-            teamChatBuddyApplication.setparam("Tracking_Activation",String.valueOf(b));
-            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+            if(b){
+                teamChatBuddyApplication.setparam("Tracking_Activation","yes");
+            }
+            else{
+                teamChatBuddyApplication.setparam("Tracking_Activation","no");
+            }
+            if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                 menu_option_tracking_camera_display_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_head_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_body_lyt.setVisibility(View.VISIBLE);
@@ -596,7 +871,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchTrackingInvitation.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation")));
         switchTrackingInvitation.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setparam("Tracking_Invitation",String.valueOf(b));
-            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+            if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                     menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
                 }
@@ -614,7 +889,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         });
 
     }
-
     private void handlerLangue() {
 
         langues = new ArrayList<>();
@@ -670,6 +944,17 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                         teamChatBuddyApplication.setLangue(langue);
                         set.setLangue(langue.getNom());
                         modelDownloading = true;
+                        runnableToast = new Runnable() {
+                            @Override
+                            public void run() {
+                                if (modelDownloading) {
+                                    if(isConnected){
+                                        showToastMessage();
+                                        handlerToast.postDelayed(this, 1000); // Show toast every 2 seconds
+                                    }
+                                }
+                            }
+                        };
                         teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,teamChatBuddyApplication.getLangue().getLanguageCode().split("-")[0].trim());
                         handlerProgressBar.postDelayed(runnableProgressBar,500);
 
@@ -719,7 +1004,11 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 if (chatbotList.get(i).getNom().equalsIgnoreCase("ChatGPT")){
                     menu_option_projectID_editText.setEnabled(false);
                     menu_option_projectID_lyt.setVisibility(View.GONE);
-                    switchModeStream.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam(modeStreamString)));
+                    if(teamChatBuddyApplication.getparam(modeStreamString).contains("yes")){
+                        switchModeStream.setChecked(true);
+                    }else{
+                        switchModeStream.setChecked(false);
+                    }
                     switchModeStream.setEnabled(true);
                     switchModeStream.setAlpha(1f);
                 }
@@ -1407,7 +1696,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                     }
                 }
             }
-            modelDownloading = true;
+        //    modelDownloading = true;
 
         }
     }
@@ -1449,41 +1738,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 });
     }
     private Handler handlerProgressBar = new Handler(Looper.getMainLooper());
-    private Runnable runnableProgressBar = new Runnable() {
-        @Override
-        public void run() {
-            launch_view.setVisibility(View.VISIBLE);
-            timerEcoute = new CountDownTimer((long) Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Response_Timeout_in_seconds", "TeamChatBuddy.properties")) * 1000, 1000) {
-                @Override
-                public void onTick(long l) {
-                    Log.e("MRAA","onTick response");
-                    // Method left empty intentionally because no action needed on each tick.
-                }
 
-                @Override
-                public void onFinish() {
-                    Log.e("MIDO","onfinish timer mlkit");
-                    if (modelDownloading){
-                        if (teamChatBuddyApplication.getLangue().getNom().equals(langueEN)) {
-                            Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT).show();
-                        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFR)){
-                            Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_fr, Toast.LENGTH_SHORT).show();
-                        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueES)){
-                            Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_es, Toast.LENGTH_SHORT).show();
-                        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDE)){
-                            Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_de, Toast.LENGTH_SHORT).show();
-                        }
-                        else {
-                            Log.e("MIDO","onfinish affichage toast else");
-                            Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-            };
-
-            timerEcoute.start();
-        }
-    };
 
     private IMLKitDownloadCallback imlKitDownloadCallback = new IMLKitDownloadCallback() {
         @Override
@@ -1505,6 +1760,14 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                     modelDownloading = false;
                     setLanguageText();
                     langueSpinnerAdapter.notifyDataSetChanged();
+                    handlerToast.removeCallbacks(runnableToast);
+                    if(currentToast!=null){
+                        currentToast.cancel();
+                    }
+                    if(timerEcoute!=null){
+                        timerEcoute.cancel();
+                    }
+                    teamChatBuddyApplication.setparam("previousLanguage",new Gson().toJson(teamChatBuddyApplication.getLangue()));
                 }
             }
             else{
@@ -1540,6 +1803,19 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         teamChatBuddyApplication.removeObserver(this);
         Log.d(TAG," --- onDestroy() ---");
+        if(timerEcoute!=null){
+            timerEcoute.cancel();
+        }
+        if(handlerToast!=null){
+            handlerToast.removeCallbacks(runnableToast);
+            handlerToast.removeCallbacksAndMessages(null);
+        }
+        if(modelDownloading && !isClosingSettings){
+            //set previous langue
+            setPreviousLanguage();
+            downloadingBar.setVisibility(View.GONE);
+
+        }
     }
     @Override
     public void update(String message) throws IOException {
@@ -1551,23 +1827,36 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 teamChatBuddyApplication.setparam("firstLaunch","false");
             }
             if (message.contains("isConnected")){
+                isConnected = true;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
-                        downloadingBar.setVisibility(View.VISIBLE);
                         noNetwork.setVisibility(View.GONE);
+                        if(launch_view.getVisibility() ==  View.VISIBLE){
+                            if(modelDownloading && timerEcoute!=null){
+                                timerEcoute.start();
+                                downloadingBar.setVisibility(View.VISIBLE);
+                            }
+                        }
 
                     }
                 });
             }
             if (message.contains("isNotConnected")){
+                isConnected = false;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
                         downloadingBar.setVisibility(View.GONE);
                         noNetwork.setVisibility(View.VISIBLE);
+                        if(timerEcoute!=null){
+                            timerEcoute.cancel();
+                        }
+                        if(handlerToast!=null){
+                            handlerToast.removeCallbacks(runnableToast);
+                        }
 
                     }
                 });
@@ -1598,13 +1887,10 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     }
     public void btnCloseSettings(View view) {
         teamChatBuddyApplication.setSetting(set);
-
-
+        isClosingSettings = true;
         if(!set.getChatbot().equals(setting.getChatbot())) {
             teamChatBuddyApplication.setFileCreate(true);
         }
-
-
 
         Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
         intent.putExtra("fromSettings", "true");
@@ -1864,5 +2150,21 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         if (hasFocus) {
             teamChatBuddyApplication.hideSystemUI(this);
         }
+    }
+
+    private void showToastMessage() {
+        String language = teamChatBuddyApplication.getLangue().getNom();
+        if (language.equals("en")) {
+            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
+        } else if (language.equals("fr")) {
+            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_fr, Toast.LENGTH_SHORT);
+        } else if (language.equals("es")) {
+            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_es, Toast.LENGTH_SHORT);
+        } else if (language.equals("de")) {
+            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_de, Toast.LENGTH_SHORT);
+        } else {
+            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
+        }
+        currentToast.show();
     }
 }
