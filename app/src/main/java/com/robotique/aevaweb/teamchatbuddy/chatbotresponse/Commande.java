@@ -1513,7 +1513,7 @@ public class Commande {
 
         if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
             String joke_prompt = teamChatBuddyApplication.getParamFromFile("JOKE_PROMPT_fr",configFile);
-            String joke_url = teamChatBuddyApplication.getParamFromFile("JOKE_URL",configFile);
+            String joke_url = teamChatBuddyApplication.getParamFromFile("JOKE_URL_fr",configFile);
             if(joke_url == null || joke_url.isEmpty()) joke_url = "https://blague-api.vercel.app/";
 
             Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,joke_url, 50);
@@ -1580,7 +1580,8 @@ public class Commande {
                 lang="es";
             }
 
-            String joke_url = "https://v2.jokeapi.dev/joke/";
+            String joke_url = teamChatBuddyApplication.getParamFromFile("JOKE_URL",configFile);
+            if(joke_url == null || joke_url.isEmpty()) joke_url = "https://v2.jokeapi.dev/joke/";
 
             Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,joke_url,50);
             ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
@@ -3118,6 +3119,7 @@ public class Commande {
                                         JSONArray array = new JSONArray( reponse.getString( "HEART_RATE" ) );
                                         JSONObject data = array.getJSONObject( 0 );
                                         String heart_rate = data.getString( "dataValue" );
+                                        heart_rate = heart_rate.replace(".",",");
                                         Log.i( TAG, "Réponse GET Fréquence Cardiaque Healysa [successful] : " + heart_rate );
                                         translate("HEALYSA_HRV", new ITranslationCallback() {
                                             @Override
@@ -3414,6 +3416,7 @@ public class Commande {
                                     JSONArray array = new JSONArray(reponse.getString("SPO2"));
                                     JSONObject data = array.getJSONObject(0);
                                     String spo2 = data.getString("dataValue");
+                                    spo2 = spo2.replace(".",",");
                                     Log.i(TAG, "Réponse GET SPO2 Healysa [successful] : " + spo2);
                                     translate("HEALYSA_SPO2", new ITranslationCallback() {
                                         @Override
@@ -3525,6 +3528,7 @@ public class Commande {
                                         JSONArray array = new JSONArray( reponse.getString( "HEART_RATE" ) );
                                         JSONObject data = array.getJSONObject( 0 );
                                         heart_rate = data.getString( "dataValue" );
+                                        heart_rate = heart_rate.replace(".",",");
                                         Log.i( TAG, "Réponse GET Fréquence Cardiaque Healysa [successful] : " + heart_rate );
                                         Call<JsonObject> callGetTension1 = api.getDataHealysa(teamChatBuddyApplication.getImeiDevice(), date + "T00:00:00.000Z", date + "T23:59:59.000Z", "BLOOD_PRESSURE_SYSTOLIC", "day", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                                         callGetTension1.enqueue( new Callback() {
@@ -3564,6 +3568,7 @@ public class Commande {
                                                                                         JSONArray array = new JSONArray(reponse.getString( "SPO2" ));
                                                                                         JSONObject data = array.getJSONObject( 0 );
                                                                                         String spo2 = data.getString( "dataValue" );
+                                                                                        spo2 = spo2.replace(".",",");
                                                                                         Log.i(TAG, "Réponse GET SPO2 Healysa [successful] : "+ spo2);
                                                                                         translate("HEALYSA_CHECKUP", new ITranslationCallback() {
                                                                                             @Override

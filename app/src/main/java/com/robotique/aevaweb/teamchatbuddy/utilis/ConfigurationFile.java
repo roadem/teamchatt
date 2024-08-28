@@ -334,10 +334,6 @@ public class ConfigurationFile {
             setProperty("CustomGPT_cabecera","");
             setProperty("CustomGPT_kopfzeile","");
 
-            props.addPropertyComment("SwitchBot","");
-            setProperty("Switchbot_token","" );
-            setProperty("Switchbot_id","" );
-
 
             props.addPropertyComment("MLkit_timeout_in_seconds", "");
             props.addPropertyComment("MLkit_timeout_in_seconds", "Maximum waiting time (in seconds) for MLkit download before timing out");
@@ -412,7 +408,7 @@ public class ConfigurationFile {
             setProperty( "HEALYSA_HRV_fr", "Je prend ton rythme cardiaque // Ta fréquence cardiaque est de [1] bpm // Aucune mesure de rythme cardiaque n'a été effectuée aujourd'hui." );
             setProperty( "HEALYSA_HRV_en", "I'm taking your heart rate // Your heart rate is [1] bpm // No heart rate measurement was taken today." );
 
-            setProperty( "HEALYSA_BLOODP_fr", "Je prends ta tesion // Ta tension systolique est de [1] et diastolique de [2] // Aucune mesure de tension n'a été effectuée aujourd'hui.");
+            setProperty( "HEALYSA_BLOODP_fr", "Je prends ta tension // Ta tension systolique est de [1] et diastolique de [2] // Aucune mesure de tension n'a été effectuée aujourd'hui.");
             setProperty( "HEALYSA_BLOODP_en", "I'm taking your blood pressure // Your systolic blood pressure is [1] and diastolic is [2] // No blood pressure measurement was taken today.");
 
             setProperty( "HEALYSA_SPO2_fr", "Je prend ton taux d'oxygène // Ton taux d'oxygène est de [1] // Aucune valeur de taux d'oxygène n'a été mesurée aujourd'hui");
@@ -489,6 +485,17 @@ public class ConfigurationFile {
             setProperty( "Healysa_mail", "" );
             setProperty( "Healysa_password", "" );
 
+            props.addPropertyComment("SwitchBot","");
+            setProperty("Switchbot_token","" );
+            setProperty("Switchbot_id","" );
+
+            props.addPropertyComment("JOKE_URL", "");
+            setProperty("JOKE_URL_fr", "https://blague-api.vercel.app/");
+            setProperty("JOKE_URL","https://v2.jokeapi.dev/joke/");
+            setProperty("JOKE_PROMPT_fr", "raconte cette blague à ta manière en une seule phrase et vingt points entre les deux");
+            setProperty("JOKE_PROMPT_en", "Tell this joke in your own way in a single sentence with twenty dots between the two");
+            setProperty("JOKE_Model", "gpt-3.5-turbo");
+
 
             //-------------------------- Tracking ---------------------------
             props.addPropertyComment("TRACKING_Camera","");
@@ -538,12 +545,6 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_welcome_maxtoken", "Welcome max token");
             setProperty("TRACKING_welcome_maxtoken","100");
 
-
-            props.addPropertyComment("JOKE_URL", "");
-            setProperty("JOKE_URL", "https://blague-api.vercel.app/");
-            setProperty("JOKE_PROMPT_fr", "raconte cette blague à ta manière en une seule phrase et vingt points entre les deux");
-            setProperty("JOKE_PROMPT_en", "Tell this joke in your own way in a single sentence with twenty dots between the two");
-            setProperty("JOKE_Model ", "gpt-3.5-turbo");
 
 
             FileOutputStream fileOut = new FileOutputStream(configFile);
