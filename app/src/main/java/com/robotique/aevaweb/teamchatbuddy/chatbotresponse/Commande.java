@@ -72,6 +72,7 @@ public class Commande {
     private String heart_rate;
     private String tensionS;
     private String tensionD;
+    private String spo2;
     private String imeiLocation;
     private String imeiFeeder;
     private static MediaPlayer radioPlayer;
@@ -3118,7 +3119,7 @@ public class Commande {
                                     if(reponse.has("HEART_RATE")){
                                         JSONArray array = new JSONArray( reponse.getString( "HEART_RATE" ) );
                                         JSONObject data = array.getJSONObject( 0 );
-                                        String heart_rate = data.getString( "dataValue" );
+                                        heart_rate = data.getString( "dataValue" );
                                         heart_rate = heart_rate.replace(".",",");
                                         Log.i( TAG, "Réponse GET Fréquence Cardiaque Healysa [successful] : " + heart_rate );
                                         translate("HEALYSA_HRV", new ITranslationCallback() {
@@ -3415,7 +3416,7 @@ public class Commande {
                                     JSONObject reponse = new JSONObject(response.body().toString());
                                     JSONArray array = new JSONArray(reponse.getString("SPO2"));
                                     JSONObject data = array.getJSONObject(0);
-                                    String spo2 = data.getString("dataValue");
+                                    spo2 = data.getString("dataValue");
                                     spo2 = spo2.replace(".",",");
                                     Log.i(TAG, "Réponse GET SPO2 Healysa [successful] : " + spo2);
                                     translate("HEALYSA_SPO2", new ITranslationCallback() {
@@ -3567,7 +3568,7 @@ public class Commande {
                                                                                     if (reponse.has("SPO2")) {
                                                                                         JSONArray array = new JSONArray(reponse.getString( "SPO2" ));
                                                                                         JSONObject data = array.getJSONObject( 0 );
-                                                                                        String spo2 = data.getString( "dataValue" );
+                                                                                        spo2 = data.getString( "dataValue" );
                                                                                         spo2 = spo2.replace(".",",");
                                                                                         Log.i(TAG, "Réponse GET SPO2 Healysa [successful] : "+ spo2);
                                                                                         translate("HEALYSA_CHECKUP", new ITranslationCallback() {
