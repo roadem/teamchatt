@@ -247,8 +247,8 @@ public class PoseTracking {
     public void centerHead() {
         Log.d(TAG_TRACKING, "centerHead()");
         try{
-            BuddySDK.USB.buddySayNo(140, 0, iUsbCommadRsp);
-            BuddySDK.USB.buddySayYes(49, 0, iUsbCommadRsp);
+            BuddySDK.USB.buddySayNo(70,0,iUsbCommadRsp);
+            //BuddySDK.USB.buddySayYes(49, 6, iUsbCommadRsp);
         }
         catch (Exception e){
             e.printStackTrace();

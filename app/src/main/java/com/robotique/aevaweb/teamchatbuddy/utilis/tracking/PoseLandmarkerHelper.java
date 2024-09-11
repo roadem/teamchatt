@@ -164,7 +164,12 @@ public class PoseLandmarkerHelper {
         MPImage mpImage = new BitmapImageBuilder(rotatedBitmap).build();
 
         // Détection asynchrone de la pose
-        detectAsync(mpImage, frameTime);
+        if (mpImage != null) {
+            detectAsync(mpImage, frameTime);
+        }
+        else {
+            Log.e(TAG,"mpImage==null++++++++++++++++++++++++");
+        }
     }
 
 
@@ -192,8 +197,12 @@ public class PoseLandmarkerHelper {
     // Méthode pour détecter la pose de manière asynchrone
     @VisibleForTesting
     public void detectAsync(MPImage mpImage, long frameTime) {
-        if (poseLandmarker != null) {
-            poseLandmarker.detectAsync(mpImage, frameTime);
+        try {
+            if (poseLandmarker != null) {
+                poseLandmarker.detectAsync(mpImage, frameTime);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error during detectAsync", e);
         }
     }
 

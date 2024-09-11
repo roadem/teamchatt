@@ -1,5 +1,7 @@
 package com.robotique.aevaweb.teamchatbuddy.activities;
 
+import static com.bfr.buddysdk.BuddySDK.USB;
+
 import androidx.annotation.NonNull;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
@@ -95,6 +97,10 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.OverlayView;
 import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.PoseLandmarkerHelper;
 import com.robotique.aevaweb.teamchatbuddy.utilis.tracking.PoseTracking;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -109,6 +115,7 @@ import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import darren.googlecloudtts.model.VoicesList;
 
@@ -160,6 +167,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private long firstVisibleTime = 0L;         // Track the time when person started being visible
     private long visibleDuration = 0L;          // How long a person remained visible
     private long lastLookingAtCameraTime = 0L;  // Track the time when the person last looked at the camera
+    private long lastLookingAtCameraTimeToCloseApp = 0L;  // Track the time when the person last looked at the camera
     private long totalTimeLookingAtCamera = 0L; // Total time spent looking at the camera
     private long startLookingAtCameraTime = 0L; // Track the start time of the current interval when the person is looking directly at the camera
 
@@ -171,7 +179,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private int pathLog=R.string.pathConfig;
     private int cameraFacing = CameraSelector.LENS_FACING_BACK;
     private int TRACKING_DELAY_NO_WATCH;
-    private int TRACKING_DELAY_NO_TRACK;
+    //private int TRACKING_DELAY_NO_TRACK;
     private int TRACKING_DELAY_START_LISTEN;
     private int TRACKING_DELAY_STOP_LISTEN;
     private int TRACKING_REGARD_CENTER;
@@ -186,6 +194,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private String TRACKING_WELCOME_PROMPT_EN;
     private String TRACKING_WELCOME_MODEL;
     private String TRACKING_WATCH;
+    private String Tracking_Head;
     private String directionRegardNez= "";
     private String langueFr = "Français";
     private String langueEn = "Anglais";
@@ -211,6 +220,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private boolean isFirstLaunch = true;
     private boolean regarde_camera=false;
     private boolean direction=false;
+    private boolean isRecenter=false;
     private boolean deFace=false;
     private boolean isPersonDetected = false;
     private boolean wasPersonDetected = false;
@@ -225,7 +235,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private CountDownTimer responseTimeout;
     private CountDownTimer timerDownloading;
     private CountDownTimer timerPhoto;
-
+    private CountDownTimer timerToApplyBI;
     private static final Random random = new Random();
     private WifiBroadcastReceiver wifiBroadCastReceiver = new WifiBroadcastReceiver();
     private ArrayList<Replica> listRep=new ArrayList();
@@ -246,6 +256,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private AnimationDrawable animationTimerPhoto;
     private ImageCapture imageCapture;
     private String initOrMajOrNone="";
+    private Boolean useListeningNumberWithAutomaicListening=false;
+    private Boolean applyBIAfterDelay=false;
 
     private IMLKitDownloadCallback imlKitDownloadCallback = new IMLKitDownloadCallback() {
         @Override
@@ -354,6 +366,35 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             public void onTranslated(String translatedText) {
                                 String verifyMessage = commande.verifyCmdMessages(translatedText);
                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                    if (teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")) {
+                                        try {
+                                            // get the historic commandes :
+                                            Log.e("DLA", "get the historic commandes ");
+                                            String jsonArrayString = teamChatBuddyApplication.getparam("commandes");
+                                            Log.e("DLA", "get the historic commandes  " + jsonArrayString);
+                                            Log.e("DLA", "get the historic commandes 1");
+                                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                            Log.e("DLA", "get the historic commandes 2");
+                                            JSONObject history1 = new JSONObject();
+                                            history1.put("role", "assistant");
+                                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                            existingHistoryArray.put(history1);
+                                            // Stocker la nouvelle version de l'historique
+                                            if (existingHistoryArray.length() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("COMMAND_maxdialog", "TeamChatBuddy.properties"))) {
+
+                                                existingHistoryArray.remove(1);
+                                                existingHistoryArray.remove(1);
+
+                                                teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
+
+                                            } else {
+                                                teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
+                                            }
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -364,9 +405,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         reGroup.setTranslationY(1000);
                     }
                     else if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
-                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+//                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
                             teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
-                        }
+//                        }
                         isReTrack = false;
                         initTracking();
                     }
@@ -500,6 +541,47 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     Log.i(TAG_TRACKING,"is back from ChatWindow");
                 }
             }
+            else {
+                teamChatBuddyApplication.setSpeaking(false);
+                teamChatBuddyApplication.setNotYet(true);
+                teamChatBuddyApplication.setActivityClosed(false);
+                teamChatBuddyApplication.setStartRecording(false);
+                teamChatBuddyApplication.setUsingEmotions(false);
+                teamChatBuddyApplication.setQuestionNumber(0);
+                teamChatBuddyApplication.setCurrentQuestionNubmer(0);
+                teamChatBuddyApplication.setAlreadyGetAnswer(false);
+                teamChatBuddyApplication.setOpenaialreadySwitchEmotion(false);
+                teamChatBuddyApplication.setTimeoutExpired(false);
+                teamChatBuddyApplication.setQuestionTime(0);
+                teamChatBuddyApplication.setStoredResponse("");
+                teamChatBuddyApplication.setBuddyFaceisTired(false);
+                teamChatBuddyApplication.setShouldPlayEmotion(false);
+                teamChatBuddyApplication.setCurrentEmotion("");
+                teamChatBuddyApplication.setMessageError(false);
+                teamChatBuddyApplication.setCurrentIndexText(0);
+                teamChatBuddyApplication.setAllTextPronoucedSuccess(true);
+                teamChatBuddyApplication.setStop_TTS_ReadSpeaker(false);
+                teamChatBuddyApplication.setInitSharedpreferences(true);
+                teamChatBuddyApplication.setLanguageDetected("");
+                teamChatBuddyApplication.setAlreadyCalled(false);
+                teamChatBuddyApplication.setRecording(false);
+                teamChatBuddyApplication.setCurrentState("");
+
+
+                teamChatBuddyApplication.setStopProcessus(false);
+                teamChatBuddyApplication.setAlReadyHadSpoke(false);
+
+                teamChatBuddyApplication.setGetResponseTime(0);
+                teamChatBuddyApplication.setAnswerHasExceededTimeOut(false);
+                teamChatBuddyApplication.setPreviousVolume(Float.valueOf(0));
+                teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
+                teamChatBuddyApplication.setChosenTTS("");
+                teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
+                teamChatBuddyApplication.setBIExecution(false);
+                teamChatBuddyApplication.setAlreadyChatting(false);
+                teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
+                Log.i(TAG,"First launch of application myIntent!=null 2");
+            }
         }
         else {
             teamChatBuddyApplication.setSpeaking(false);
@@ -527,7 +609,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             teamChatBuddyApplication.setRecording(false);
             teamChatBuddyApplication.setCurrentState("");
 
-
             teamChatBuddyApplication.setStopProcessus(false);
             teamChatBuddyApplication.setAlReadyHadSpoke(false);
 
@@ -539,7 +620,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
             teamChatBuddyApplication.setBIExecution(false);
             teamChatBuddyApplication.setAlreadyChatting(false);
-            Log.i(TAG_TRACKING,"First launch of application");
+            teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
+            Log.i(TAG,"First launch of application");
         }
 
         /**
@@ -595,6 +677,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if (! Python.isStarted()) {
             Python.start(new AndroidPlatform(this));
         }
+        currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
+        totalTimeLookingAtCamera = 0L;
     }
 
     @Override
@@ -602,6 +686,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         super.onPause();
         Log.d(TAG," --- onPause() ---");
         if (responseTimeout!=null) responseTimeout.cancel();
+        if (timerToApplyBI!=null) timerToApplyBI.cancel();
         if(teamChatBuddyApplication.getChatGptStreamMode() != null){
             teamChatBuddyApplication.getChatGptStreamMode().reset();
         }
@@ -629,6 +714,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         teamChatBuddyApplication.removeObserver(this);
         teamChatBuddyApplication.stopTTS();
         teamChatBuddyApplication.setActivityClosed(true);
+        teamChatBuddyApplication.setStartRecording(false);
+        teamChatBuddyApplication.setSpeaking(false);
+        teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
         stopListeningFreeSpeech();
         CustomToast.getInstance().hideToast();
         try {
@@ -673,6 +761,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         catch (Exception e){
             e.printStackTrace();
         }
+        if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Head"))) {
+            BuddySDK.USB.buddyStopNoMove(iUsbCommadRspTracking);
+            BuddySDK.USB.buddyStopYesMove(iUsbCommadRspTracking);
+        }
     }
 
     /**
@@ -691,6 +783,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             BuddySDK.UI.setViewAsFace(view_face);
             BuddySDK.UI.setMenuWidgetVisibility(FloatingWidgetVisibility.ALWAYS);
             BuddySDK.UI.setCloseWidgetVisibility(FloatingWidgetVisibility.ALWAYS);
+
+            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Head"))){
+                USB.enableYesMove( true, iUsbCommadRspTracking);
+                USB.enableNoMove(true, iUsbCommadRspTracking);
+            }
 
             //Désactiver le trigger Companion de la bouche et de OK BUDDY
             BuddySDK.Companion.raiseEvent("disableOkBuddy");
@@ -763,7 +860,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (curr<0){
                                 curr=0;
                             }
-                            teamChatBuddyApplication.setVolume(curr);
+                            teamChatBuddyApplication.setVolume(curr,AudioManager.FLAG_SHOW_UI);
                             teamChatBuddyApplication.setparam("speak_volume", String.valueOf(curr));
                             teamChatBuddyApplication.setSpeakVolume(curr);
                             settingClass.setVolume(String.valueOf(curr));
@@ -786,7 +883,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (curr>100){
                                 curr=100;
                             }
-                            teamChatBuddyApplication.setVolume(curr);
+                            teamChatBuddyApplication.setVolume(curr,AudioManager.FLAG_SHOW_UI);
                             teamChatBuddyApplication.setparam("speak_volume", String.valueOf(curr));
                             teamChatBuddyApplication.setSpeakVolume(curr);
                             settingClass.setVolume(String.valueOf(curr));
@@ -857,6 +954,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             }
                         }
                         else if (teamChatBuddyApplication.getSpeaking() && !mlKitIsDownloading) {
+                            currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
+                            totalTimeLookingAtCamera = 0L;
                             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence") || !teamChatBuddyApplication.getAppIsListeningToTheQuestion() || teamChatBuddyApplication.getParamFromFile("Processing_the_audio_sequence","TeamChatBuddy.properties").trim().equalsIgnoreCase("No")) {
                                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
                                 teamChatBuddyApplication.setStartRecording(false);
@@ -875,6 +974,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
+                                }
+                                try {
+                                    BuddySDK.UI.stopListenAnimation();
                                 } catch (Exception e) {
                                     Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
@@ -960,6 +1064,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         if (message.split(";SPLIT;").length > 1){
                             String phraseToPronounce = message.split(";SPLIT;")[1];
                             speak(phraseToPronounce, "nothealysa");
+                            if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation")) &&Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                useListeningNumberWithAutomaicListening= true;
+                            }
                         }
                     }
                 });
@@ -969,11 +1076,46 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        teamChatBuddyApplication.setSpeaking(true);
-                        isListeningFreeSpeech = true;
-                        teamChatBuddyApplication.setActivityClosed(false);
-                        teamChatBuddyApplication.setStartRecording(true);
-                        startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                        Log.e("TEST_HOT","hotword Success");
+                        if(!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+                            teamChatBuddyApplication.setSpeaking(true);
+                            isListeningFreeSpeech = true;
+                            teamChatBuddyApplication.setActivityClosed(false);
+                            teamChatBuddyApplication.setStartRecording(true);
+                            startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                        }
+                        else if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+                            if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                teamChatBuddyApplication.setSpeaking(true);
+                                isListeningFreeSpeech = true;
+                                teamChatBuddyApplication.setActivityClosed(false);
+                                teamChatBuddyApplication.setStartRecording(true);
+                                startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                            }
+                            else{
+                                if (teamChatBuddyApplication.isShouldLaunchListeningAfterGetingHotWord()){
+                                    Log.e("TEST_HOT","hotword Success isShouldLaunchListeningAfterGetingHotWord()");
+                                    teamChatBuddyApplication.setSpeaking(true);
+                                    isListeningFreeSpeech = true;
+                                    teamChatBuddyApplication.setActivityClosed(false);
+                                    teamChatBuddyApplication.setStartRecording(true);
+                                    startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                }
+                                else{
+                                    Log.e("TEST_HOT","hotword Success !isShouldLaunchListeningAfterGetingHotWord()");
+                                    if (regarde_camera){
+                                        Log.e("TEST_HOT","hotword Success regarde_camera");
+                                        teamChatBuddyApplication.setSpeaking(true);
+                                        isListeningFreeSpeech = true;
+                                        teamChatBuddyApplication.setActivityClosed(false);
+                                        teamChatBuddyApplication.setStartRecording(true);
+                                        teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
+                                        startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                    }
+                                }
+                            }
+                        }
+
                     }
                 });
             }
@@ -986,6 +1128,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(true);
                         SystemClock.sleep(200);
                         teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
+                        Log.i("zomilito",""+message);
                         String detectedSTTMessage = message.split(";")[1].replaceAll("' ", "'");
                         if (!teamChatBuddyApplication.isActivityClosed()) {
                             teamChatBuddyApplication.setQuestionNumber(teamChatBuddyApplication.getQuestionNumber()+1);
@@ -1030,6 +1173,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             question.setTime(time);
                             question.setValue(detectedSTTMessage);
                             listRep.add(question);
+                            lastLookingAtCameraTimeToCloseApp= System.currentTimeMillis();
                             if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
                                 responseFromChatbot.getCommandsResponseFromChatGPT(detectedSTTMessage, teamChatBuddyApplication.getQuestionNumber());
                             }
@@ -1133,6 +1277,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             else if (message.contains("TTS_success")) {
                 runOnUiThread(() ->{
                     Log.e(TAG," TTS_success");
+                    lastLookingAtCameraTimeToCloseApp= System.currentTimeMillis();
                     teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
                     buddy_texte_qst_lyt.setVisibility(View.INVISIBLE);
                     buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
@@ -1326,17 +1471,25 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         }
                                     }
                                 }
+
                                 if (!teamChatBuddyApplication.isTimeoutExpired()) {
                                     speak(value, "nothealysa");
                                 } else {
                                     teamChatBuddyApplication.setStoredResponse(value);
                                 }
+                                if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation")) &&Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                    useListeningNumberWithAutomaicListening= true;
+                                }
                             }
                         }
                     }
                     else if (action.equals("INVITATION")) {
-                        Log.d(TAG_TRACKING, "ChatGPT Invitation: " + value);
+                        Log.e(TAG_TRACKING, "ChatGPT Invitation: " + value);
+                        teamChatBuddyApplication.setActivityClosed(false);
                         speak(value, "INVITATION");
+                        if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                            useListeningNumberWithAutomaicListening= true;
+                        }
                     }
                 });
             }
@@ -1350,7 +1503,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
                 stopListeningFreeSpeech();
                 SystemClock.sleep(200);
-                teamChatBuddyApplication.startListeningHotwor(this);
+                if(!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+                    teamChatBuddyApplication.startListeningHotwor(this);
+                }
+                else if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
+//                    if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                        teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+//                    }
+                }
             }
 
             else if (message.contains("end of cycle")){
@@ -1540,7 +1700,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        startCameraForCommand();
+                        Log.e("MRRM","prompt CMD_TAKE_PHOTO"+message.split(";SPLIT;")[1]);
+                        startCameraForCommand(message.split(";SPLIT;")[1]);
                     }
                 });
             }
@@ -1564,6 +1725,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             isReTrack = true;
                             initTracking();
                         }
+                    }
+                });
+            }
+            else if (message.contains("ExecuteCMDPROMPT")){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1],Integer.parseInt(message.split(";SPLIT;")[2]));
                     }
                 });
             }
@@ -1622,6 +1791,18 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             BuddySDK.Companion.raiseEvent("disableLeftEye");
             BuddySDK.Companion.raiseEvent("disableHeadSensors");
             BuddySDK.Companion.raiseEvent("disableBodySensors");
+            timerToApplyBI=new CountDownTimer(10*1000,1000) {
+                @Override
+                public void onTick(long l) {
+
+                }
+
+                @Override
+                public void onFinish() {
+                    applyBIAfterDelay=true;
+                }
+            };
+            timerToApplyBI.start();
         }else {
             if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
                 Log.e("MRARA","enable Raise event Yes");
@@ -1647,7 +1828,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         refreshSTTLangue();
 
         //set volume
-        teamChatBuddyApplication.setVolume(Integer.parseInt(teamChatBuddyApplication.getparam("speak_volume")));
+        teamChatBuddyApplication.setVolume(Integer.parseInt(teamChatBuddyApplication.getparam("speak_volume")),AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 
         //create Log file
         if (teamChatBuddyApplication.getFileCreate()) {
@@ -1661,6 +1842,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
         //start hotword listening
         mlKitIsDownloading = true;
+        french_is_downloaded = false;
+        english_is_downloaded = false;
+        languageToEnglish_is_downloaded =false;
         teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode().split("-")[0].trim());
         handlerProgressBar.postDelayed(runnableProgressBar,500);
 
@@ -1720,7 +1904,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if(dialog != null && dialog.isShowing()) dialog.dismiss();
     }
 
-    private void startCameraForCommand() {
+    private void startCameraForCommand(String promptPhoto) {
         Log.e("CameraX", " starting camera1");
         preViewViewLyt = findViewById(R.id.previewView_lyt);
         previewViewphoto = findViewById(R.id.previewView);
@@ -1731,10 +1915,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     stopTracking();
                 }
                 cameraProvider = ProcessCameraProvider.getInstance(this).get();
-                if (cameraProvider == null) {
-                    Log.e(TAG, "cameraProvider is null");
-                    return;
-                }
                 // Récupérer la vue PreviewView avec findViewById()
 
                 preViewViewLyt.setVisibility(View.VISIBLE);
@@ -1757,7 +1937,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                 // Liaison de la caméra aux use cases
                 camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
-                capturePhoto();
+                capturePhoto(promptPhoto);
                 Log.i(TAG, "Camera use cases bound successfully");
             } catch (Exception e) {
                 Log.e(TAG, "Use case binding failed", e);
@@ -1765,7 +1945,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         });
     }
 
-    public void capturePhoto() {
+    public void capturePhoto(String promptPhoto) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -1782,7 +1962,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 commande.phototakedMessage();
                                 Bitmap bitmap = imageProxyToBitmap(image);
                                 showImageInDialog(bitmap);
-                                responseFromChatbot.getQuestionToDescribePicture(bitmap);
+                                responseFromChatbot.getQuestionToDescribePicture(bitmap,promptPhoto);
                                 if(timerPhoto != null) timerPhoto.cancel();
                                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Activation"))){
                                     isReTrack = true;
@@ -1987,25 +2167,32 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void executeBI(String behaviour){
-        Log.i("DEBUG_BI", "executeBI : "+behaviour);
-        teamChatBuddyApplication.setBIExecution(true);
-        mlKitIsDownloading = true;
-        stopListeningFreeSpeech();
-        BuddySDK.UI.stopListenAnimation();
-        BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
-        BIPlayer.getInstance().playBI(this, getTheRightBINameFromConfigFile(behaviour), new IBehaviourCallBack() {
-            @Override
-            public void onEnd(boolean hasAborted, String reason) {
-                Log.e("DEBUG_BI","on END BI execution");
-                BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
-                BuddySDK.UI.lookAt(GazePosition.CENTER, true);
-                mlKitIsDownloading = false;
-                teamChatBuddyApplication.setBIExecution(false);
-                teamChatBuddyApplication.notifyObservers("end of timer");
-            }
-            @Override
-            public void onRun(String s) {}
-        });
+        if (applyBIAfterDelay) {
+            Log.i("DEBUG_BI", "executeBI : " + behaviour);
+            teamChatBuddyApplication.setBIExecution(true);
+            mlKitIsDownloading = true;
+            stopListeningFreeSpeech();
+            BuddySDK.UI.stopListenAnimation();
+            BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
+            BIPlayer.getInstance().playBI(this, getTheRightBINameFromConfigFile(behaviour), new IBehaviourCallBack() {
+                @Override
+                public void onEnd(boolean hasAborted, String reason) {
+                    Log.e("DEBUG_BI", "on END BI execution");
+                    BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
+                    BuddySDK.UI.lookAt(GazePosition.CENTER, true);
+                    mlKitIsDownloading = false;
+                    teamChatBuddyApplication.setBIExecution(false);
+                    teamChatBuddyApplication.notifyObservers("end of timer");
+                    currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
+                    totalTimeLookingAtCamera = 0L;
+                    teamChatBuddyApplication.setSpeaking(false);
+                }
+
+                @Override
+                public void onRun(String s) {
+                }
+            });
+        }
     }
 
     private void refreshSTTLangue() {
@@ -2244,7 +2431,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
      */
 
     private void speak(final String texte, String type) {
-        Log.d(TAG," --- speak("+texte+") ---");
+        Log.e("TEAMCHAT_BUDDY_TRACKING"," --- speak("+texte+") ---type="+type+" isActivityClosed="+teamChatBuddyApplication.isActivityClosed());
         isSpeaking = true;
         runOnUiThread(new Runnable() {
             @Override
@@ -2436,6 +2623,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         teamChatBuddyApplication.speakTTS( texte, LabialExpression.SPEAK_NEUTRAL, type );
                     }
                     else if(type.equals("INVITATION")){
+                        Log.e("TEAMCHAT_BUDDY_TRACKING"," --- speakTTS from speak Main");
                         teamChatBuddyApplication.speakTTS(texte, LabialExpression.SPEAK_NEUTRAL,type);
                     }
                 }
@@ -2483,7 +2671,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 lastVisibleTime_saved = currentTime;  // Update the time when person was last seen
                 if (regarde_camera) {
                     lastLookingAtCameraTime = currentTime;  // Update the time when the person last looked at the camera
-
+                    lastLookingAtCameraTimeToCloseApp= currentTime;
                     // If starting to look at the camera, set the start time
                     if (startLookingAtCameraTime == 0L) {
                         startLookingAtCameraTime = currentTime;
@@ -2521,11 +2709,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                  */
                 if (isPersonDetected) {
                     if (regarde_camera) {
-                        Log.w(TAG_TRACKING_DEBUG, "A person is visible again and is looking directly at the CAMERA");
+                        Log.w(TAG_TRACKING_DEBUG, "A person is visible again and is looking directly at the CAMERA totalTimeLookingAtCamera= "+totalTimeLookingAtCamera+" currentTrackingListeningState= "+currentTrackingListeningState);
+                        useListeningNumberWithAutomaicListening = false;
                         if (totalTimeLookingAtCamera  >= TRACKING_DELAY_START_LISTEN * 1000L) {
                             if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT) {
                                 currentTrackingListeningState = StateTrackingListening.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT;
-                                Log.w(TAG_TRACKING, "A person has been looking directly at the camera for TRACKING_DELAY_START_LISTEN="+TRACKING_DELAY_START_LISTEN+" seconds (or more) --> start listening");
+
+                                Log.w(TAG_TRACKING_DEBUG, "A person has been looking directly at the camera for TRACKING_DELAY_START_LISTEN="+TRACKING_DELAY_START_LISTEN+" seconds (or more) --> start listening");
+                                Log.e(TAG_TRACKING_DEBUG,"isFirstInvitaion = "+isFirstInvitaion+"Tracking_Invitation= "+Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation")));
                                 if (!isFirstInvitaion && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                                     startListeningQuestion();
                                 }
@@ -2542,7 +2733,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_VISIBLE_BUT_IS_NOT_LOOKING_AT_CAMERA_TIMEOUT) {
                                 currentTrackingListeningState = StateTrackingListening.PERSON_IS_VISIBLE_BUT_IS_NOT_LOOKING_AT_CAMERA_TIMEOUT;
                                 Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
-                                stopListeningEverything();
+                                if (!useListeningNumberWithAutomaicListening){
+                                    stopListeningEverything();
+                                }
+
                             }
                         }
                     }
@@ -2551,8 +2745,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     Log.w(TAG_TRACKING_DEBUG, "No person is visible");
                     if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT) {
                         currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
-                        Log.w(TAG_TRACKING, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
-                        stopListeningEverything();
+                        Log.w(TAG_TRACKING_DEBUG, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
+                        if (!useListeningNumberWithAutomaicListening){
+                            stopListeningEverything();
+                        }
                     }
                 }
             }
@@ -2577,7 +2773,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     if (totalTimeLookingAtCamera >= TRACKING_DURATION_WELCOME * 1000L) {
                         if (currentTrackingWelcomeState != StateTrackingWelcome.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT) {
                             currentTrackingWelcomeState = StateTrackingWelcome.PERSON_IS_VISIBLE_AND_IS_LOOKING_AT_CAMERA_TIMEOUT;
-                            Log.w(TAG_TRACKING, "A person has been looking directly at the camera for TRACKING_DURATION_WELCOME="+TRACKING_DURATION_WELCOME+" seconds (or more) --> Invitation");
+                            Log.e(TAG_TRACKING, "A person has been looking directly at the camera for TRACKING_DURATION_WELCOME="+TRACKING_DURATION_WELCOME+" seconds (or more) --> Invitation");
                             sendInvitationPending = false;
                             if(!teamChatBuddyApplication.isAlreadyChatting()){
                                 stopListeningFreeSpeech();
@@ -2610,7 +2806,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                             }
                             else{
-                                Log.w(TAG_TRACKING, "Do not say invitation because the person is already chatting");
+                                Log.e(TAG_TRACKING, "Do not say invitation because the person is already chatting");
                             }
                         }
                     }
@@ -2620,23 +2816,29 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
 
             //#region re-tracking, re-centering gaze and head
-            if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_DELAY_NO_WATCH * 1000L) {
-                Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_DELAY_NO_WATCH=" + TRACKING_DELAY_NO_WATCH + " seconds --> re-tracking + re-centering the gaze and head");
-                re_track_and_center_head_and_gaze();
-            }
-            else if (!isPersonDetected && currentTime - lastVisibleTime >= TRACKING_DELAY_NO_TRACK * 1000L) {
-                Log.w(TAG_TRACKING, "No person has been visible for TRACKING_DELAY_NO_TRACK=" + TRACKING_DELAY_NO_TRACK + " seconds --> re-tracking + re-centering the gaze and head");
-                re_track_and_center_head_and_gaze();
-            }
+            if(TRACKING_DELAY_NO_WATCH!=0&&isRecenter){
+                Log.i(TAG_TRACKING," +++++++++++++++++++++++++re-tracking++++++++++++++++++++++++++");
+                if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_DELAY_NO_WATCH * 1000L) {
+                    Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_DELAY_NO_WATCH=" + TRACKING_DELAY_NO_WATCH + " seconds --> re-tracking + re-centering the gaze and head");
+                    //re_track_and_center_head();
 
-            if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_REGARD_CENTER * 1000L) {
-                Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_REGARD_CENTER=" + TRACKING_REGARD_CENTER + " seconds --> refocus the pupils");
-                poseTracking.lookAtCenter();
+                    isRecenter=false;
+                }
+                if (!isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_REGARD_CENTER * 1000L) {
+                    Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_REGARD_CENTER=" + TRACKING_REGARD_CENTER + " seconds --> refocus the pupils");
+                    //re_track_and_center_head();
+                    isRecenter=false;
+                }
+            }else{
+                Log.i(TAG_TRACKING," +++++++++++++++++++++++pas de re-tracking++++++++++++++++++++++++++");
             }
             //#endregion re-tracking, re-centering gaze and head
 
             //#region Timer to exit the application
-            if ( TRACKING_TIMEOUT!=0 && !isPersonDetected && currentTime - lastVisibleTime_saved >= TRACKING_TIMEOUT * 1000L){
+            Log.i("Finiche"," currentTime : "+currentTime+" /lastLookingAtCameraTimeToCloseApp "+lastLookingAtCameraTimeToCloseApp );
+            Log.i("Finiche"," currentTime - lastLookingAtCameraTimeToCloseApp : "+(currentTime - lastLookingAtCameraTimeToCloseApp));
+            if ( TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - lastLookingAtCameraTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
+                Log.i("Finiche","closed app ");
                 finishAffinity();
                 System.exit(0);
             }
@@ -2669,8 +2871,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if(!isReTrack){
             //récupération des paramètres TRACKING du fichier de config:
             TRACKING_WATCH = teamChatBuddyApplication.getParamFromFile("TRACKING_watch", "TeamChatBuddy.properties");
-            TRACKING_DELAY_NO_WATCH = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_nowatch", "TeamChatBuddy.properties"));
-            TRACKING_DELAY_NO_TRACK = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_notrack", "TeamChatBuddy.properties"));
+            Tracking_Head = teamChatBuddyApplication.getParamFromFile("TRACKING_Head", "TeamChatBuddy.properties");
+            TRACKING_DELAY_NO_WATCH = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_nowatching", "TeamChatBuddy.properties"));
             TRACKING_DELAY_START_LISTEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_startlisten", "TeamChatBuddy.properties"));
             TRACKING_DELAY_STOP_LISTEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_stoplisten", "TeamChatBuddy.properties"));
             TRACKING_REGARD_CENTER = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_regard_center", "TeamChatBuddy.properties"));
@@ -2701,12 +2903,48 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             startTracking();
         }
     }
+    private void stopTrackingTest() {
+        // Arrêter l'analyse d'image
+        if (imageAnalyzer != null) {
+            imageAnalyzer.clearAnalyzer();
+            imageAnalyzer = null;
+        }
+
+        // Arrêter et libérer les ressources de la caméra
+        if (cameraProvider != null) {
+            cameraProvider.unbindAll();
+            cameraProvider = null;
+        }
+        if (preview != null) {
+            preview.setSurfaceProvider(null);
+            preview = null;
+        }
+
+        // Stop and release resources from the PoseLandmarkerHelper
+        if (poseLandmarkerHelper != null) {
+            poseLandmarkerHelper.clearPoseLandmarker();
+            poseLandmarkerHelper = null;
+        }
+        // Arrêter l'exécuteur de thread
+        if (backgroundExecutor != null && !backgroundExecutor.isShutdown()) {
+            backgroundExecutor.shutdownNow();
+            backgroundExecutor = null;
+        }
+    }
 
     private void startTracking(){
         Log.d(TAG_TRACKING, "startTracking(isReTrack="+isReTrack+")");
 
+        stopTrackingTest();
+        if (poseTracking != null) {
+            poseTracking.stopMovingAndCancelRunnables();
+            poseTracking = null;
+        }
         poseTracking= new PoseTracking();
-        if(backgroundExecutor != null) backgroundExecutor.shutdownNow();
+        if (backgroundExecutor != null) {
+            backgroundExecutor.shutdownNow();
+            backgroundExecutor = null;
+        }
         backgroundExecutor = Executors.newSingleThreadExecutor();
         cameraSelector = new CameraSelector.Builder().requireLensFacing(cameraFacing).build();
         viewModel = new ViewModelProvider(MainActivity.this).get(MainViewModel.class);
@@ -2720,11 +2958,20 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void setUpCamera() {
-        Log.i(TAG_TRACKING,"setUpCamera(isReTrack="+isReTrack+")");
+        Log.e(TAG_TRACKING_DEBUG,"setUpCamera(isReTrack="+isReTrack+")");
         isTrackingAlreadyInitialised = false;
         previewView.post(() -> {
             try {
                 cameraProvider = ProcessCameraProvider.getInstance(this).get();
+                if (preview != null) {
+                    preview.setSurfaceProvider(null);
+                    preview = null;
+                }
+
+                if (imageAnalyzer != null) {
+                    imageAnalyzer.clearAnalyzer();
+                    imageAnalyzer = null;
+                }
                 preview = new Preview.Builder()
                         .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                         .build();
@@ -2762,7 +3009,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 isTrackingAlreadyInitialised = true;
                                 //initialisations
                                 lastVisibleTime = System.currentTimeMillis();
-                                if(!isReTrack) lastVisibleTime_saved = System.currentTimeMillis(); //do not reset it when re-track (useful for invitation check)
+                                if(!isReTrack){
+                                    lastVisibleTime_saved = System.currentTimeMillis(); //do not reset it when re-track (useful for invitation check)
+                                    lastLookingAtCameraTimeToCloseApp = System.currentTimeMillis();
+                                }
                                 firstVisibleTime = System.currentTimeMillis();
                                 lastLookingAtCameraTime = System.currentTimeMillis();
                                 visibleDuration = 0;
@@ -2829,22 +3079,90 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Body")) || Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Head"))) {
                                         if (TRACKING_WATCH.trim().equalsIgnoreCase("Yes")) {
                                             if (regarde_camera) {
+                                                isRecenter=true;
                                                 poseTracking.Rotation(degx, Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Body")));
+                                            }else{
+                                                if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Head"))) {
+                                                    BuddySDK.USB.buddyStopNoMove(iUsbCommadRspTracking);
+                                                }if(isRecenter) {
+                                                    BuddySDK.USB.buddyStopNoMove(iUsbCommadRspTracking);
+                                                }else {
+                                                    int No_position = BuddySDK.Actuators.getNoPosition();
+                                                    if(No_position!=0){
+                                                        BuddySDK.USB.buddySayNo(100,0,iUsbCommadRspBI);
+
+                                                    }else {
+                                                        BuddySDK.USB.buddyStopNoMove(iUsbCommadRspTracking);
+                                                    }
+                                                }
+                                                if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Body"))){
+                                                    BuddySDK.USB.emergencyStopMotors(iUsbCommadRspTracking);
+                                                }
+
                                             }
                                         }
                                         else {
-                                            poseTracking.Rotation(degx, Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Body")));
+                                            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Head"))) {
+                                                if(isRecenter){
+                                                    poseTracking.Rotation(degx, Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Body")));
+                                                }
+                                                if (regarde_camera) {
+                                                    isRecenter = true;
+                                                } else {
+                                                    if (!isRecenter) {
+                                                        int No_position = BuddySDK.Actuators.getNoPosition();
+                                                        if (No_position != 0) {
+                                                            BuddySDK.USB.buddySayNo(100, 0, iUsbCommadRspBI);
+
+                                                        } else {
+                                                            BuddySDK.USB.buddyStopNoMove(iUsbCommadRspTracking);
+
+                                                        }
+                                                    }
+                                                }
+                                            }else{
+                                                poseTracking.Rotation(degx, Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Body")));
+                                            }
                                         }
                                     }
 
                                     if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Head"))) {
-                                        if (TRACKING_WATCH.trim().equalsIgnoreCase("Yes")) {
-                                            if (regarde_camera) {
-                                                poseTracking.yesTracking(degy);
-                                            }
-                                        } else {
-                                            poseTracking.yesTracking(degy);
-                                        }
+                                        poseTracking.yesTracking(degy);
+//                                        if (TRACKING_WATCH.trim().equalsIgnoreCase("Yes")) {
+//                                            if (regarde_camera) {
+//                                                isRecenter=true;
+//                                                poseTracking.yesTracking(degy);
+//                                            }else{
+//                                                if(isRecenter) {
+//                                                    BuddySDK.USB.buddyStopYesMove(iUsbCommadRspTracking);
+//                                                }else {
+//                                                    int No_position = BuddySDK.Actuators.getYesPosition();
+//                                                    if(No_position!=6){
+//                                                        BuddySDK.USB.buddySayYes(100,6,iUsbCommadRspBI);
+//
+//                                                    }else {
+//                                                        BuddySDK.USB.buddyStopYesMove(iUsbCommadRspTracking);
+//                                                    }
+//                                                }
+//                                            }
+//                                        } else {
+//                                            poseTracking.yesTracking(degy);
+//                                            if (regarde_camera) {
+//                                                isRecenter = true;
+//                                            } else{
+//                                                if(isRecenter) {
+//                                                    BuddySDK.USB.buddyStopYesMove(iUsbCommadRspTracking);
+//                                                }else {
+//                                                    int No_position = BuddySDK.Actuators.getYesPosition();
+//                                                    if(No_position!=6){
+//                                                        BuddySDK.USB.buddySayYes(100,6,iUsbCommadRspBI);
+//
+//                                                    }else {
+//                                                        BuddySDK.USB.buddyStopYesMove(iUsbCommadRspTracking);
+//                                                    }
+//                                                }
+//                                            }
+//                                        }
                                     }
                                 }
 
@@ -2882,7 +3200,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        reGroup.setTranslationY(0);
+                                        if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Camera_Display"))) {
+                                            reGroup.setTranslationY(0);
+
+                                        } else {
+                                            reGroup.setTranslationY(1000);
+                                        }
                                     }
                                 });
                             }
@@ -2895,17 +3218,20 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         poseLandmarkerHelper.detectLiveStream(imageProxy);
     }
 
-    private void re_track_and_center_head_and_gaze(){
-        Log.d(TAG_TRACKING, "re_track_and_center_head_and_gaze()");
-        isProcessingReTrack = true;
+    private void re_track_and_center_head(){
+        //Log.d(TAG_TRACKING, "re_track_and_center_head");
+        //isProcessingReTrack = true;
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                stopTracking();
+                //stopTracking();
+                Log.d(TAG_TRACKING, "re_track_and_center_eys");
                 poseTracking.lookAtCenter();
-                poseTracking.centerHead();
-                isReTrack = true;
-                initTracking();
+                if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Head"))){
+                    Log.d(TAG_TRACKING, "re_track_and_center_head");
+                    poseTracking.centerHead();
+                }
+
             }
         });
     }
@@ -2961,7 +3287,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void stopListeningEverything(){
-        Log.d(TAG_TRACKING, "stopListeningEverything()");
+        Log.e(TAG_TRACKING, "stopListeningEverything()");
         runOnUiThread( new Runnable() {
             @Override
             public void run() {
@@ -3012,6 +3338,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             } catch (Exception e) {
                                 Log.e(TAG, "BuddySDK Exception  " + e);
                             }
+                            teamChatBuddyApplication.notifyObservers("end of timer");
                         }
                         else{
                             teamChatBuddyApplication.setLed("Neutral");
@@ -3038,7 +3365,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void invitation(IInvitationCallback iInvitationCallback){
-        Log.d(TAG_TRACKING, "invitation()");
+        Log.e(TAG_TRACKING, "invitation()");
         this.iInvitationCallback = iInvitationCallback;
         runOnUiThread(new Runnable() {
             @Override

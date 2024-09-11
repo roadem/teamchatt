@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
@@ -74,6 +75,13 @@ public class Commande {
     private String imeiFeeder;
     private static MediaPlayer radioPlayer;
     private static MediaPlayer musicPlayer;
+    private String historicMessages = "messages";
+    private String content= "content";
+    private String langueFr = "Français";
+    private String langueEn = "Anglais";
+    private String langueEs = "Espagnol";
+    private String langueDe = "Allemand";
+    private JSONArray existingHistoryArray=new JSONArray();
 
 
     public Commande(Activity activity){
@@ -107,7 +115,16 @@ public class Commande {
                 return "INCONNUE"; // No space found after CMD_
             }
             Log.i(TAG, "Extract Description from : "+text + " --> " + text.substring(endIndex + 1));
-            return text.substring(endIndex + 1); // Return substring after the space
+            if (text.substring(endIndex + 1).contains("%")){
+                if (teamChatBuddyApplication.getParamFromFile(text.substring(endIndex + 1).split("%")[1],"TeamChatBuddy.properties")!=null){
+                    return teamChatBuddyApplication.getParamFromFile(text.substring(endIndex + 1).split("%")[1],"TeamChatBuddy.properties");
+                }
+                else return "Prompt_INCONNUE";
+            }
+            else {
+                return text.substring(endIndex + 1);
+            }
+            // Return substring after the space
         }
         Log.e(TAG, "Extract Description from : "+text + " --> INCONNUE");
         return "INCONNUE"; // No CMD_ found
@@ -167,6 +184,26 @@ public class Commande {
                     });
         }
     }
+    public void translatePrompt(String message, ITranslationCallback iTranslationCallback){
+        if (teamChatBuddyApplication.getLangue().getNom().equals("Français") ) {
+            iTranslationCallback.onTranslated(message);
+        }
+        else {
+            teamChatBuddyApplication.getFrenchLanguageSelectedTranslator().translate(message)
+                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                        @Override
+                        public void onSuccess(String translatedText) {
+                            iTranslationCallback.onTranslated(translatedText);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            iTranslationCallback.onTranslated(message);
+                        }
+                    });
+        }
+    }
 
     private Locale getCurrentLocale(){
         String language =new Gson().fromJson(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()), Langue.class).getLanguageCode().replace("-","_");
@@ -192,7 +229,7 @@ public class Commande {
         void onTranslated(String translatedText);
     }
 
-    public boolean start_action(@NonNull String action){
+    public boolean start_action(@NonNull String action, int numberOfQuestion,String question){
         boolean is_command;
         switch (action.split( " " )[0]){
             case "CMD_MUSIC":
@@ -624,6 +661,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -634,6 +672,7 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -643,6 +682,7 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
@@ -878,7 +918,7 @@ public class Commande {
                                 public void run() {
                                     CMD_BI(getDescription(action));
                                 }
-                            },5000);
+                            },3000);
 
                         }
                         else if (verifyBIMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
@@ -888,7 +928,7 @@ public class Commande {
                                 public void run() {
                                     CMD_BI(getDescription(action));
                                 }
-                            },5000);
+                            },3000);
                         }
                         else if(verifyBIMessage.equals("EMPTY")){
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
@@ -899,7 +939,7 @@ public class Commande {
                                 public void run() {
                                     CMD_BI(getDescription(action));
                                 }
-                            },5000);
+                            },3000);
                         }
                     }
                 });
@@ -1381,7 +1421,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_TAKE_PHOTO();
+                                    CMD_TAKE_PHOTO(getDescription(action));
                                 }
                             },2000);
 
@@ -1391,7 +1431,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_TAKE_PHOTO();
+                                    CMD_TAKE_PHOTO(getDescription(action));
                                 }
                             },2000);
                         }
@@ -1402,12 +1442,18 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_TAKE_PHOTO();
+                                    CMD_TAKE_PHOTO(getDescription(action));
                                 }
                             },2000);
                         }
                     }
                 });
+                break;
+            case "CMD_PROMPT":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                CMD_PROMPT(getDescription(action),numberOfQuestion,question);
                 break;
             case "CMD_NONE":
                 is_command = false;
@@ -1510,6 +1556,102 @@ public class Commande {
 
 
     }
+    public void CMD_PROMPT(String prompt,int numberOfQuestion,String question){
+        Log.e(TAG,prompt+numberOfQuestion);
+       String RoleBuddy;
+
+        // vérifie si la langue actuelle de l'application est l'anglais.
+        if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn) ){
+            RoleBuddy = teamChatBuddyApplication.getparam("header");
+        }
+        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr) ) {
+            RoleBuddy = teamChatBuddyApplication.getparam("entete");
+        }
+        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs) ) {
+            RoleBuddy = teamChatBuddyApplication.getparam("Cabecera");
+        }
+        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe) ){
+            RoleBuddy = teamChatBuddyApplication.getparam("Kopfzeile");
+        }
+        else {
+            RoleBuddy = teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete");
+        }
+        try {
+        String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
+        existingHistoryArray = new JSONArray(jsonArrayString);
+
+        translatePrompt(prompt, new ITranslationCallback() {
+            @Override
+            public void onTranslated(String translatedText) {
+
+                try {
+                    Log.e("MRRM","translated prompt "+translatedText);
+                    if (existingHistoryArray.length() == 0){ Log.e("FCH", "existinghistory 0");
+                        JSONObject Role = new JSONObject();
+                        Role.put("role", "system");
+                        Role.put(content, RoleBuddy);
+                        existingHistoryArray.put(Role);
+
+                    }
+                    if (existingHistoryArray.length() != 0){
+                        Log.e("FCH","!!!!!existinghistory 0");
+
+
+                        try {
+                            String systemContent = null;
+                            // Parcourir les éléments du tableau
+                            for (int i = 0; i < existingHistoryArray.length(); i++) {
+                                JSONObject messageObject = existingHistoryArray.getJSONObject(i);
+
+                                // Vérifier si le rôle est "system"
+                                if (messageObject.getString("role").equals("system")) {
+                                    // Récupérer le contenu correspondant
+
+                                    systemContent = messageObject.getString("content");
+                                    Log.e("FCH","systemContent list "+systemContent);
+                                }
+                            }
+                            if (systemContent!=null && !systemContent.equalsIgnoreCase(translatedText)){
+//                                // Recherche de l'objet "system" dans le JSONArray
+//                                for (int i = 0; i < existingHistoryArray.length(); i++) {
+//                                    JSONObject roleObj = existingHistoryArray.getJSONObject(i);
+//                                    if (roleObj.has("role") && roleObj.getString("role").equals("system")) {
+//                                        // Mettre à jour la valeur de 'content' dans l'objet "system"
+//                                        roleObj.put(content, RoleBuddy);
+//                                        // Sortie de la boucle après la mise à jour
+//                                        break;
+//                                    }
+//                                }
+                                JSONObject Role = new JSONObject();
+                                Role.put("role", "system");
+                                Role.put(content, translatedText);
+                                existingHistoryArray.put(Role);
+                                teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
+                            }
+                        } catch (JSONException e) {
+                            Log.e("FCH","exception "+e);
+                            e.printStackTrace();
+                        }
+                        // define the role
+                    }
+
+
+                    teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;"+question+";SPLIT;"+numberOfQuestion);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+
+        }
+        catch (JSONException e) {
+            Log.e("FCH","exception "+e);
+            e.printStackTrace();
+        }
+
+
+    }
     public void CMD_DATE(){
         String date = new SimpleDateFormat("EEEE d MMMM yyyy", getCurrentLocale()).format(new Date());
         Log.i(TAG, date);
@@ -1518,6 +1660,24 @@ public class Commande {
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                   
+                        try {
+                            // get the historic commandes :
+                            
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",date));
+
+                            existingHistoryArray.put(history1);
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",date));
                 }
             }
@@ -1531,6 +1691,25 @@ public class Commande {
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                   
+                        try {
+                            // get the historic commandes :
+                            
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            
+                            
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heure));
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heure));
                 }
             }
@@ -1585,6 +1764,26 @@ public class Commande {
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                   
+                        try {
+                            // get the historic commandes :
+                            
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            
+                            
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -1599,13 +1798,32 @@ public class Commande {
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                   
+                        try {
+                            // get the historic commandes :
+                            
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            
+                            
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",batLevel+""));
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",batLevel+""));
                 }
             }
         });
     }
     public void CMD_SOUND(String sound){
-        teamChatBuddyApplication.setVolume( Integer.parseInt( sound ) );
+        teamChatBuddyApplication.setVolume( Integer.parseInt( sound ), AudioManager.FLAG_SHOW_UI );
         teamChatBuddyApplication.setparam("speak_volume", sound);
         teamChatBuddyApplication.setSpeakVolume( Integer.parseInt( sound ) );
         settingClass.setVolume(sound);
@@ -1614,6 +1832,26 @@ public class Commande {
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                   
+                        try {
+                            // get the historic commandes :
+                            
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            
+                            
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -1650,6 +1888,26 @@ public class Commande {
                         public void onTranslated(String translatedText) {
                             String verifyMessage = verifyCmdMessages(translatedText);
                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                               
+                                    try {
+                                        // get the historic commandes :
+                                        
+                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                        
+                                        
+                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                        
+                                        JSONObject history1 = new JSONObject();
+                                        history1.put("role", "assistant");
+                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                        existingHistoryArray.put(history1);
+                                        // Stocker la nouvelle version de l'historique
+                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -1696,6 +1954,26 @@ public class Commande {
                         public void onTranslated(String translatedText) {
                             String verifyMessage = verifyCmdMessages(translatedText);
                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                               
+                                    try {
+                                        // get the historic commandes :
+                                        
+                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                        
+                                        
+                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                        
+                                        JSONObject history1 = new JSONObject();
+                                        history1.put("role", "assistant");
+                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                        existingHistoryArray.put(history1);
+                                        // Stocker la nouvelle version de l'historique
+                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -1741,6 +2019,26 @@ public class Commande {
                         public void onTranslated(String translatedText) {
                             String verifyMessage = verifyCmdMessages(translatedText);
                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                               
+                                    try {
+                                        // get the historic commandes :
+                                        
+                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                        
+                                        
+                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                        
+                                        JSONObject history1 = new JSONObject();
+                                        history1.put("role", "assistant");
+                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                        existingHistoryArray.put(history1);
+                                        // Stocker la nouvelle version de l'historique
+                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -1764,11 +2062,31 @@ public class Commande {
         teamChatBuddyApplication.setSpeaking(false);
         teamChatBuddyApplication.setStartRecording(false);
         teamChatBuddyApplication.notifyObservers("end of timer");
+        teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(false);
         translate("CMD_STOP", new ITranslationCallback() {
             @Override
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                   
+                        try {
+                            // get the historic commandes :
+                            
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            
+                            
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -1782,34 +2100,66 @@ public class Commande {
         Missions mission = new Missions();
         Log.e(TAG," trigger  ="+"TeamChatLaunch"+application);
         String packageApp = "";
-        packageApp=mission.getTaskForTrigger("TeamChatLaunch"+application);
+        String result[]=mission.getTaskForTrigger("TeamChatLaunch"+application);
+        if (result!=null) {
+            packageApp = result[0];
+
+            Log.e(TAG, " triggerGetFromFile  =" + result[1]);
+            if (packageApp != null) {
+                if (teamChatBuddyApplication.isAppInstalled(activity, packageApp)) {
+                    Log.e(TAG, " package  =" + packageApp);
+                    BuddySDK.Companion.raiseEvent(result[1]);
+                } else {
+                    Log.e(TAG, " application n'existe pas ");
+                    translate("CMD_RUN", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                try {
+                                    // get the historic commandes :
+
+                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
 
 
-        if (packageApp!=null){
-            if(teamChatBuddyApplication.isAppInstalled(activity,packageApp)){
-                Log.e(TAG," package  ="+packageApp);
-                BuddySDK.Companion.raiseEvent("TeamChatLaunch"+application.trim());
-            }
-            else{
-                Log.e(TAG," application n'existe pas ");
+                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                                    JSONObject history1 = new JSONObject();
+                                    history1.put("role", "assistant");
+                                    history1.put("content",translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
+
+                                    existingHistoryArray.put(history1);
+                                    // Stocker la nouvelle version de l'historique
+                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
+                            }
+                        }
+                    });
+                }
+            } else {
+                Log.e(TAG, " trigger n'existe pas ");
                 translate("CMD_RUN", new ITranslationCallback() {
                     @Override
                     public void onTranslated(String translatedText) {
                         String verifyMessage = verifyCmdMessages(translatedText);
-                        if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",application));
+                        if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                         }
                     }
                 });
             }
-        }else{
-            Log.e(TAG," trigger n'existe pas ");
+        }
+        else {
+            Log.e(TAG, " trigger n'existe pas ");
             translate("CMD_RUN", new ITranslationCallback() {
                 @Override
                 public void onTranslated(String translatedText) {
                     String verifyMessage = verifyCmdMessages(translatedText);
-                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",application));
+                    if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                     }
                 }
             });
@@ -1866,6 +2216,25 @@ public class Commande {
                         public void onTranslated(String translatedText) {
                             String verifyMessage = verifyCmdMessages(translatedText);
                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                               
+                                    try {
+                                        // get the historic commandes :
+                                        
+                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                        
+                                        
+                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                        
+                                        JSONObject history1 = new JSONObject();
+                                        history1.put("role", "assistant");
+                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                        existingHistoryArray.put(history1);
+                                        // Stocker la nouvelle version de l'historique
+                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -1881,10 +2250,10 @@ public class Commande {
     }
     public void CMD_METEO(String city){
         Log.e(TAG, "METEO : LA VILLE EST " + city);
-        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,"https://api.openweathermap.org", 30);
+        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("Meteo_URL","TeamChatBuddy.properties"), 30);
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
         try {
-            Call call = api.getMeteoResult(city, "060ec1f9ecb0a63e0045980f1cf480b9", "fr", "metric");;
+            Call call = api.getMeteoResult(city, teamChatBuddyApplication.getParamFromFile("Meteo_API_Key","TeamChatBuddy.properties"), "fr", "metric");;
             call.enqueue(new Callback() {
                 @Override
                 public void onResponse(Call call, Response response) {
@@ -1912,6 +2281,25 @@ public class Commande {
                                                         public void onTranslated(String translatedText) {
                                                             String verifyMessage = verifyCmdMessages(translatedText);
                                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                               
+                                                                    try {
+                                                                        // get the historic commandes :
+                                                                        
+                                                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                                        
+                                                                        
+                                                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                                        
+                                                                        JSONObject history1 = new JSONObject();
+                                                                        history1.put("role", "assistant");
+                                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", city).replace("[2]", descriptionTraduite).replace("[3]", Integer.toString(temperature)));
+
+                                                                        existingHistoryArray.put(history1);
+                                                                        // Stocker la nouvelle version de l'historique
+                                                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                                    } catch (JSONException e) {
+                                                                        e.printStackTrace();
+                                                                    }
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",descriptionTraduite).replace( "[3]", Integer.toString( temperature )));
                                                             }
                                                         }
@@ -1940,6 +2328,26 @@ public class Commande {
                                          public void onTranslated(String translatedText) {
                                              String verifyMessage = verifyCmdMessages(translatedText);
                                              if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                
+                                                     try {
+                                                         // get the historic commandes :
+                                                         
+                                                         String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                         
+                                                         
+                                                         JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                         
+                                                         JSONObject history1 = new JSONObject();
+                                                         history1.put("role", "assistant");
+                                                         history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", city).replace("[2]", description).replace("[3]", Integer.toString(temperature)));
+
+                                                         existingHistoryArray.put(history1);
+                                                         // Stocker la nouvelle version de l'historique
+                                                         teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                     } catch (JSONException e) {
+                                                         e.printStackTrace();
+                                                     }
+
                                                  teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
                                              }
                                          }
@@ -1981,7 +2389,7 @@ public class Commande {
     public void CMD_RADIO(String radio){
         final String[] accessToken = new String[1];
         Log.e(TAG, "RADIO : LA RADIO EST " + radio);
-        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,"https:/bluefrogrobotics-bhqtj3.api.radioline.fr", 30);
+        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("Radio_URL","TeamChatBuddy.properties"), 30);
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
         JSONObject jsonParams = new JSONObject();
         try {
@@ -1989,7 +2397,7 @@ public class Commande {
             jsonParams.put("client_key","cuEkLJWVWp9Ee4oFvL9nfWdqWvwXddbaYWAbpWJd34FAEvy4fAUjUzaLCeUbJooE9dwf4bePg4qFsyps9HtwruNnaqhWv9KjKHnqvENALTmqMqJzrefNWyeVhRkqkvxK");
             jsonParams.put("device_serial","device_unique_serial_number");
             RequestBody body = RequestBody.create(okhttp3.MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
-            Call call = api.getRadioToken(body, "MGdbCYLTMspN84n4QMZOIAhrLcyTBTAcPEc9feb7xe05oBnQoDwOyLMmsHAppZVI");
+            Call call = api.getRadioToken(body, teamChatBuddyApplication.getParamFromFile("Radio_XCSRF_Token","TeamChatBuddy.properties"));
             call.enqueue(new Callback() {
                 @Override
                 public void onResponse(Call call, Response response) {
@@ -2147,6 +2555,26 @@ public class Commande {
                                         public void onTranslated(String translatedText) {
                                             String verifyMessage = verifyCmdMessages(translatedText);
                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                               
+                                                    try {
+                                                        // get the historic commandes :
+                                                        
+                                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                        
+                                                        
+                                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                        
+                                                        JSONObject history1 = new JSONObject();
+                                                        history1.put("role", "assistant");
+                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                                        existingHistoryArray.put(history1);
+                                                        // Stocker la nouvelle version de l'historique
+                                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
@@ -2300,6 +2728,26 @@ public class Commande {
                                                     public void onTranslated(String translatedText) {
                                                         String verifyMessage = verifyCmdMessages(translatedText);
                                                         if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                           
+                                                                try {
+                                                                    // get the historic commandes :
+                                                                    
+                                                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                                    
+                                                                    
+                                                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                                    
+                                                                    JSONObject history1 = new JSONObject();
+                                                                    history1.put("role", "assistant");
+                                                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                                                    existingHistoryArray.put(history1);
+                                                                    // Stocker la nouvelle version de l'historique
+                                                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                                } catch (JSONException e) {
+                                                                    e.printStackTrace();
+                                                                }
+
                                                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                         }
                                                     }
@@ -2399,6 +2847,26 @@ public class Commande {
                                         public void onTranslated(String translatedText) {
                                             String verifyMessage = verifyCmdMessages(translatedText);
                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                               
+                                                    try {
+                                                        // get the historic commandes :
+                                                        
+                                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                        
+                                                        
+                                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                        
+                                                        JSONObject history1 = new JSONObject();
+                                                        history1.put("role", "assistant");
+                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate));
+
+                                                        existingHistoryArray.put(history1);
+                                                        // Stocker la nouvelle version de l'historique
+                                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate));
                                             }
                                         }
@@ -2507,6 +2975,25 @@ public class Commande {
                                                 public void onTranslated(String translatedText) {
                                                     String verifyMessage = verifyCmdMessages(translatedText);
                                                     if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                       
+                                                            try {
+                                                                // get the historic commandes :
+                                                                
+                                                                String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                                
+                                                                
+                                                                JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                                
+                                                                JSONObject history1 = new JSONObject();
+                                                                history1.put("role", "assistant");
+                                                                history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", tensionS).replace("[2]", tensionD));
+
+                                                                existingHistoryArray.put(history1);
+                                                                // Stocker la nouvelle version de l'historique
+                                                                teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                            } catch (JSONException e) {
+                                                                e.printStackTrace();
+                                                            }
                                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", tensionS).replace("[2]", tensionD));
                                                     }
                                                 }
@@ -2607,6 +3094,25 @@ public class Commande {
                                         public void onTranslated(String translatedText) {
                                             String verifyMessage = verifyCmdMessages(translatedText);
                                             if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                               
+                                                    try {
+                                                        // get the historic commandes :
+                                                        
+                                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                        
+                                                        
+                                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                        
+                                                        JSONObject history1 = new JSONObject();
+                                                        history1.put("role", "assistant");
+                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", spo2));
+
+                                                        existingHistoryArray.put(history1);
+                                                        // Stocker la nouvelle version de l'historique
+                                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", spo2));
                                             }
                                         }
@@ -2731,6 +3237,26 @@ public class Commande {
                                                                             public void onTranslated(String translatedText) {
                                                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                                                   
+                                                                                        try {
+                                                                                            // get the historic commandes :
+                                                                                            
+                                                                                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                                                            
+                                                                                            
+                                                                                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                                                            
+                                                                                            JSONObject history1 = new JSONObject();
+                                                                                            history1.put("role", "assistant");
+                                                                                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionD).replace("[3]",tensionS).replace("[4]",spo2));
+
+                                                                                            existingHistoryArray.put(history1);
+                                                                                            // Stocker la nouvelle version de l'historique
+                                                                                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                                                        } catch (JSONException e) {
+                                                                                            e.printStackTrace();
+                                                                                        }
+
                                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionD).replace("[3]",tensionS).replace("[4]",spo2));
                                                                                 }
                                                                             }
@@ -2848,6 +3374,26 @@ public class Commande {
                         public void onTranslated(String translatedText) {
                             String verifyMessage = verifyCmdMessages(translatedText);
                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                               
+                                    try {
+                                        // get the historic commandes :
+                                        
+                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                        
+                                        
+                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                        
+                                        JSONObject history1 = new JSONObject();
+                                        history1.put("role", "assistant");
+                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                        existingHistoryArray.put(history1);
+                                        // Stocker la nouvelle version de l'historique
+                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2936,6 +3482,26 @@ public class Commande {
                                                                         public void onTranslated(String translatedText) {
                                                                             String verifyMessage = verifyCmdMessages(translatedText);
                                                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                                               
+                                                                                    try {
+                                                                                        // get the historic commandes :
+                                                                                        
+                                                                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                                                        
+                                                                                        
+                                                                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                                                        
+                                                                                        JSONObject history1 = new JSONObject();
+                                                                                        history1.put("role", "assistant");
+                                                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",description));
+
+                                                                                        existingHistoryArray.put(history1);
+                                                                                        // Stocker la nouvelle version de l'historique
+                                                                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                                                    } catch (JSONException e) {
+                                                                                        e.printStackTrace();
+                                                                                    }
+
                                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",description));
                                                                             }
                                                                         }
@@ -3102,6 +3668,25 @@ public class Commande {
                                                         public void onTranslated(String translatedText) {
                                                             String verifyMessage = verifyCmdMessages(translatedText);
                                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                               
+                                                                    try {
+                                                                        // get the historic commandes :
+                                                                        
+                                                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                                        
+                                                                        
+                                                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                                        
+                                                                        JSONObject history1 = new JSONObject();
+                                                                        history1.put("role", "assistant");
+                                                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                                                        existingHistoryArray.put(history1);
+                                                                        // Stocker la nouvelle version de l'historique
+                                                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                                    } catch (JSONException e) {
+                                                                        e.printStackTrace();
+                                                                    }
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                             }
                                                         }
@@ -3215,6 +3800,26 @@ public class Commande {
                             public void onTranslated(String translatedText) {
                                 String verifyMessage = verifyCmdMessages(translatedText);
                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                   
+                                        try {
+                                            // get the historic commandes :
+                                            
+                                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                            
+                                            
+                                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                            
+                                            JSONObject history1 = new JSONObject();
+                                            history1.put("role", "assistant");
+                                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                            existingHistoryArray.put(history1);
+                                            // Stocker la nouvelle version de l'historique
+                                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -3306,6 +3911,26 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                   
+                                                        try {
+                                                            // get the historic commandes :
+                                                            
+                                                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                            
+                                                            
+                                                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                            
+                                                            JSONObject history1 = new JSONObject();
+                                                            history1.put("role", "assistant");
+                                                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                                            existingHistoryArray.put(history1);
+                                                            // Stocker la nouvelle version de l'historique
+                                                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                 }
                                                 teamChatBuddyApplication.notifyObservers( "showImage;SPLIT;"+filename);
@@ -3357,15 +3982,35 @@ public class Commande {
                 teamChatBuddyApplication.notifyObservers( "closeImage");
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                   
+                        try {
+                            // get the historic commandes :
+                            
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            
+                            
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
         });
     }
-    public void CMD_TAKE_PHOTO(){
-        Log.e("CMD_Take_Picture","commande take photo fonction CMD_TAKE_PHOTO");
+    public void CMD_TAKE_PHOTO(String prompt){
+        Log.e("MRRM","commande take photo fonction CMD_TAKE_PHOTO");
 
-        teamChatBuddyApplication.notifyObservers("takePicture");
+        teamChatBuddyApplication.notifyObservers("takePicture;SPLIT;"+prompt);
 
     }
     public void phototakedMessage(){
@@ -3404,6 +4049,26 @@ public class Commande {
                         radioPlayer.start();
                         String verifyMessage = verifyCmdMessages(translatedText);
                         if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                           
+                                try {
+                                    // get the historic commandes :
+                                    
+                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                    
+                                    
+                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                    
+                                    JSONObject history1 = new JSONObject();
+                                    history1.put("role", "assistant");
+                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                    existingHistoryArray.put(history1);
+                                    // Stocker la nouvelle version de l'historique
+                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }
@@ -3450,6 +4115,26 @@ public class Commande {
                         musicPlayer.start();
                         String verifyMessage = verifyCmdMessages(translatedText);
                         if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                           
+                                try {
+                                    // get the historic commandes :
+                                    
+                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                    
+                                    
+                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                    
+                                    JSONObject history1 = new JSONObject();
+                                    history1.put("role", "assistant");
+                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                    existingHistoryArray.put(history1);
+                                    // Stocker la nouvelle version de l'historique
+                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }
