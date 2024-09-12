@@ -4,11 +4,13 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -135,5 +137,23 @@ public class CustomProperties extends Properties {
     private static void writeln(BufferedWriter bw, String s) throws IOException {
         bw.write(s);
         bw.newLine();
+    }
+    @Override
+    public Set<String> stringPropertyNames() {
+        Set<String> set = new HashSet<>();
+        for (Object key : linkMap.keySet()) {
+            set.add((String) key);
+        }
+        return set;
+    }
+    @Override
+    public synchronized void load(Reader reader) throws IOException {
+        Properties tempProps = new Properties();
+        tempProps.load(reader);  // Charge dans une instance temporaire de Properties
+
+        // Transfert des données dans linkMap
+        for (String key : tempProps.stringPropertyNames()) {
+            linkMap.put(key, tempProps.getProperty(key));
+        }
     }
 }
