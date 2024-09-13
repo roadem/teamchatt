@@ -419,8 +419,8 @@ public class ChatGptStreamMode {
                                     float confidence = language.getConfidence();
 
                                     Log.i("MRA_idetifyLanguage", "Language of : [ " + phraseToPronounce + " ] is : " + languageCode + ", Confidence: " + confidence);
-                                    if (app.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !app.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")) {
-                                        if (Integer.parseInt(app.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) >= (confidence * 100)) {
+                                    if (app.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !app.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")&& !app.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("0")) {
+                                        if (Integer.parseInt(app.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
                                             app.setLanguageDetected(languageCode.trim());
                                             pronouncePhrase(phraseToPronounce);
                                         } else {
@@ -428,6 +428,7 @@ public class ChatGptStreamMode {
                                         }
                                     }
                                     else {
+                                        app.setLanguageDetected(languageCode.trim());
                                         pronouncePhrase(phraseToPronounce);
                                     }
                                 }
