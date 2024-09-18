@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 34; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 35; // upgrade this whenever you want to overwrite the file
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -494,9 +494,9 @@ public class ConfigurationFile {
             props.addPropertyComment("JOKE_URL", "");
             setProperty("JOKE_URL_fr", "https://blague-api.vercel.app/");
             setProperty("JOKE_URL","https://v2.jokeapi.dev/joke/");
-            setProperty("JOKE_PROMPT_fr", "Si la blague contient deux parties, mets 20 points (....................) entre les deux, et raconte la blague à ta manière");
             setProperty("JOKE_PROMPT_en", "If the joke has two parts, put 20 dots (....................) between them, and tell the joke in your own way");
             setProperty("JOKE_Model", "gpt-3.5-turbo");
+            setProperty("JOKE_X_points","20");
 
 
             //-------------------------- Tracking ---------------------------

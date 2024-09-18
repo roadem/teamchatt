@@ -1518,7 +1518,6 @@ public class Commande {
         Log.i("HOO", "CMD JOKE '"+ description +"' début." );
 
         if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-            String joke_prompt = teamChatBuddyApplication.getParamFromFile("JOKE_PROMPT_fr",configFile);
             String joke_url = teamChatBuddyApplication.getParamFromFile("JOKE_URL_fr",configFile);
             if(joke_url == null || joke_url.isEmpty()) joke_url = "https://blague-api.vercel.app/";
 
@@ -1531,12 +1530,28 @@ public class Commande {
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         try {
+                            int x_points = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("JOKE_X_points",configFile));
                             JsonObject jsonObject = response.body();
                             String joke = jsonObject.get("blague").getAsString();
                             String jokeResponse = jsonObject.get("reponse").getAsString();
-                            Log.i("HOO","joke "+ joke+" \n response "+jokeResponse);
+                            String points = new String(new char[x_points]).replace("\0", ".");
+                            Log.i("HOO","joke "+ joke+" "+points+"  response "+jokeResponse);
 
-                            handleJokeByChatGpt(joke+" "+jokeResponse, joke_prompt);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;"+joke+""+points+""+jokeResponse);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    translate("CMD_JOKE", new ITranslationCallback() {
+                                        @Override
+                                        public void onTranslated(String translatedText) {
+                                            String verifyMessage = verifyCmdMessages(translatedText);
+                                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                                            }
+                                        }
+                                    });
+                                }
+                            },2000);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -1659,10 +1674,11 @@ public class Commande {
 
     public void handleJokeByChatGpt(String joke, String joke_prompt){
 
+        Log.i("HOO"," handle by chatgpt ");
+
         Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getparam("ChatGPT_url"), 50);
         ApiEndpointInterface api = retrofit.create( ApiEndpointInterface.class );
 
-        //     String joke_prompt = "Raconte cette blague à ta manière en une seule phrase et utilise exactement vingt points ('.') entre les deux phrases";
         String joke_model = teamChatBuddyApplication.getParamFromFile("JOKE_Model",configFile);
         if(joke_model == null || joke_model.isEmpty()) joke_model = "gpt-3.5-turbo";
 
