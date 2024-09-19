@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 35; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 36; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -389,6 +389,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague global (dark/global/dev/limit/beauf/blondes) <CMD_JOKE global>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
 
             setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: ");
 
@@ -429,6 +430,7 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_34=I have a real problem can you help me <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_35=Tell me about Blue Frog <CMD_PROMPT %BFR%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_36=Tell me a joke Any (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_37=Change the header <CMD_HEADER %HEADER%>");
 
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
@@ -522,9 +524,13 @@ public class ConfigurationFile {
             setProperty( "CMD_JOKE_fr", "Ok, Voici une nouvelle blague // Voila j’espère que ma blague t’a fait rire // Aucune blague correspondante trouvée" );
             setProperty( "CMD_JOKE_en", "Ok, here’s a new joke // There you go, I hope my joke made you laugh // No matching joke found" );
 
+            setProperty( "CMD_HEADER_fr", "// L'en-tête est modifié" );
+            setProperty( "CMD_HEADER_en", "// The header is changed" );
+
 
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
             setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");
+            setProperty("HEADER","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
 
 
             props.addPropertyComment("Image_URL","");
