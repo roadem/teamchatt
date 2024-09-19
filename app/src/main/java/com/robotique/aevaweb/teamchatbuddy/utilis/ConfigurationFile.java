@@ -19,6 +19,7 @@ public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
     private static final int FILE_VERSION = 35; // upgrade this whenever you want to overwrite the file
+
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -169,7 +170,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Listening_time","");
             props.addPropertyComment("Listening_time","Maximum listening time (seconds) and number of successive listens");
             setProperty("Listening_time","10");
-            setProperty("Number_listens","3");
+            setProperty("Number_listens","1");
 
             props.addPropertyComment("Language","");
             props.addPropertyComment("Language","Languages available FR/EN/ES/DE");
@@ -301,7 +302,7 @@ public class ConfigurationFile {
             setProperty("ChatGPT_ApiEndpoint","/v1/chat/completions");
             props.addPropertyComment("Model", "Model=gpt-3.5-turbo");
             props.addPropertyComment("Model", "Model=gpt-4");
-            setProperty("Model","gpt-4o");
+            setProperty("Model","gpt-4o-mini");
             setProperty("Temperature",String.valueOf(0.5));
 
             props.addPropertyComment("Max_Tokens_req", "");
@@ -348,8 +349,87 @@ public class ConfigurationFile {
             setProperty("COMMAND_histo","NO");
             setProperty("COMMAND_maxdialog","30");
 
-            setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : Qu'est-ce que tu sais faire ? <CMD_NONE> /  Quel est ton niveau de batterie ? <CMD_BATTERIE> / Mets la température à zéro <CMD_TEMP 0> / Change le volume du son à 50 (entre 0 et 100) <CMD_SOUND 50>  /   Quel jour sommes-nous ? <CMD_DATE>  /   Quelle heure est-il ? <CMD_HOUR>    /   Avance sur 3 mètres <CMD_MOVE 3> / Tourne à droite de 30 degrés (entre -360 et 360) <CMD_TURN 30>  /   Baisse la tête au maximum (entre -45 et 35) <CMD_HEAD -45>  /   Regarde le plus à droite possible <CMD_LOOK 10> /   Arrête d’écouter <CMD_STOP> /   Quitte l’application <CMD_QUIT> /  Lance l’application (Buddylab/Spark)  <CMD_RUN Buddylab> /  Exécute une danse <CMD_DANCE>   /   Qu'est ce que tu vois <CMD_PHOTO %DESCRIBE_PHOTO%> / Résout le problème que je te montre <CMD_PHOTO %RESOLVE_PHOTO%>/ Traduit en français ce que je te montre <CMD_PHOTO %TRANSLATE_PHOTO%> / Lance le comportement énervé <CMD_BI angry>  /   Quelle est la météo à ville <CMD_METEO ville>  /   Mets-moi la radio « RTL »  <CMD_RADIO RTL>   /   Connectes-toi sur Dorian <HEALYSA_CONNECT Dorian> /   Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3> /   Prend mon rythme cardiaque <HEALYSA_HRV>    /   Prend ma tension <HEALYSA_BLOODP>  /   Récupère mon taux d'oxygène <HEALYSA_SPO2>  /   Fais mon check up <HEALYSA_CHECKUP>    /   Appelle Cyril <HEALYSA_CALL Cyril>  /   Où se trouve Nabila <HEALYSA_LOC Nabila>   /   Allume la lumière <SWITCHBOT_LIGHT On>  /   Montre-moi une image de chien rouge <CMD_IMAGE chien rouge>  /   Ferme l'image <CMD_CLOSE_IMAGE>  / Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais> / Génère une musique de jazz avec une trompette <CMD_MUSIC jazz avec une trompette> / J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%> / Parle-moi de Blue Frog <CMD_PROMPT %BFR%> / Raconte-moi une blague global (dark/global/dev/limit/beauf/blondes) <CMD_JOKE global>" );
-            setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: What can you do? <CMD_NONE>/ What is your battery level? <CMD_BATTERIE> / Set the temperature to zero <CMD_TEMP 0> / Change the sound volume to 50 (between 0 and 100) <CMD_SOUND 50> / What day is it? <CMD_DATE> / What time is it? <CMD_HOUR> / Move forward 3 meters <CMD_MOVE 3> / Turn right 30 degrees (between -360 and 360) <CMD_TURN 30> / Lower your head as far as possible (between -45 and 35) <CMD_HEAD -45> / Look as far to the right as possible <CMD_LOOK 10> / Stop listening <CMD_STOP> / Exit the application <CMD_QUIT> / Launch application (Buddylab/Spark) <CMD_RUN Buddylab> /  Execute a dance <CMD_DANCE> / What do you see <CMD_PHOTO %DESCRIBE_PHOTO%> / Solve the problem I show you <CMD_PHOTO %RESOLVE_PHOTO%>/ Translate into French what I show you <CMD_PHOTO %TRANSLATE_PHOTO> / Launch the behavior angry <CMD_BI angry> / What is the weather in city <CMD_METEO city> / Start the « RTL » radio <CMD_RADIO RTL> / Connect to Dorian <HEALYSA_CONNECT Dorian> / Give the cat 3 portions of food <HEALYSA_FEEDCAT 3> /Take my heart rate <HEALYSA_HRV> / Take my blood pressure <HEALYSA_BLOODP> / Get my oxygen level <HEALYSA_SPO2> / Do my check-up <HEALYSA_CHECKUP> / Call Cyril <HEALYSA_CALL Cyril> / Where is Nabila <HEALYSA_LOC Nabila> / Turn on the light < SWITCHBOT_LIGHT On> / Show me an image of a red dog <CMD_IMAGE red dog> / Close the image <CMD_CLOSE_IMAGE> / Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français> / Generate music jazz  with a trumpet <CMD_MUSIC jazz with a trumpet> / I have a real problem can you help me <CMD_PROMPT %POURQUOI%> / Tell me about Blue Frog <CMD_PROMPT %BFR%> / Tell me a joke Any (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>" );
+
+            setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : ");
+
+            setProperty("CMD_fr_1","Qu'est-ce que tu sais faire ? <CMD_NONE>");
+            setProperty("CMD_fr_2","Quel est ton niveau de batterie ? <CMD_BATTERIE>");
+            setProperty("CMD_fr_3","Change le volume du son à 50 (entre 0 et 100) <CMD_SOUND 50> ");
+            setProperty("CMD_fr_4","Quel jour sommes-nous ? <CMD_DATE>");
+            setProperty("CMD_fr_5","Quelle heure est-il ? <CMD_HOUR>");
+            setProperty("CMD_fr_6","Arrête d’écouter <CMD_STOP>");
+            setProperty("CMD_fr_7","Quitte l’application <CMD_QUIT>");
+            setProperty("CMD_fr_8","Lance l’application (Buddylab/Spark)  <CMD_RUN Buddylab>");
+            setProperty("CMD_fr_9","Exécute une danse <CMD_DANCE>");
+            setProperty("CMD_fr_10","Qu'est ce que tu vois <CMD_PHOTO %DESCRIBE_PHOTO%>");
+            setProperty("CMD_fr_11","Lance le comportement énervé <CMD_BI angry>");
+            setProperty("CMD_fr_12","Quelle est la météo à ville <CMD_METEO ville>");
+            setProperty("CMD_fr_13","Mets-moi la radio « RTL »  <CMD_RADIO RTL>");
+            setProperty("CMD_fr_14","Montre-moi une image de chien rouge <CMD_IMAGE chien rouge>");
+            setProperty("CMD_fr_15","Ferme l'image <CMD_CLOSE_IMAGE>");
+            setProperty("CMD_fr_16","Génère une musique de jazz avec une trompette <CMD_MUSIC jazz avec une trompette>");
+
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_17=Mets la température à zéro <CMD_TEMP 0>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_18=Avance sur 3 mètres <CMD_MOVE 3>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_19=Tourne à droite de 30 degrés (entre -360 et 360) <CMD_TURN 30>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_20=Baisse la tête au maximum (entre -45 et 35) <CMD_HEAD -45>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_21=Regarde le plus à droite possible <CMD_LOOK 10>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_22=Résout le problème que je te montre <CMD_PHOTO %RESOLVE_PHOTO%>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_23=Traduit en français ce que je te montre <CMD_PHOTO %TRANSLATE_PHOTO%>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_24=Connectes-toi sur Dorian <HEALYSA_CONNECT Dorian>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_25=Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_26=Quel est mon rythme cardiaque <HEALYSA_HRV>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_27=Prend ma tension <HEALYSA_BLOODP>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_28=Récupère mon taux d'oxygène <HEALYSA_SPO2>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_29=Fais mon check up <HEALYSA_CHECKUP>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_30=Appelle Cyril <HEALYSA_CALL Cyril>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_31=Où se trouve Nabila <HEALYSA_LOC Nabila>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_32=Allume la lumière <SWITCHBOT_LIGHT On>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague global (dark/global/dev/limit/beauf/blondes) <CMD_JOKE global>");
+
+            setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: ");
+
+            setProperty("CMD_en_1", "What can you do? <CMD_NONE>");
+            setProperty("CMD_en_2", "What is your battery level? <CMD_BATTERIE>");
+            setProperty("CMD_en_3", "Change the sound volume to 50 (between 0 and 100) <CMD_SOUND 50>");
+            setProperty("CMD_en_4", "What day is it? <CMD_DATE>");
+            setProperty("CMD_en_5", "What time is it? <CMD_HOUR>");
+            setProperty("CMD_en_6", "Stop listening <CMD_STOP>");
+            setProperty("CMD_en_7", "Exit the application <CMD_QUIT>");
+            setProperty("CMD_en_8", "Launch application (Buddylab/Spark) <CMD_RUN Buddylab>");
+            setProperty("CMD_en_9", "Execute a dance <CMD_DANCE>");
+            setProperty("CMD_en_10", "What do you see <CMD_PHOTO %DESCRIBE_PHOTO%>");
+            setProperty("CMD_en_11", "Launch the behavior angry <CMD_BI angry>");
+            setProperty("CMD_en_12", "What is the weather in city <CMD_METEO city>");
+            setProperty("CMD_en_13", "Start the 'RTL' radio <CMD_RADIO RTL>");
+            setProperty("CMD_en_14", "Show me an image of a red dog <CMD_IMAGE red dog>");
+            setProperty("CMD_en_15", "Close the image <CMD_CLOSE_IMAGE>");
+            setProperty("CMD_en_16", "Generate music jazz with a trumpet <CMD_MUSIC jazz with a trumpet>");
+
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_17=Set the temperature to zero <CMD_TEMP 0>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_18=Move forward 3 meters <CMD_MOVE 3>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_19=Turn right 30 degrees (between -360 and 360) <CMD_TURN 30>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_20=Lower your head as far as possible (between -45 and 35) <CMD_HEAD -45>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_21=Look as far to the right as possible <CMD_LOOK 10>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_22=Solve the problem I show you <CMD_PHOTO %RESOLVE_PHOTO%>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_23=Translate into French what I show you <CMD_PHOTO %TRANSLATE_PHOTO%>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_24=Connect to Dorian <HEALYSA_CONNECT Dorian>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_25=Give the cat 3 portions of food <HEALYSA_FEEDCAT 3>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_26=What's my heart rate <HEALYSA_HRV>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_27=Take my blood pressure <HEALYSA_BLOODP>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_28=Get my oxygen level <HEALYSA_SPO2>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_29=Do my check-up <HEALYSA_CHECKUP>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_30=Call Cyril <HEALYSA_CALL Cyril>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_31=Where is Nabila <HEALYSA_LOC Nabila>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_32=Turn on the light <SWITCHBOT_LIGHT On>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_33=Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_34=I have a real problem can you help me <CMD_PROMPT %POURQUOI%>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_35=Tell me about Blue Frog <CMD_PROMPT %BFR%>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_36=Tell me a joke Any (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>");
+
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
             setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done" );
@@ -538,7 +618,7 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_welcome_CHATGPT", "Welcome message with ChatGPT");
             setProperty("TRACKING_welcome_CHATGPT","Yes");
             props.addPropertyComment("TRACKING_welcome_model", "Welcome ChatGPT model");
-            setProperty("TRACKING_welcome_model","gpt-4o");
+            setProperty("TRACKING_welcome_model","gpt-4o-mini");
             props.addPropertyComment("TRACKING_welcome_temperature", "Welcome Temperature");
             setProperty("TRACKING_welcome_temperature","0.5");
             props.addPropertyComment("TRACKING_welcome_prompt_FR", "Welcome Prompt for ChatGPT");

@@ -441,8 +441,8 @@ public class ResponseFromChatbot {
                                                                         float confidence = language.getConfidence();
 
                                                                         Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
-                                                                        if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")) {
-                                                                            if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) >= (confidence * 100)) {
+                                                                        if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")&& !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("0")) {
+                                                                            if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
                                                                                 teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
                                                                                 teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
                                                                             } else {
@@ -450,6 +450,7 @@ public class ResponseFromChatbot {
                                                                             }
                                                                         }
                                                                         else {
+                                                                            teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
                                                                             teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
                                                                         }
                                                                     }
@@ -689,14 +690,14 @@ public class ResponseFromChatbot {
 
     private void translate(String message, Commande.ITranslationCallback iTranslationCallback){
         if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais") ){
-            iTranslationCallback.onTranslated(teamChatBuddyApplication.getParamFromFile(message+"_en", "TeamChatBuddy.properties"));
+            iTranslationCallback.onTranslated(teamChatBuddyApplication.getParamFromFile(message+"_en", "TeamChatBuddy.properties")+teamChatBuddyApplication.getPromptFromFile("CMD_en_", "TeamChatBuddy.properties"));
         }
         else if (teamChatBuddyApplication.getLangue().getNom().equals("Français") ) {
-            iTranslationCallback.onTranslated(teamChatBuddyApplication.getParamFromFile(message+"_fr", "TeamChatBuddy.properties"));
+            iTranslationCallback.onTranslated(teamChatBuddyApplication.getParamFromFile(message+"_fr", "TeamChatBuddy.properties")+teamChatBuddyApplication.getPromptFromFile("CMD_fr_", "TeamChatBuddy.properties"));
         }
         else {
             //use english prompt for other languages (avoid translation because it causes changes in the <CMD_X> as well)
-            iTranslationCallback.onTranslated(teamChatBuddyApplication.getParamFromFile(message+"_en", "TeamChatBuddy.properties"));
+            iTranslationCallback.onTranslated(teamChatBuddyApplication.getParamFromFile(message+"_en", "TeamChatBuddy.properties")+teamChatBuddyApplication.getPromptFromFile("CMD_en_", "TeamChatBuddy.properties"));
             /*teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile(message+"_en", "TeamChatBuddy.properties"))
                     .addOnSuccessListener(new OnSuccessListener<String>() {
                         @Override
@@ -1753,8 +1754,8 @@ public class ResponseFromChatbot {
                                                 float confidence = language.getConfidence();
 
                                                 Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
-                                                if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")) {
-                                                    if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) >= (confidence * 100)) {
+                                                if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("") && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("0")) {
+                                                    if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
                                                         teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
                                                         teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
                                                     } else {
@@ -1762,6 +1763,7 @@ public class ResponseFromChatbot {
                                                     }
                                                 }
                                                 else {
+                                                    teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
                                                     teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
                                                 }
                                             }

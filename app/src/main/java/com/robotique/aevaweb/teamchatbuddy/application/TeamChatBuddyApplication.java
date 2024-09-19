@@ -1863,6 +1863,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 speechRecognizerIntent2.putExtra(RecognizerIntent.EXTRA_LANGUAGE, langue);
             }
         }
+        else {
+            speechRecognizerIntent.removeExtra(RecognizerIntent.EXTRA_LANGUAGE);
+            speechRecognizerIntent2.removeExtra(RecognizerIntent.EXTRA_LANGUAGE);
+        }
 
 
 
@@ -2871,10 +2875,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public void checkTheHotword(String word){
         List<String> hotword =getHotwordList();
+        boolean rightHottwordDetected = false;
         for (int i = 0; i < hotword.size(); i++) {
             Log.i(TAG, "checkTheHotword :" + word);
             if (word.trim().equalsIgnoreCase(hotword.get(i).trim())) {
                 try {
+                    rightHottwordDetected =true;
                     notifyObservers("STTHotword_success");
 
 
@@ -2883,6 +2889,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 }
 
             }
+        }
+        if (!rightHottwordDetected){
+            if (speechRecognizer!=null && speechRecognizerIntent2 !=null) speechRecognizer.startListening(speechRecognizerIntent2);
+
         }
     }
 
@@ -4286,6 +4296,26 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         CustomProperties props = ConfigurationFile.props;
         CustomProperties newProps = ConfigurationFile.loadproperties(directory, fileName, props);
         return newProps.getProperty(param);
+    }
+    public String getPromptFromFile(String type,String fileName) {
+        File directory = new File(getString(R.string.path), "TeamChatBuddy");
+        CustomProperties props = ConfigurationFile.props;
+        CustomProperties newProps = ConfigurationFile.loadproperties(directory, fileName, props);
+
+        StringBuilder prompt = new StringBuilder();
+
+        // Iterate through the properties and concatenate commands
+        for (String param : newProps.stringPropertyNames()) {
+            if (param.startsWith(type)) {
+                String command = newProps.getProperty(param);
+                if (prompt.length() > 0) {
+                    prompt.append(" / ");  // Add the separator between commands
+                }
+                prompt.append(command);
+            }
+        }
+        Log.e("MRA_prompt","Prompt final : " + prompt.toString());
+        return prompt.toString();  // Return the prompt as a single string
     }
 
     /**
