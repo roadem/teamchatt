@@ -512,11 +512,11 @@ public class ConfigurationFile {
             setProperty( "CMD_IMAGE_fr", "Je vais vous montrer une image correspondant à votre demande // Voici l'image" );
             setProperty( "CMD_IMAGE_en", "I will show you an image corresponding to your request // Here is the image" );
 
-            setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image // C'est bon" );
-            setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image // Done" );
+            setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image" );
+            setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image" );
 
-            setProperty("CMD_PHOTO_fr","Je vais prendre une photo // Voila");
-            setProperty("CMD_PHOTO_en","I will take a picture // Done");
+            setProperty("CMD_PHOTO_fr","Je vais prendre une photo");
+            setProperty("CMD_PHOTO_en","I will take a picture");
 
             setProperty( "CMD_BI_fr", "Je lance le comportement [1] // C'est bon // Le fichier de comportement [1] est introuvable" );
             setProperty( "CMD_BI_en", "I'm starting the behaviour [1] // Done // Behavior file [1] could not be found" );
