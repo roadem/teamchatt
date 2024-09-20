@@ -378,7 +378,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_23=Traduit en français ce que je te montre <CMD_PHOTO %TRANSLATE_PHOTO%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_24=Connectes-toi sur Dorian <HEALYSA_CONNECT Dorian>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_25=Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_26=Quel est mon rythme cardiaque <HEALYSA_HRV>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_26=Prend mon rythme cardiaque <HEALYSA_HRV>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_27=Prend ma tension <HEALYSA_BLOODP>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_28=Récupère mon taux d'oxygène <HEALYSA_SPO2>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_29=Fais mon check up <HEALYSA_CHECKUP>");
@@ -419,7 +419,7 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_23=Translate into French what I show you <CMD_PHOTO %TRANSLATE_PHOTO%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_24=Connect to Dorian <HEALYSA_CONNECT Dorian>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_25=Give the cat 3 portions of food <HEALYSA_FEEDCAT 3>");
-            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_26=What's my heart rate <HEALYSA_HRV>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_26=Take my heart rate <HEALYSA_HRV>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_27=Take my blood pressure <HEALYSA_BLOODP>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_28=Get my oxygen level <HEALYSA_SPO2>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_29=Do my check-up <HEALYSA_CHECKUP>");
