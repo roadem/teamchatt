@@ -388,7 +388,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague global (dark/global/dev/limit/beauf/blondes) <CMD_JOKE global>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
 
             setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: ");
@@ -429,7 +429,7 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_33=Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_34=I have a real problem can you help me <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_35=Tell me about Blue Frog <CMD_PROMPT %BFR%>");
-            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_36=Tell me a joke Any (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_36=Tell me a joke (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_37=Change the header <CMD_HEADER %HEADER%>");
 
 
@@ -580,7 +580,7 @@ public class ConfigurationFile {
             props.addPropertyComment("JOKE_URL", "");
             setProperty("JOKE_URL_fr", "https://blague-api.vercel.app/");
             setProperty("JOKE_URL","https://v2.jokeapi.dev/joke/");
-            setProperty("JOKE_PROMPT_en", "If the joke has two parts, put 20 dots (....................) between them, and tell the joke in your own way");
+            setProperty("JOKE_PROMPT_en", "If the joke has two parts, put joke_x_points dots between them, and tell the joke in your own way");
             setProperty("JOKE_Model", "gpt-3.5-turbo");
             setProperty("JOKE_X_points","20");
 

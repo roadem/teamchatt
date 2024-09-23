@@ -1701,13 +1701,16 @@ public class Commande {
             ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
             Call<JsonObject> call = api.getJoke(joke_url+"/"+description,blacklistFlags,lang);
 
-            String joke_prompt = teamChatBuddyApplication.getParamFromFile("JOKE_PROMPT_en",configFile);
 
             call.enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         try {
+                            String jokeXPoints = teamChatBuddyApplication.getParamFromFile("JOKE_X_points", configFile);
+                            String joke_prompt = teamChatBuddyApplication.getParamFromFile("JOKE_PROMPT_en",configFile);
+                            joke_prompt = joke_prompt.replace("joke_x_points", jokeXPoints);
+                            Log.i("HOO"," new prompt --> "+joke_prompt);
                             JsonObject jsonObject = response.body();
                             if (jsonObject.has("joke")) {
                                 String joke = jsonObject.get("joke").getAsString();
