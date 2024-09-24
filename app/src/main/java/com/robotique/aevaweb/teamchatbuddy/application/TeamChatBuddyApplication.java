@@ -1032,26 +1032,18 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     private void initVisibilitySetting() {
         if (getparam(visibilityString).equals("")) {
-            if (getParamFromFile("Display_of_speech",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam(visibilityString, "false");
-            }
-            else {
-                setparam(visibilityString, "true");
-            }
+            setparam(visibilityString, getParamFromFile("Display_of_speech",configurationFilePseudo).toLowerCase());
         }
         switchVisibility = getparam(visibilityString);
     }
+
     private void initBIDisplay(){
         if (getparam("Stimulis").equals("")) {
-            if (getParamFromFile("Stimulis",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam("Stimulis", "false");
-            }
-            else {
-                setparam("Stimulis", "true");
-            }
+            setparam("Stimulis", getParamFromFile("Stimulis",configurationFilePseudo).toLowerCase());
         }
         switchBIDisplay = getparam("Stimulis");
     }
+
     private void initSTTSetting(){
         String can_change_stt = getParamFromFile("Change_STT", "TeamChatBuddy.properties");
         if (getparam("STT_chosen").equals("") || (can_change_stt == null || can_change_stt.trim().equalsIgnoreCase("No")) ){
@@ -1344,60 +1336,39 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     private void initEmotionSetting() {
         if (getparam(emotionString).equals("")) {
-            if (getParamFromFile("Activation_of_emotions",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam(emotionString, "false");
-            }
-            else {
-                setparam(emotionString, "true");
-            }
+            setparam(emotionString, getParamFromFile("Activation_of_emotions",configurationFilePseudo).toLowerCase());
         }
         switchEmotion = getparam(emotionString);
     }
+
     private void initLanguageDetectionSetting() {
         if (getparam(detectionLanguageString).equals("")) {
-            if (getParamFromFile("Language_detection",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam(detectionLanguageString, "false");
-            }
-            else {
-                setparam(detectionLanguageString, "true");
-            }
+            setparam(detectionLanguageString, getParamFromFile("Language_detection",configurationFilePseudo).toLowerCase());
         }
         switchdetectLanguage = getparam(detectionLanguageString);
     }
+
     private void initModeStreamSetting() {
         if (getparam(modeStreamString).equals("")) {
-            if (getParamFromFile("Stream_mode",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam(modeStreamString, "false");
-            }
-            else {
-                setparam(modeStreamString, "true");
-            }
+            setparam(modeStreamString, getParamFromFile("Stream_mode",configurationFilePseudo).toLowerCase());
         }
         switchModeStream = getparam(modeStreamString);
     }
+
     private void initCommandeSetting() {
         if (getparam(commandeString).equals("")) {
-            if (getParamFromFile(commandeString,configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam(commandeString, "false");
-            }
-            else {
-                setparam(commandeString, "true");
-            }
+            setparam(commandeString, getParamFromFile(commandeString,configurationFilePseudo).toLowerCase());
         }
         setparam("COMMAND_Model", getParamFromFile("COMMAND_Model", configurationFilePseudo));
         setparam("COMMAND_Temperature", getParamFromFile("COMMAND_Temperature", configurationFilePseudo));
         switchCommande = getparam(commandeString);
     }
+
     private void initTracking(){
 
         //Tracking activation
         if (getparam("Tracking_Activation").equals("")) {
-            if (getParamFromFile("Tracking",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam("Tracking_Activation", "false");
-            }
-            else {
-                setparam("Tracking_Activation", "true");
-            }
+            setparam("Tracking_Activation", getParamFromFile("Tracking",configurationFilePseudo).toLowerCase());
         }
 
         //Tracking camera display
@@ -3126,7 +3097,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         if (type.equals("timeOutExpired")){
             timeoutExpired = false;
 
-            if (getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+            if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
                 getChatGptStreamMode().resumeStreaming();
             }
             else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
@@ -3146,7 +3117,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         else {
             questionNumber++;
             setLanguageDetected("");
-            if (!type.equals("commande") && getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
+            if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
                 getChatGptStreamMode().onTTSEnd();
             }
             else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")){
@@ -3249,7 +3220,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         if (type.equals("timeOutExpired")) {
                                             timeoutExpired = false;
 
-                                            if (getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                            if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
                                                 getChatGptStreamMode().resumeStreaming();
                                             }
                                             else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
@@ -3308,7 +3279,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             if (type.equals("timeOutExpired")){
                                 timeoutExpired = false;
 
-                                if (getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
                                     getChatGptStreamMode().resumeStreaming();
                                 }
                                 else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
@@ -3328,7 +3299,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             else {
                                 questionNumber++;
                                 setLanguageDetected("");
-                                if (!type.equals("commande") && getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
+                                if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
                                     getChatGptStreamMode().onTTSEnd();
                                 }
                                 else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")){
@@ -3348,7 +3319,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             if (type.equals("timeOutExpired")){
                                 timeoutExpired = false;
 
-                                if (getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
                                     getChatGptStreamMode().resumeStreaming();
                                 }
                                 else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
@@ -3748,7 +3719,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             if (type.equals("timeOutExpired")){
                                 timeoutExpired = false;
 
-                                if (getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
                                     getChatGptStreamMode().resumeStreaming();
                                 }
                                 else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
@@ -3768,7 +3739,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             else {
                                 questionNumber++;
                                 setLanguageDetected("");
-                                if (!type.equals("commande") && getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
+                                if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
                                     getChatGptStreamMode().onTTSEnd();
                                 }
                                 else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")){
@@ -3822,7 +3793,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     if (type.equals("timeOutExpired")){
                         timeoutExpired = false;
 
-                        if (getparam("Mode_Stream").equals("true") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                        if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
                             getChatGptStreamMode().resumeStreaming();
                         }
                         else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){

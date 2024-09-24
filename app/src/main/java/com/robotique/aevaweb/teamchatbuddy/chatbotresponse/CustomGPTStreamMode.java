@@ -755,7 +755,7 @@ public class CustomGPTStreamMode {
         if(!isReset){
             if (!teamChatBuddyApplication.isTimeoutExpired()) {
                 Log.i(TAG, "TTS : [ " + phraseToPronounce + " ]");
-                if (teamChatBuddyApplication.getparam("switch_visibility").equals("true")) {
+                if (teamChatBuddyApplication.getparam("switch_visibility").contains("yes")) {
                     showPhrase(phraseToPronounce);
                 }
                 else{
@@ -785,7 +785,7 @@ public class CustomGPTStreamMode {
                 isReadyToSpeak = false;
                 String phraseToPronounce = phrasesQueue.poll();
                 if(phraseToPronounce != null){
-                    if (teamChatBuddyApplication.getparam("Detection_de_langue").equals("true") && teamChatBuddyApplication.nombreDeMotsCheck(phraseToPronounce)) {
+                    if (teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes") && teamChatBuddyApplication.nombreDeMotsCheck(phraseToPronounce)) {
                         LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
                         languageIdentifier.identifyPossibleLanguages(phraseToPronounce)
                                 .addOnSuccessListener(

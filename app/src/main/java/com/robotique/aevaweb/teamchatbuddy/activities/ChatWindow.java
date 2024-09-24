@@ -233,7 +233,12 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         settingClass.setAttempt(teamChatBuddyApplication.getparam("listening_attempt"));
         settingClass.setLangue(teamChatBuddyApplication.getLangue().getNom());
         settingClass.setVolume(teamChatBuddyApplication.getparam("speak_volume"));
-        settingClass.setSwitchVisibility(teamChatBuddyApplication.getparam("switch_visibility"));
+        if(teamChatBuddyApplication.getparam("switch_visibility").contains("yes")){
+            settingClass.setSwitchVisibility("true");
+        }
+        else{
+            settingClass.setSwitchVisibility("false");
+        }
         refreshSTTLangue();
 
         popupAddMail.setOnClickListener(new View.OnClickListener() {
@@ -800,7 +805,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                                         catch (Exception e){
                                             Log.e(TAG,"BuddySDK Exception  "+e);
                                         }
-                                        if (teamChatBuddyApplication.getparam("Mode_Stream").equals("true") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && teamChatBuddyApplication.getChatGptStreamMode() != null) {
+                                        if (teamChatBuddyApplication.getparam("Mode_Stream").contains("yes") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && teamChatBuddyApplication.getChatGptStreamMode() != null) {
                                             Log.w("MODE_STREAM","TTS ERROR");
                                             teamChatBuddyApplication.getChatGptStreamMode().isReadyToSpeak = true;
                                         }
@@ -839,7 +844,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                                                 catch (Exception e){
                                                     Log.e(TAG,"BuddySDK Exception  "+e);
                                                 }
-                                                if (teamChatBuddyApplication.getparam("Mode_Stream").equals("true") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && teamChatBuddyApplication.getChatGptStreamMode() != null) {
+                                                if (teamChatBuddyApplication.getparam("Mode_Stream").contains("yes") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && teamChatBuddyApplication.getChatGptStreamMode() != null) {
                                                     Log.w("MODE_STREAM","TTS ERROR");
                                                     teamChatBuddyApplication.getChatGptStreamMode().isReadyToSpeak = true;
                                                 }
@@ -1218,7 +1223,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
             teamChatBuddyApplication.setAlreadyGetAnswer(true);
             String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
-            if (teamChatBuddyApplication.getparam("Mode_Stream").equals("false") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")){
+            if (teamChatBuddyApplication.getparam("Mode_Stream").contains("no") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")){
                 Replica reponse = new Replica();
                 reponse.setValue(texte);
                 reponse.setTime(time);

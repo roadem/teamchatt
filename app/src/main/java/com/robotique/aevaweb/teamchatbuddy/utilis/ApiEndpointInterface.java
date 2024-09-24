@@ -97,12 +97,21 @@ public interface ApiEndpointInterface {
             @Body RequestBody jsonList,
             @Header("Authorization") String token
     );
+
+    @GET("api/deviceParams/device/{imei}")
+    Call<JsonArray> getPhoneNumberList(
+            @Path( value = "imei", encoded = true) String deviceImei,
+            @Header("Authorization") String token,
+            @Query("paramsTypes") String paramsTypes
+    );
+
     /**
      *   -------------------------------  Healysa FIN  ---------------------------------------------------------------
      */
-    @Headers("Authorization: cab994318104af7295dc7a46611782b563ddf6870afd84a36851b37089cbf405edc9e065decb2c7cf587c6bca586ed80")
-    @POST("/v1.0/devices/F66153776451/commands")
-    Call<JsonObject> getSwitchBot1Result(
+    @POST("/v1.0/devices/{id}/commands")
+    Call<JsonObject> getSwitchBotResult(
+            @Path(value = "id",encoded = true) String id,
+            @Header("Authorization") String token,
             @Body RequestBody jsonList
     );
 
@@ -151,4 +160,16 @@ public interface ApiEndpointInterface {
             @Url String endpoint,
             @Body RequestBody requestBody
     );
+
+    /**
+     *   -------------------------------  JOKE  ---------------------------------------------------------------
+     */
+
+    // API pour récupérer des blagues en français
+    @GET
+    Call<JsonObject> getJoke(@Url String url, @Query("mode") String mode);
+
+    // API pour récupérer des blagues en d'autres langues
+    @GET
+    Call<JsonObject> getJoke(@Url String url, @Query("blacklistFlags") String blacklistFlags, @Query("lang") String lang);
 }

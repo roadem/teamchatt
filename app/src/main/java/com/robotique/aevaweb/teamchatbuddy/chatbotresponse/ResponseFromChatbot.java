@@ -31,6 +31,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -42,6 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.io.FileOutputStream;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
@@ -126,7 +130,7 @@ public class ResponseFromChatbot {
             jsonParams.put("model", teamChatBuddyApplication.getparam("model"));
             jsonParams.put("temperature",Double.parseDouble(teamChatBuddyApplication.getparam("Temperature_chatgpt")));
             jsonParams.put("max_tokens",Double.parseDouble(teamChatBuddyApplication.getparam("Max_Tokens_resp")));
-            if (teamChatBuddyApplication.getparam("Mode_Stream").equals("true")) jsonParams.put("stream", true);
+            if (teamChatBuddyApplication.getparam("Mode_Stream").contains("yes")) jsonParams.put("stream", true);
 
             // get the historic messages :
             String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
@@ -220,7 +224,7 @@ public class ResponseFromChatbot {
 
             RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
 
-            if (teamChatBuddyApplication.getparam("Mode_Stream").equals("true")){
+            if (teamChatBuddyApplication.getparam("Mode_Stream").contains("yes")){
                 if(teamChatBuddyApplication.getChatGptStreamMode() != null){
                     teamChatBuddyApplication.getChatGptStreamMode().reset();
                 }
@@ -416,9 +420,9 @@ public class ResponseFromChatbot {
 
                                     }
                                     // Play la suite de la réponse.
-                                    else{ Log.e("MRAA","Detection_de_langue  -----"+teamChatBuddyApplication.getparam("Detection_de_langue").equals("true"));
+                                    else{ Log.e("MRAA","Detection_de_langue  -----"+teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes"));
                                         Log.e("MRAA","nombreDeMotsCheck(result) -------"+teamChatBuddyApplication.nombreDeMotsCheck(result));
-                                        if (teamChatBuddyApplication.getparam("Detection_de_langue").equals("true") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
+                                        if (teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
 
                                             LanguageIdentifier languageIdentifier =
                                                     LanguageIdentification.getClient();
@@ -713,7 +717,7 @@ public class ResponseFromChatbot {
     public void getCommandsResponseFromChatGPT(String texte, int numberOfQuestion){
         teamChatBuddyApplication.setAlreadyChatting(true);
         Log.i("DLA","Commande active ? " + teamChatBuddyApplication.getparam( "Commands" ));
-        if(teamChatBuddyApplication.getparam( "Commands" ).equals( "true" )) {
+        if(teamChatBuddyApplication.getparam("Commands").contains("yes")) {
             commande = new Commande( activity );
 
             translate("COMMAND_Prompt", new Commande.ITranslationCallback() {
@@ -1239,6 +1243,57 @@ public class ResponseFromChatbot {
 
                     jsonParams.put("messages", requestArray);
 
+                    JSONObject jsonToFile = new JSONObject();
+
+                    jsonToFile.put("model", teamChatBuddyApplication.getParamFromFile("Picture_Description_model","TeamChatBuddy.properties"));
+                    jsonToFile.put("max_tokens", Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Picture_Description_max_tokens","TeamChatBuddy.properties")));
+
+                    JSONArray contentAr = new JSONArray();
+                    contentAr.put(textContent);
+
+                    JSONObject imageDescription = new JSONObject();
+                    imageDescription.put("type", "image_url");
+                    JSONObject url = new JSONObject();
+                    JSONObject userQst = new JSONObject();
+                    userQst.put("role", "user");
+
+
+                    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            saveBitmapToFile(bitmap,"capturedImage.png");
+                            try {
+                                File capturedImage = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Images/capturedImage.png");
+                                if(capturedImage!=null){
+                                    url.put("url", capturedImage.getPath());
+                                    imageDescription.put("image_url", url);
+                                    contentAr.put(imageDescription);
+                                }
+                                userQst.put("content", contentAr);
+                                JSONArray requestAr = new JSONArray();
+                                requestAr.put(userQst);
+                                jsonToFile.put("messages", requestAr);
+
+                                File fileImageDescription_sent = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ImageDescription-sent.json");
+
+
+                                if (fileImageDescription_sent.exists() && fileImageDescription_sent.isFile()) {
+                                    fileImageDescription_sent.delete();
+                                }
+                                FileWriter fileWriter = new FileWriter(fileImageDescription_sent);
+                                Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+                                String jsonString=gson.toJson(jsonToFile);
+                                fileWriter.write(jsonString);
+                                fileWriter.close();
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }, 3000);
+
                     RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
 
                     Call<JsonObject> call = api.getChatGPT(requestBody, "Bearer " + teamChatBuddyApplication.getparam( "openAI_API_Key" ), "application/json");
@@ -1248,6 +1303,21 @@ public class ResponseFromChatbot {
                             teamChatBuddyApplication.setGetResponseTime( System.currentTimeMillis() );
                             if (response.isSuccessful()) {
                                 JsonObject responseBody = response.body();
+                                File fileImageDescription_recv = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ImageDescription-recv.json");
+
+                                try {
+                                    if (fileImageDescription_recv.exists() && fileImageDescription_recv.isFile()) {
+                                        fileImageDescription_recv.delete();
+                                    }
+                                    FileWriter fileWriter = new FileWriter(fileImageDescription_recv);
+                                    Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+                                    String jsonString=gson.toJson(responseBody);
+                                    fileWriter.write(jsonString);
+                                    fileWriter.close();
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                                 String chatgptResponse = responseBody.getAsJsonArray("choices")
                                         .get(0).getAsJsonObject()
                                         .getAsJsonObject("message")
@@ -1339,7 +1409,7 @@ public class ResponseFromChatbot {
     }
 
     public void getEmotionResponseFromChatGTP(String texte,int numberOfQuestion){
-        if (teamChatBuddyApplication.getparam("switch_emotion").equals("true")) {
+        if (teamChatBuddyApplication.getparam("switch_emotion").contains("yes")) {
             teamChatBuddyApplication.setUsingEmotions( true );
             Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication, teamChatBuddyApplication.getparam( "ChatGPT_url" ), 50 );
             ApiEndpointInterface api = retrofit.create( ApiEndpointInterface.class );
@@ -1664,9 +1734,9 @@ public class ResponseFromChatbot {
                             }
                             // Play la suite de la réponse.
                             else{
-                                Log.e("TEAMCHAT_BUDDY_TRACKING","Detection_de_langue  -----"+teamChatBuddyApplication.getparam("Detection_de_langue").equals("true"));
+                                Log.e("TEAMCHAT_BUDDY_TRACKING","Detection_de_langue  -----"+teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes"));
                                 Log.e("TEAMCHAT_BUDDY_TRACKING","nombreDeMotsCheck(result) -------"+teamChatBuddyApplication.nombreDeMotsCheck(result));
-                                if (teamChatBuddyApplication.getparam("Detection_de_langue").equals("true") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
+                                if (teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
 
                                     LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
                                     languageIdentifier.identifyPossibleLanguages(result)
@@ -1898,6 +1968,34 @@ public class ResponseFromChatbot {
             }
         }
 
+    }
+
+
+    public void saveBitmapToFile(Bitmap bitmap, String filePath) {
+        FileOutputStream outputStream = null;
+
+        try {
+            File fileImages = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Images/sent");
+            if (!fileImages.exists() ) {
+                fileImages.mkdirs();
+            }
+            File file = new File(fileImages, filePath);
+
+            outputStream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 

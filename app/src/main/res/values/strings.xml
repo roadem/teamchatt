@@ -2,7 +2,7 @@
     <string name="app_name">TeamChatBuddy</string>
     <string name="path">/storage/emulated/0/</string>
     <string name="pathConfig">/storage/emulated/0/TeamChatBuddy/</string>
-    <string name="copyright">[Ver. 2.2.24] 2024©Teamnet - info@teamnet.fr</string>
+    <string name="copyright">[Ver. 2.2.25] 2024©Teamnet - info@teamnet.fr</string>
     <!-- Menu de paramètres -->
     <!-- Menu de paramètres french-->
     <string name="menu_title_fr">PARAMETRES</string>
@@ -140,6 +140,7 @@
     <string name="add_mail_toast_fr">Veuillez ajouter l\'adresse e-mail de destination dans le fichier TeamChatBuddy.properties.</string>
     <string name="error_mail_toast_fr">Échec de l\'authentification : Données d\'authentification incorrectes.</string>
     <string name="mlkit_model_is_downloading_fr">Le téléchargement du modèle linguistique de ML Kit est en cours. Merci de patienter.</string>
+    <string name="toast_message_error_downloading_fr">Le téléchargement a échoué, nous remettrons l\'ancienne langue</string>
 
 
     <!-- chatbot messages english-->
@@ -153,6 +154,7 @@
     <string name="add_mail_toast_en">Please add the destination email to the TeamChatBuddy.properties file.</string>
     <string name="error_mail_toast_en">Authentication failed: Incorrect authentication data.</string>
     <string name="mlkit_model_is_downloading_en">The language model of ML Kit is currently being downloaded. Please wait.</string>
+    <string name="toast_message_error_downloading_en">Download failed, we will put the old language back</string>
 
     <!-- chatbot messages spanish-->
     <string name="chatBotNoFound_es">No se puede encontrar el chatbot</string>
@@ -165,6 +167,7 @@
     <string name="add_mail_toast_es">Por favor, agregue el correo electrónico de destino al archivo TeamChatBuddy.properties.</string>
     <string name="error_mail_toast_es">Fallo de autenticación: Datos de autenticación incorrectos.</string>
     <string name="mlkit_model_is_downloading_es">El modelo de idioma de ML Kit se está descargando actualmente. Por favor, espere.</string>
+    <string name="toast_message_error_downloading_es">La descarga falló, restableceremos el idioma anterior</string>
 
     <!-- chatbot messages deutsch-->
     <string name="chatBotNoFound_de">Sie können Ihren Chatbot nicht finden</string>
@@ -177,6 +180,7 @@
     <string name="add_mail_toast_de">Bitte fügen Sie die Ziel-E-Mail-Adresse zur Datei TeamChatBuddy.properties hinzu.</string>
     <string name="error_mail_toast_de">Authentifizierung fehlgeschlagen: Falsche Authentifizierungsdaten.</string>
     <string name="mlkit_model_is_downloading_de">Das Sprachmodell von ML Kit wird gerade heruntergeladen. Bitte warten Sie.</string>
+    <string name="toast_message_error_downloading_de">Download fehlgeschlagen, wir werden die alte Sprache wiederherstellen</string>
 
 
     <!-- Menu BlueMic -->

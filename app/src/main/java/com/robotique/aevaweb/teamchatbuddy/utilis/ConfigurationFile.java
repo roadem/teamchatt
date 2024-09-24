@@ -18,7 +18,8 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 31; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 36; // upgrade this whenever you want to overwrite the file
+
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
@@ -258,7 +259,7 @@ public class ConfigurationFile {
             props.addPropertyComment("emotion_Temperature", "openAI settings for emotion detection");
             setProperty("emotion_Temperature","0");
             setProperty("emotion_Max_tokens","50");
-            setProperty("emotion_Model","gpt-3.5-turbo");
+            setProperty("emotion_Model","gpt-4o");
             setProperty("prompt_fr"," Réponds toujours et seulement le nom de l'émotion ou du sentiment parmi 'joyeux, pensif, malade, amoureux, fatigué, attentif, surpris, grincheux, effrayé, en colère, triste’ et si tu ne le trouves pas, répond neutre. ");
             setProperty("prompt_en","Answer always and only the name of the emotion or feeling among 'happy, thoughtful, sick, in love, tired, attentive, surprised, grumpy, scared, angry, sad' and if you can't find it, answer neutral.");
             setProperty("BuddyFace_Happy","joyeux/happy");
@@ -334,6 +335,11 @@ public class ConfigurationFile {
             setProperty("CustomGPT_cabecera","");
             setProperty("CustomGPT_kopfzeile","");
 
+
+            props.addPropertyComment("MLkit_timeout_in_seconds", "");
+            props.addPropertyComment("MLkit_timeout_in_seconds", "Maximum waiting time (in seconds) for MLkit download before timing out");
+            setProperty("MLkit_timeout_in_seconds","60");
+
             //-------------------------- COMMAND PARAMETERS ---------------------------
 
             props.addPropertyComment("COMMAND_Model","");
@@ -342,6 +348,7 @@ public class ConfigurationFile {
             setProperty( "COMMAND_Temperature", "0" );
             setProperty("COMMAND_histo","NO");
             setProperty("COMMAND_maxdialog","30");
+
 
             setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : ");
 
@@ -371,7 +378,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_23=Traduit en français ce que je te montre <CMD_PHOTO %TRANSLATE_PHOTO%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_24=Connectes-toi sur Dorian <HEALYSA_CONNECT Dorian>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_25=Donne 3 portions de nourriture au chat <HEALYSA_FEEDCAT 3>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_26=Quel est mon rythme cardiaque <HEALYSA_HRV>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_26=Prend mon rythme cardiaque <HEALYSA_HRV>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_27=Prend ma tension <HEALYSA_BLOODP>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_28=Récupère mon taux d'oxygène <HEALYSA_SPO2>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_29=Fais mon check up <HEALYSA_CHECKUP>");
@@ -381,6 +388,8 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
 
             setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: ");
 
@@ -410,7 +419,7 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_23=Translate into French what I show you <CMD_PHOTO %TRANSLATE_PHOTO%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_24=Connect to Dorian <HEALYSA_CONNECT Dorian>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_25=Give the cat 3 portions of food <HEALYSA_FEEDCAT 3>");
-            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_26=What's my heart rate <HEALYSA_HRV>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_26=Take my heart rate <HEALYSA_HRV>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_27=Take my blood pressure <HEALYSA_BLOODP>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_28=Get my oxygen level <HEALYSA_SPO2>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_29=Do my check-up <HEALYSA_CHECKUP>");
@@ -420,6 +429,9 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_33=Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_34=I have a real problem can you help me <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_35=Tell me about Blue Frog <CMD_PROMPT %BFR%>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_36=Tell me a joke (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_37=Change the header <CMD_HEADER %HEADER%>");
+
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
             setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done" );
@@ -475,17 +487,18 @@ public class ConfigurationFile {
             setProperty( "HEALYSA_CONNECT_fr", "Je te connecte à la plateforme Healysa // Tu es connecté" );
             setProperty( "HEALYSA_CONNECT_en", "I am connecting you to the Healysa platform // You are connected" );
 
-            setProperty( "HEALYSA_HRV_fr", "Je prend ton rythme cardiaque // Ta fréquence cardiaque est de [1] bpm" );
-            setProperty( "HEALYSA_HRV_en", "I'm taking your heart rate // Your heart rate is [1] bpm" );
+            setProperty( "HEALYSA_HRV_fr", "Je prends ton rythme cardiaque // Ta fréquence cardiaque est de [1] bpm à [2] // Aucune mesure de rythme cardiaque n'a été effectuée aujourd'hui." );
+            setProperty( "HEALYSA_HRV_en", "I'm taking your heart rate // Your heart rate is [1] bpm at [2] // No heart rate measurement was taken today." );
 
-            setProperty( "HEALYSA_BLOODP_fr", "Je prend ta tesion // Ta tension est de [1] [2]" );
-            setProperty( "HEALYSA_BLOODP_en", "I'm taking your blood pressure // Your blood pressure is [1] [2]" );
+            setProperty( "HEALYSA_BLOODP_fr", "Je prends ta tension // Ta tension systolique est de [1] et diastolique de [2] à [3] // Aucune mesure de tension n'a été effectuée aujourd'hui.");
+            setProperty( "HEALYSA_BLOODP_en", "I'm taking your blood pressure // Your systolic blood pressure is [1] and diastolic is [2] at [3] // No blood pressure measurement was taken today.");
 
-            setProperty( "HEALYSA_SPO2_fr", "Je prend ton taux d'oxygène // Ton taux d'oxygène est de [1]" );
-            setProperty( "HEALYSA_SPO2_en", "I'm taking your oxygen level // Your oxygen level is [1]" );
+            setProperty( "HEALYSA_SPO2_fr", "Je prends ton taux d'oxygène // Ton taux d'oxygène est de [1] à [2] // Aucune valeur de taux d'oxygène n'a été mesurée aujourd'hui");
+            setProperty( "HEALYSA_SPO2_en", "I'm taking your oxygen level // Your oxygen level is [1] at [2] // No oxygen level value was measured today.");
 
-            setProperty( "HEALYSA_CHECKUP_fr", "Je fais ton check up // Ta fréquence cardiaque est de [1], ta tension est de [2] [3], ton taux d'oxygène est de [4]" );
-            setProperty( "HEALYSA_CHECKUP_en", "I'm doing your check up // Your heart rate is [1], your blood pressure is [2] [3], your oxygen level is [4]" );
+            setProperty( "HEALYSA_CHECKUP_fr", "Je fais ton check up // Ta fréquence cardiaque est de [1], ta tension systolique est de [2] et diastolique de [3], ton taux d'oxygène est de [4]");
+            setProperty( "HEALYSA_CHECKUP_en", "I'm doing your check up // Your heart rate is [1], your systolic blood pressure is [2] and diastolic blood pressure is [3], your oxygen level is [4]");
+
 
             setProperty( "HEALYSA_CALL_fr", "Je lance l'appel // Voila" );
             setProperty( "HEALYSA_CALL_en", "I'll start the call // Done" );
@@ -499,17 +512,25 @@ public class ConfigurationFile {
             setProperty( "CMD_IMAGE_fr", "Je vais vous montrer une image correspondant à votre demande // Voici l'image" );
             setProperty( "CMD_IMAGE_en", "I will show you an image corresponding to your request // Here is the image" );
 
-            setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image // C'est bon" );
-            setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image // Done" );
+            setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image" );
+            setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image" );
 
-            setProperty("CMD_PHOTO_fr","Je vais prendre une photo // Voila");
-            setProperty("CMD_PHOTO_en","I will take a picture // Done");
+            setProperty("CMD_PHOTO_fr","Je vais prendre une photo");
+            setProperty("CMD_PHOTO_en","I will take a picture");
 
             setProperty( "CMD_BI_fr", "Je lance le comportement [1] // C'est bon // Le fichier de comportement [1] est introuvable" );
             setProperty( "CMD_BI_en", "I'm starting the behaviour [1] // Done // Behavior file [1] could not be found" );
 
+            setProperty( "CMD_JOKE_fr", "Ok, Voici une nouvelle blague // Voila j’espère que ma blague t’a fait rire // Aucune blague correspondante trouvée" );
+            setProperty( "CMD_JOKE_en", "Ok, here’s a new joke // There you go, I hope my joke made you laugh // No matching joke found" );
+
+            setProperty( "CMD_HEADER_fr", "// L'en-tête est modifié" );
+            setProperty( "CMD_HEADER_en", "// The header is changed" );
+
+
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
             setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");
+            setProperty("HEADER","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
 
 
             props.addPropertyComment("Image_URL","");
@@ -549,6 +570,18 @@ public class ConfigurationFile {
             setProperty( "Healysa_URL_PROD", "https://care.healysa.io/" );
             setProperty( "Healysa_mail", "" );
             setProperty( "Healysa_password", "" );
+           
+
+            props.addPropertyComment("SwitchBot","");
+            setProperty("Switchbot_token","" );
+            setProperty("Switchbot_id","" );
+
+            props.addPropertyComment("JOKE_URL", "");
+            setProperty("JOKE_URL_fr", "https://blague-api.vercel.app/");
+            setProperty("JOKE_URL","https://v2.jokeapi.dev/joke/");
+            setProperty("JOKE_PROMPT_en", "If the joke has two parts, put joke_x_points dots between them, and tell the joke in your own way");
+            setProperty("JOKE_Model", "gpt-3.5-turbo");
+            setProperty("JOKE_X_points","20");
 
 
             //-------------------------- Tracking ---------------------------
@@ -598,7 +631,6 @@ public class ConfigurationFile {
             setProperty("TRACKING_welcome_prompt_EN","say an invitation to dialogue");
             props.addPropertyComment("TRACKING_welcome_maxtoken", "Welcome max token");
             setProperty("TRACKING_welcome_maxtoken","100");
-
 
 
 
