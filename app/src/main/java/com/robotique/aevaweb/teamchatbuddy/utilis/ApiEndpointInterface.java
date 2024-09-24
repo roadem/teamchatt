@@ -98,17 +98,13 @@ public interface ApiEndpointInterface {
             @Header("Authorization") String token
     );
 
-    @GET("api/users/search/{textSearch}/by")
-    Call<JsonObject> getUserPhone(
-            @Path( value = "textSearch", encoded = true) String textSearch,
-            @Query("firstname") boolean firstname,
-            @Query("lastname") boolean lastname,
-            @Query("email") boolean email,
-            @Query("phoneNumber") boolean phoneNumber,
-            @Query("pageIndex") int pageIndex,
-            @Query("pageSize") int pageSize,
-            @Header("Authorization") String token
+    @GET("api/deviceParams/device/{imei}")
+    Call<JsonArray> getPhoneNumberList(
+            @Path( value = "imei", encoded = true) String deviceImei,
+            @Header("Authorization") String token,
+            @Query("paramsTypes") String paramsTypes
     );
+
     /**
      *   -------------------------------  Healysa FIN  ---------------------------------------------------------------
      */

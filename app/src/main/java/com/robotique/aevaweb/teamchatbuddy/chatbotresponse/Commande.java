@@ -22,6 +22,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
@@ -112,8 +113,10 @@ public class Commande {
         return "INCONNUE";
     }
 
-    public String getDescription(String text){
-        int index = text.indexOf("CMD_");
+    public String getDescription(String text, Boolean isHealysa){
+        int index;
+        if(isHealysa) index = text.indexOf("HEALYSA_");
+        else index = text.indexOf("CMD_");
         if(index != -1) {
             int cmdLength = 4; // Length of "CMD_"
             int endIndex = text.indexOf(" ", index + cmdLength); // Find the index of the next space after CMD_
@@ -135,6 +138,10 @@ public class Commande {
         }
         Log.e(TAG, "Extract Description from : "+text + " --> INCONNUE");
         return "INCONNUE"; // No CMD_ found
+    }
+
+    public String getDescription(String text){
+        return getDescription(text, false);
     }
 
     public String verifyCmdMessages(String message) {
@@ -1216,7 +1223,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    HEALYSA_CALL( action.split( " " )[1]);
+                                    HEALYSA_CALL(getDescription(action,true));
                                 }
                             },2000);
 
@@ -1226,7 +1233,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    HEALYSA_CALL( action.split( " " )[1]);
+                                    HEALYSA_CALL(getDescription(action,true));
                                 }
                             },2000);
                         }
@@ -1237,7 +1244,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    HEALYSA_CALL( action.split( " " )[1]);
+                                    HEALYSA_CALL(getDescription(action,true));
                                 }
                             },2000);
                         }
@@ -4172,158 +4179,128 @@ public class Commande {
 
 
     public void HEALYSA_CALL(String destinataire) {
-        try {
-            Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD",configFile), 30);
-            ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-            JSONObject jsonParams = new JSONObject();
 
-            jsonParams.put("email",teamChatBuddyApplication.getParamFromFile("Healysa_mail_admin",configFile));
-            jsonParams.put("password",teamChatBuddyApplication.getParamFromFile("Healysa_password_admin",configFile));
+        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile), 30);
+        ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
+        Call<JsonArray> userPhone = api.getPhoneNumberList(teamChatBuddyApplication.getImeiDevice(), "Bearer " + teamChatBuddyApplication.getTokenHealysa(), "AGENDA");
 
-            RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
-            Call<JsonObject> callAuth = api.getTokenHealysa(body);
+        userPhone.enqueue(new Callback<JsonArray>() {
+            @Override
+            public void onResponse(Call<JsonArray> call, Response<JsonArray> response) {
+                try {
+                    if (response.isSuccessful()) {
+                        JsonArray jsonArray = response.body();  // Use Gson's JsonArray here
+                        Log.i(TAG, "get PhoneNumber [successful]: " + jsonArray.toString());
 
-            callAuth.enqueue(new Callback() {
-                @Override
-                public void onResponse(Call call, Response response) {
+                        // Get the first object (assuming there's at least one "AGENDA" object)
+                        JsonObject agendaObject = jsonArray.get(0).getAsJsonObject();
 
-                    JSONObject jsonObj = null;
-                    try {
-                        jsonObj = new JSONObject(response.body().toString());
-                        String token = jsonObj.getString("token");
+                        // Get the "value" array from the agendaObject
+                        JsonArray valueArray = agendaObject.getAsJsonArray("value");
 
-                        Log.i(TAG, "Réponse numéro de téléphone :" + destinataire + "   token : " + token);
-                        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD",configFile), 30);
+                        String phone_number = null;
+                        // Loop through the value array and extract name and phone number
+                        for (JsonElement element : valueArray) {
+                            JsonObject contact = element.getAsJsonObject();
+                            String name = contact.get("name").getAsString();
+                            if (name.toLowerCase().contains(destinataire.toLowerCase())) {
+                                phone_number = contact.get("phoneNumber").getAsString();
+                            }
+                        }
+                        if (phone_number == null) {
+                            Log.e(TAG, "Aucun numéro de téléphone est attribué à " + destinataire);
+                            logErrorAPIHealysa("HEALYSA_CALL", "No telephone number is assigned to " + destinataire, "onFailure");
+                            return;
+                        }
+                        Log.i(TAG, "Réponse numéro de téléphone :" + phone_number + "  imei " + teamChatBuddyApplication.getImeiDevice());
+
                         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-                        Call<JsonObject> userPhone = api.getUserPhone(destinataire, true, false, false, false, 0, 1,
-                                "Bearer " + token);
-
-
-                        userPhone.enqueue(new Callback() {
+                        Call<String> callHR = api.runCmdHealysa("silver", teamChatBuddyApplication.getImeiDevice(), "IWBP32," + teamChatBuddyApplication.getImeiDevice() + ",080835," + phone_number + "#", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
+                        callHR.enqueue(new Callback() {
                             @Override
                             public void onResponse(Call call, Response response) {
-                                try {
-                                    if (response.isSuccessful()) {
-                                        String phone_number = null;
-                                        Log.i(TAG, "get PhoneNumber [successful] :" + response.body());
-                                        JSONObject jsonObject = new JSONObject(response.body().toString());
-                                        JSONArray users = jsonObject.getJSONArray("users");
-                                        if (users.length() > 0) {
-                                            JSONObject firstUser = users.getJSONObject(0);
-                                            phone_number = firstUser.getString("phoneNumber");
-                                            Log.i(TAG, "Phone Number: " + phone_number);
-                                        } else {
-                                            Log.i(TAG, "No users found.");
-                                        }
+                                if (response.isSuccessful()) {
+                                    Log.i(TAG, "Réponse de l'appel [successful] :" + response.body().toString());
+                                    translate("HEALYSA_CALL", new ITranslationCallback() {
+                                        @Override
+                                        public void onTranslated(String translatedText) {
+                                            String verifyMessage = verifyCmdMessages(translatedText);
+                                            if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                try {
+                                                    // get the historic commandes :
 
-                                        if (phone_number == null) {
-                                            Log.e(TAG, "Aucun numéro de téléphone est attribué à " + destinataire);
-                                            logErrorAPIHealysa("HEALYSA_CALL", "No telephone number is assigned to " + destinataire, "onFailure");
-                                            return;
-                                        }
-                                        Log.i(TAG, "Réponse numéro de téléphone :" + phone_number + "  imei " + teamChatBuddyApplication.getImeiDevice());
-
-                                        ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
-                                        Call<String> callHR = api.runCmdHealysa("silver", teamChatBuddyApplication.getImeiDevice(), "IWBP32," + teamChatBuddyApplication.getImeiDevice() + ",080835," + phone_number + "#", "Bearer " + token);
-                                        callHR.enqueue(new Callback() {
-                                            @Override
-                                            public void onResponse(Call call, Response response) {
-                                                if (response.isSuccessful()) {
-                                                    Log.i(TAG, "Réponse de l'appel [successful] :" + response.body().toString());
-                                                    translate("HEALYSA_CALL", new ITranslationCallback() {
-                                                        @Override
-                                                        public void onTranslated(String translatedText) {
-                                                            String verifyMessage = verifyCmdMessages(translatedText);
-                                                            if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
-                                                                try {
-                                                                    // get the historic commandes :
-
-                                                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
 
 
-                                                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
 
-                                                                    JSONObject history1 = new JSONObject();
-                                                                    history1.put("role", "assistant");
-                                                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                                                    JSONObject history1 = new JSONObject();
+                                                    history1.put("role", "assistant");
+                                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
 
-                                                                    existingHistoryArray.put(history1);
-                                                                    // Stocker la nouvelle version de l'historique
-                                                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
-                                                                } catch (JSONException e) {
-                                                                    e.printStackTrace();
-                                                                }
-
-                                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
-                                                            }
-                                                        }
-                                                    });
-                                                } else {
-                                                    String text = "Génère moi une phrase pour dire que je ne suis pas connecté à la plateforme Healysa";
-                                                    if (response != null && response.errorBody() != null) {
-                                                        Log.e(TAG, "Réponse de l'appel [not successful]  " + response.errorBody());
-                                                        String jsonString = null;
-                                                        try {
-                                                            jsonString = response.errorBody().string();
-                                                            JSONObject jsonErrorContent = new JSONObject(jsonString);
-
-                                                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_CALL, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
-                                                            logErrorAPIHealysa("HEALYSA_CALL", errorTXT, "notOnFailure");
-                                                        } catch (IOException | JSONException e) {
-                                                            e.printStackTrace();
-                                                            Log.e(TAG, "Réponse de l'appel [not successful]1 catch" + e);
-                                                        }
-                                                    }
-                                                    Log.e(TAG, "Réponse de l'appel [not successful]");
+                                                    existingHistoryArray.put(history1);
+                                                    // Stocker la nouvelle version de l'historique
+                                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
                                                 }
-                                            }
 
-                                            @Override
-                                            public void onFailure(Call call, Throwable throwable) {
-                                                Log.e(TAG, "Réponse de l'appel [not successful] :" + throwable);
-                                                logErrorAPIHealysa("HEALYSA_CALL", throwable.getMessage(), "onFailure");
-                                            }
-                                        });
-
-
-                                    } else {
-                                        if (response != null && response.errorBody() != null) {
-                                            try {
-                                                Log.e(TAG, "get PhoneNumber [not successful]  " + response.errorBody().string() + " " + response.message() + "  " + response.body());
-                                            } catch (IOException e) {
-                                                throw new RuntimeException(e);
+                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
-                                        Log.e(TAG, "get PhoneNumber [not successful] --- ");
-                                    }
-                                } catch (Exception e) {
-                                    Log.i(TAG, "get PhoneNumber [successful] :" + e.getMessage());
-                                }
+                                    });
+                                } else {
+                                    String text = "Génère moi une phrase pour dire que je ne suis pas connecté à la plateforme Healysa";
+                                    if (response != null && response.errorBody() != null) {
+                                        Log.e(TAG, "Réponse de l'appel [not successful]  " + response.errorBody());
+                                        String jsonString = null;
+                                        try {
+                                            jsonString = response.errorBody().string();
+                                            JSONObject jsonErrorContent = new JSONObject(jsonString);
 
+                                            String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= HEALYSA_CALL, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
+                                            logErrorAPIHealysa("HEALYSA_CALL", errorTXT, "notOnFailure");
+                                        } catch (IOException | JSONException e) {
+                                            e.printStackTrace();
+                                            Log.e(TAG, "Réponse de l'appel [not successful]1 catch" + e);
+                                        }
+                                    }
+                                    Log.e(TAG, "Réponse de l'appel [not successful]");
+                                }
                             }
 
                             @Override
                             public void onFailure(Call call, Throwable throwable) {
-                                Log.e(TAG, "onFailure get PhoneNumber [not successful] :" + throwable);
+                                Log.e(TAG, "Réponse de l'appel [not successful] :" + throwable);
+                                logErrorAPIHealysa("HEALYSA_CALL", throwable.getMessage(), "onFailure");
                             }
                         });
 
-                    } catch (JSONException e) {
-                        Log.i(TAG, "------------------- hho -->  :" + e.getMessage());
-                        throw new RuntimeException(e);
+
+                    } else {
+                        if (response != null && response.errorBody() != null) {
+                            try {
+                                Log.e(TAG, "get PhoneNumber [not successful]  " + response.errorBody().string() + " " + response.message() + "  " + response.body());
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                     }
+                } catch (Exception e) {
+                    Log.i(TAG, "get PhoneNumber [successful] :" + e.getMessage());
                 }
 
-                @Override
-                public void onFailure(Call call, Throwable t) {
-                    Log.i(TAG, "HEALYSA_CALL:  ---- on failure " + t.getMessage());
-                }
-            });
+            }
 
-        } catch (Exception e) {
-            Log.i(TAG, "HEALYSA_CALL:  ---- " + e.getMessage());
-        }
+            @Override
+            public void onFailure(Call<JsonArray> call, Throwable throwable) {
+                Log.e(TAG, "onFailure get PhoneNumber [not successful] :" + throwable);
+            }
+        });
     }
+
+
+
 
 
     public void HEALYSA_LOC(String prénom){

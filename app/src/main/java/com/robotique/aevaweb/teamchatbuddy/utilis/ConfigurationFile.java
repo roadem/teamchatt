@@ -570,8 +570,7 @@ public class ConfigurationFile {
             setProperty( "Healysa_URL_PROD", "https://care.healysa.io/" );
             setProperty( "Healysa_mail", "" );
             setProperty( "Healysa_password", "" );
-            setProperty( "Healysa_mail_admin", "" );
-            setProperty( "Healysa_password_admin", "" );
+           
 
             props.addPropertyComment("SwitchBot","");
             setProperty("Switchbot_token","" );
