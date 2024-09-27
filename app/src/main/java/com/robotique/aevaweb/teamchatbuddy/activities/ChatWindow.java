@@ -229,8 +229,20 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
 
         settingClass = new Setting();
-        settingClass.setDuration(teamChatBuddyApplication.getparam("listening_duration"));
-        settingClass.setAttempt(teamChatBuddyApplication.getparam("listening_attempt"));
+        String listeningDuration =teamChatBuddyApplication.getParamFromFile("Listening_time","TeamChatBuddy.properties");
+        String listeningAttempt = teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties");
+        if(listeningDuration.equals("")||Integer.parseInt(listeningDuration)<=0){
+            settingClass.setDuration("10");
+        }
+        else{
+            settingClass.setDuration(listeningDuration);
+        }
+        if(listeningAttempt.equals("")||Integer.parseInt(listeningAttempt)<=0){
+            settingClass.setAttempt("1");
+        }
+        else{
+            settingClass.setAttempt(listeningAttempt);
+        }
         settingClass.setLangue(teamChatBuddyApplication.getLangue().getNom());
         settingClass.setVolume(teamChatBuddyApplication.getparam("speak_volume"));
         if(teamChatBuddyApplication.getparam("switch_visibility").contains("yes")){
