@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 36; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 38; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -294,7 +294,7 @@ public class ConfigurationFile {
             props.addPropertyComment("show_openAI_prices","Consumption Parameters");
             props.addPropertyComment("show_openAI_prices","Ability to display/manage openAI prices (Yes/No)");
             setProperty("show_openAI_prices","No");
-            setProperty("Models_price","gpt-3.5-turbo_0.0005_0.0015/gpt-3.5-turbo-instruct_0.0015_0.002/gpt-4_0.03_0.06/gpt-4-32k_0.06_0.12/whisper-1_0.006_0");
+            setProperty("Models_price","gpt-3.5-turbo_0.0005_0.0015/gpt-4o_0.005_0.015/gpt-4_0.03_0.06/gpt-4o-mini_0.00015_0.0006/whisper-1_0.006_0");
 
             props.addPropertyComment("ChatGPT_url", "");
             props.addPropertyComment("ChatGPT_url", "ChatGPT parameters");

@@ -119,82 +119,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="248dp"
                         android:orientation="vertical">
-                        <LinearLayout
-                            android:id="@+id/menu_option_listening_duration_lyt"
-                            android:layout_width="match_parent"
-                            android:layout_height="35dp"
-                            android:layout_gravity="center_vertical"
-                            android:orientation="horizontal">
-                            <TextView
-                                android:id="@+id/menu_option_listening_duration_textView"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
-                                android:layout_weight="2"
-                                android:text="@string/menu_option_listening_duration_fr"
-                                android:textColor="#000000" />
-                            <LinearLayout
-                                android:id="@+id/menu_option_listening_duration_editText_lyt"
-                                android:layout_width="350dp"
-                                android:layout_height="30dp"
-                                android:layout_gravity="end|center_vertical"
-                                android:gravity="center_vertical"
-                                android:background="@drawable/button_black_bg">
-                                <EditText
-                                    android:id="@+id/menu_option_listening_duration_editText"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:layout_gravity="center_horizontal|center_vertical"
-                                    android:textAlignment="center"
-                                    android:layout_marginStart="10dp"
-                                    android:textSize="15sp"
-                                    android:background="@null"
-                                    android:hint="@string/menu_option_listening_duration_hint_fr"
-                                    android:inputType="number"
-                                    android:importantForAutofill="noExcludeDescendants"
-                                    android:textColor="#FFFFFF"
-                                    android:textColorHint="#FFFFFF"/>
-                            </LinearLayout>
-                        </LinearLayout>
                         <!-- listening_attempt -->
-                        <LinearLayout
-                            android:id="@+id/menu_option_listening_attempt_lyt"
-                            android:layout_width="match_parent"
-                            android:layout_height="30dp"
-                            android:layout_marginTop="5dp"
-                            android:layout_gravity="center_vertical"
-                            android:orientation="horizontal">
-                            <TextView
-                                android:id="@+id/menu_option_listening_attempt_textView"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
-                                android:layout_weight="2"
-                                android:text="@string/menu_option_listening_attempt_fr"
-                                android:textColor="#000000" />
-                            <LinearLayout
-                                android:id="@+id/menu_option_listening_attempt_editText_lyt"
-                                android:layout_width="350dp"
-                                android:layout_height="30dp"
-                                android:layout_gravity="end|center_vertical"
-                                android:gravity="center_vertical"
-                                android:background="@drawable/button_black_bg">
-                                <EditText
-                                    android:id="@+id/menu_option_listening_attempt_editText"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:layout_gravity="center_horizontal|center_vertical"
-                                    android:textAlignment="center"
-                                    android:layout_marginStart="10dp"
-                                    android:textSize="15sp"
-                                    android:background="@null"
-                                    android:hint="@string/menu_option_listening_attempt_hint_fr"
-                                    android:inputType="number"
-                                    android:importantForAutofill="noExcludeDescendants"
-                                    android:textColor="#FFFFFF"
-                                    android:textColorHint="#FFFFFF"/>
-                            </LinearLayout>
-                        </LinearLayout>
+
                         <!-- option_langue-->
                         <LinearLayout
                             android:id="@+id/menu_option_langue_lyt"

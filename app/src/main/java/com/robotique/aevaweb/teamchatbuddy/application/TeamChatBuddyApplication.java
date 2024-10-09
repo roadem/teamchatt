@@ -880,7 +880,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public void init() {
         Log.e("MRAA","init");
-        remainingAttempts= Integer.parseInt(getParamFromFile("Number_listens",configurationFilePseudo).trim())-1;
+
+        String number_attempt = getParamFromFile("Number_listens",configurationFilePseudo);
+        if(number_attempt.equals("")||Integer.parseInt(number_attempt)<=0){
+            remainingAttempts= Integer.parseInt("1")-1;
+        }
+        else{
+            remainingAttempts= Integer.parseInt(number_attempt)-1;
+        }
+
         if (getparam("firstLaunch").equals("")){
             setparam("firstLaunch","true");
         }
@@ -916,6 +924,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         notifyObservers("properties file done");
     }
+
     private void initOpenAiSettings() {
         double totalConsumption = 0;
         String totalConsumptionSaved = getparam("Total_cons");
@@ -924,25 +933,22 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         setparam("Total_cons",totalConsumption+"");
     }
+
+
     private void initListeningSettings() {
-        if (getparam(listeningDurationPseudo).equals("")) {
-            setparam(listeningDurationPseudo, getParamFromFile("Listening_time",configurationFilePseudo));
+        String listening_duration =getParamFromFile("Listening_time",configurationFilePseudo);
+        String listening_attempt = getParamFromFile("Number_listens",configurationFilePseudo);
+        if(listening_duration.equals("")||Integer.parseInt(listening_duration)<=0){
+            listening_duration = "10";
         }
-        listeningDuration = Integer.parseInt(getparam(listeningDurationPseudo));
-        if (listeningDuration<0){
-            listeningDuration = 5;
-            setparam(listeningDurationPseudo, String.valueOf(listeningDuration));
+        if(listening_attempt.equals("")||Integer.parseInt(listening_attempt)<=0){
+            listening_attempt = "1";
         }
-        if (getparam(listeningAttemptPseudo).equals("")) {
-            setparam(listeningAttemptPseudo, getParamFromFile("Number_listens",configurationFilePseudo));
-        }
-        listeningAttempt = Integer.parseInt(getparam(listeningAttemptPseudo));
-        if (listeningAttempt<0){
-            listeningAttempt = 2;
-            setparam(listeningAttemptPseudo, String.valueOf(listeningAttempt));
-        }
+        listeningDuration = Integer.parseInt(listening_duration);
+        listeningAttempt = Integer.parseInt(listening_attempt);
         remainingAttempts= listeningAttempt-1;
     }
+
     private void initProjectID(){
         if (getparam("CustomGPT_Project_ID").equals("")) {
             setparam("CustomGPT_Project_ID", getParamFromFile("CustomGPT_Project_ID",configurationFilePseudo));
@@ -4391,7 +4397,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
             double prixCalcul = 0;
             boolean modelFound = false;
-
             for (OpenAiInfo info : openAiInfoList) {
                 if (info.getModelName().equalsIgnoreCase(modelName)) {
                     modelFound = true;
@@ -4426,7 +4431,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         String modelsPrice = getParamFromFile("Models_price", "TeamChatBuddy.properties");
         if(modelsPrice == null || modelsPrice.isEmpty()){
-            modelsPrice = "gpt-3.5-turbo_0.0005_0.0015/gpt-3.5-turbo-instruct_0.0015_0.002/gpt-4_0.03_0.06/gpt-4-32k_0.06_0.12/whisper-1_0.006_0";
+            modelsPrice = "gpt-3.5-turbo_0.0005_0.0015/gpt-4o_0.005_0.015/gpt-4_0.03_0.06/gpt-4o-mini_0.00015_0.0006/whisper-1_0.006_0";
         }
 
         List<OpenAiInfo> openAiInfoList = new ArrayList<>();
