@@ -4545,51 +4545,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             return 0;
         }
     }
-    //fonction pour push files
-
-    public void pushFiles(String assetPath, String dir) {
-
-        Log.i(TAG, "pushFiles( " + assetPath + " , " + dir + " )");
-
-        File mWorkingPath = new File(dir);
-
-        // if this directory does not exist, make one.
-        if (!mWorkingPath.exists()) {
-            if (!mWorkingPath.mkdirs()) {
-                Log.i(TAG, "pushFiles : create directory");
-            }
-        } else {
-            Log.i(TAG, "pushFiles : directory already exists");
-        }
-
-
-        // Check if assetPath is a file
-        File outFile = new File(mWorkingPath, assetPath.substring(assetPath.lastIndexOf('/') + 1));
-        if (outFile.exists()) {
-            Log.i(TAG, "pushFiles : file already exists, skipping copy");
-            return; // If file exists, do nothing
-        }
-                Log.i(TAG, "pushFiles : Check if assetPath is a file if");
-                // assetPath is a file path, not a directory
-                try (InputStream in = getAssets().open(assetPath);
-                     OutputStream out = new FileOutputStream(outFile)) {
-
-                    byte[] buf = new byte[1024];
-                    int len;
-                    Log.i(TAG, "pushFiles : Check if assetPath is a file while");
-                    while ((len = in.read(buf)) > 0) {
-                        out.write(buf, 0, len);
-                    }
-
-                    Log.i(TAG, "pushFiles : Copied file: " + assetPath);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.e(TAG, "pushFiles : IOException : " + e);
-                }
-
-
-    }
-
 
 
     //#endregion ******************************************************* Fonctions utiles *********************************************************
