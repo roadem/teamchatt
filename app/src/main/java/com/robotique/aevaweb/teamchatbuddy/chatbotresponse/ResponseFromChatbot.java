@@ -1581,7 +1581,7 @@ public class ResponseFromChatbot {
         teamChatBuddyApplication.setAlreadyChatting(true);
 
         //setLangugeAppAndRole(setting);
-        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,"https://app.customgpt.ai", 50);
+        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("CustomGPT_url","TeamChatBuddy.properties"), 50);
         ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
         JSONObject jsonParams = new JSONObject();
 

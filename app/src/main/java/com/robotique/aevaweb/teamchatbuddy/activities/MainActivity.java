@@ -168,6 +168,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private long visibleDuration = 0L;          // How long a person remained visible
     private long lastLookingAtCameraTime = 0L;  // Track the time when the person last looked at the camera
     private long lastLookingAtCameraTimeToCloseApp = 0L;  // Track the time when the person last looked at the camera
+    private long personDetectedTimeToCloseApp = 0L; // Track the time when the person last detected at the camera
     private long totalTimeLookingAtCamera = 0L; // Total time spent looking at the camera
     private long startLookingAtCameraTime = 0L; // Track the start time of the current interval when the person is looking directly at the camera
 
@@ -187,6 +188,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private int TRACKING_DURATION_WELCOME;
     private int TRACKING_WELCOME_MAX_TOKEN;
     private int TRACKING_TIMEOUT;
+    private int WATCHING_timeout;
 
     private String TRACKING_WELCOME_FR;
     private String TRACKING_WELCOME_EN;
@@ -194,7 +196,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private String TRACKING_WELCOME_PROMPT_EN;
     private String TRACKING_WELCOME_MODEL;
     private String TRACKING_WATCH;
-    private String Tracking_Head;
     private String directionRegardNez= "";
     private String langueFr = "Français";
     private String langueEn = "Anglais";
@@ -263,6 +264,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private Handler handlerToast = new Handler(Looper.getMainLooper());
     boolean isConnected = true;
     private Toast currentToast;
+    private IStartMessageCallback iStartMessageCallback;
+    public interface IStartMessageCallback {
+        void onEnd(String s);
+    }
 
     private IMLKitDownloadCallback imlKitDownloadCallback = new IMLKitDownloadCallback() {
         @Override
@@ -408,6 +413,25 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         }
                                     }
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                                }
+                            }
+                        });
+                    }
+                    else if (isFirstLaunch && teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties") !=null && !teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties").isEmpty() &&teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                        playStartMessage(new IStartMessageCallback() {
+                            @Override
+                            public void onEnd(String s) {
+                                Log.e(TAG,"end of playing Start Message");
+                                if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("no")){
+                                    teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                    reGroup.setTranslationY(1000);
+                                }
+                                else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
+//                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                    teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+//                        }
+                                    isReTrack = false;
+                                    initTracking();
                                 }
                             }
                         });
@@ -1175,6 +1199,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             question.setValue(detectedSTTMessage);
                             listRep.add(question);
                             lastLookingAtCameraTimeToCloseApp= System.currentTimeMillis();
+                            personDetectedTimeToCloseApp= System.currentTimeMillis();
                             if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
                                 responseFromChatbot.getCommandsResponseFromChatGPT(detectedSTTMessage, teamChatBuddyApplication.getQuestionNumber());
                             }
@@ -1279,6 +1304,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(() ->{
                     Log.e(TAG," TTS_success");
                     lastLookingAtCameraTimeToCloseApp= System.currentTimeMillis();
+                    personDetectedTimeToCloseApp= System.currentTimeMillis();
                     teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
                     buddy_texte_qst_lyt.setVisibility(View.INVISIBLE);
                     buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
@@ -1288,6 +1314,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     lyt_open_menu_chat.setVisibility(View.VISIBLE);
                     isSpeaking =false;
                     if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
+                    if(iStartMessageCallback != null) iStartMessageCallback.onEnd("STARTMESSAGE_END");
                 });
                 if(handler!=null && runnable!=null){
                     handler.removeCallbacks(runnable);
@@ -1351,6 +1378,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                             isSpeaking =false;
                                             if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
+                                            if(iStartMessageCallback != null) iStartMessageCallback.onEnd("STARTMESSAGE_END");
                                             if(handler!=null && runnable!=null){
                                                 handler.removeCallbacks(runnable);
                                                 handler.removeCallbacksAndMessages(null);
@@ -1419,6 +1447,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                     lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                                     isSpeaking =false;
                                                     if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
+                                                    if(iStartMessageCallback != null) iStartMessageCallback.onEnd("STARTMESSAGE_END");
                                                     if(handler!=null && runnable!=null){
                                                         handler.removeCallbacks(runnable);
                                                         handler.removeCallbacksAndMessages(null);
@@ -2440,6 +2469,60 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             });
         }
     }
+    private void playStartMessage(IStartMessageCallback iStartMessageCallback){
+        this.iStartMessageCallback = iStartMessageCallback;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                    //Get invitation from config File
+                    if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")) {
+                        if(teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties") != null && !teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties") .isEmpty()){
+                            teamChatBuddyApplication.setActivityClosed(false);
+                            speak(teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties"), "STARTMESSAGE");
+                        }
+                        else {
+                            if(iStartMessageCallback != null) iStartMessageCallback.onEnd("ConfigFile do not contain English Start Message");
+                        }
+                    }
+                    else if (teamChatBuddyApplication.getLangue().getNom().equals("Français")) {
+                        if(teamChatBuddyApplication.getParamFromFile("Start_Message_fr","TeamChatBuddy.properties") != null && !teamChatBuddyApplication.getParamFromFile("Start_Message_fr","TeamChatBuddy.properties").isEmpty()){
+                            teamChatBuddyApplication.setActivityClosed(false);
+                            speak(teamChatBuddyApplication.getParamFromFile("Start_Message_fr","TeamChatBuddy.properties"), "STARTMESSAGE");
+                        }
+                        else {
+                            if(iStartMessageCallback != null) iStartMessageCallback.onEnd("ConfigFile do not contain French Start Message");
+                        }
+                    }
+                    else {
+                        if(teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties") != null && !teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties").isEmpty()){
+                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties"))
+                                    .addOnSuccessListener(new OnSuccessListener<String>() {
+                                        @Override
+                                        public void onSuccess(String translatedText) {
+                                            Log.d(TAG_TRACKING, "Translated Invitation: " + translatedText);
+                                            teamChatBuddyApplication.setActivityClosed(false);
+                                            speak(translatedText, "STARTMESSAGE");
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            teamChatBuddyApplication.setActivityClosed(false);
+                                            speak(teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties"), "INVITATION");
+                                        }
+                                    });
+                        }
+                        else {
+                            if(iStartMessageCallback != null) iStartMessageCallback.onEnd("ConfigFile do not contain English Start Message");
+                        }
+                    }
+
+            }
+        });
+
+
+    }
 
     private void refreshSTTLangue() {
         teamChatBuddyApplication.refresh(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode(),this);
@@ -2872,6 +2955,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         Log.e("TEAMCHAT_BUDDY_TRACKING"," --- speakTTS from speak Main");
                         teamChatBuddyApplication.speakTTS(texte, LabialExpression.SPEAK_NEUTRAL,type);
                     }
+                    else if (type.equals("STARTMESSAGE")){
+                        teamChatBuddyApplication.speakTTS(texte, LabialExpression.SPEAK_NEUTRAL,type);
+                    }
                 }
             }
         });
@@ -2909,6 +2995,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             long currentTime = System.currentTimeMillis();
 
             if(isPersonDetected){
+                personDetectedTimeToCloseApp = currentTime;
                 if(!personIsVisible){
                     firstVisibleTime = currentTime;  // Update the time when person started being visible
                 }
@@ -3083,7 +3170,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             //#region Timer to exit the application
             Log.i("Finiche"," currentTime : "+currentTime+" /lastLookingAtCameraTimeToCloseApp "+lastLookingAtCameraTimeToCloseApp );
             Log.i("Finiche"," currentTime - lastLookingAtCameraTimeToCloseApp : "+(currentTime - lastLookingAtCameraTimeToCloseApp));
-            if ( TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - lastLookingAtCameraTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
+            if ( WATCHING_timeout!=0 && !regarde_camera && currentTime - lastLookingAtCameraTimeToCloseApp >= WATCHING_timeout * 1000L){
+                Log.i("Finiche","closed app ");
+                finishAffinity();
+                System.exit(0);
+            }
+            //#region Timer to exit the application
+            Log.i("Finiche"," currentTime : "+currentTime+" /personDetectedTimeToCloseApp "+personDetectedTimeToCloseApp );
+            Log.i("Finiche"," currentTime - personDetectedTimeToCloseApp : "+(currentTime - personDetectedTimeToCloseApp));
+            if ( TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - personDetectedTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
                 Log.i("Finiche","closed app ");
                 finishAffinity();
                 System.exit(0);
@@ -3117,7 +3212,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if(!isReTrack){
             //récupération des paramètres TRACKING du fichier de config:
             TRACKING_WATCH = teamChatBuddyApplication.getParamFromFile("TRACKING_watch", "TeamChatBuddy.properties");
-            Tracking_Head = teamChatBuddyApplication.getParamFromFile("TRACKING_Head", "TeamChatBuddy.properties");
             TRACKING_DELAY_NO_WATCH = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_nowatching", "TeamChatBuddy.properties"));
             TRACKING_DELAY_START_LISTEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_startlisten", "TeamChatBuddy.properties"));
             TRACKING_DELAY_STOP_LISTEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_stoplisten", "TeamChatBuddy.properties"));
@@ -3137,7 +3231,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             catch (Exception e){
                 TRACKING_TIMEOUT=0;
             }
-
+            try {
+                WATCHING_timeout=Integer.parseInt(teamChatBuddyApplication.getParamFromFile("WATCHING_timeout","TeamChatBuddy.properties"));
+            }
+            catch (Exception e){
+                WATCHING_timeout=0;
+            }
         }
 
         if(isFirstLaunch && !isReTrack && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
@@ -3258,6 +3357,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 if(!isReTrack){
                                     lastVisibleTime_saved = System.currentTimeMillis(); //do not reset it when re-track (useful for invitation check)
                                     lastLookingAtCameraTimeToCloseApp = System.currentTimeMillis();
+                                    personDetectedTimeToCloseApp = System.currentTimeMillis();
                                 }
                                 firstVisibleTime = System.currentTimeMillis();
                                 lastLookingAtCameraTime = System.currentTimeMillis();
