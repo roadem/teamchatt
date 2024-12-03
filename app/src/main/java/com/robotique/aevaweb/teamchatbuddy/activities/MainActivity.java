@@ -285,7 +285,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         break;
                 }
                 if (english_is_downloaded && french_is_downloaded && languageToEnglish_is_downloaded) {
-
+                    mlKitIsDownloading = false;
                     handlerProgressBar.removeCallbacksAndMessages(null);
                     handlerProgressBar.removeCallbacks(runnableProgressBar);
                     launch_view.setVisibility(View.INVISIBLE);
@@ -375,7 +375,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         case "NONE":
                             break;
                     }
-                    mlKitIsDownloading = false;
+
                     if (isCMDLangue){
                         isCMDLangue = false;
                         commande.translate("CMD_LANGUE", new Commande.ITranslationCallback() {
@@ -1775,6 +1775,17 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     }
                 });
             }
+            else if (message.contains("TTSAndroidIsInitialized")){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode().split("-")[0].trim());
+                        handlerProgressBar.postDelayed(runnableProgressBar,500);
+
+                        timerDownloading.start();
+                    }
+                });
+            }
         }
     }
 
@@ -1934,8 +1945,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     private void getData(){
 
-        teamChatBuddyApplication.initTTSAndroid();
-        teamChatBuddyApplication.initTTSGoogleCoud();
+
 
         //init Settings
         settingClass=new Setting();
@@ -2064,11 +2074,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         french_is_downloaded = false;
         english_is_downloaded = false;
         languageToEnglish_is_downloaded =false;
-        teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode().split("-")[0].trim());
-        handlerProgressBar.postDelayed(runnableProgressBar,500);
 
-        timerDownloading.start();
         teamChatBuddyApplication.setActivityClosed(false);
+
+        teamChatBuddyApplication.initTTSAndroid();
+        teamChatBuddyApplication.initTTSGoogleCoud();
 
     }
 

@@ -3905,8 +3905,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 if (status == TextToSpeech.SUCCESS) {
                     // TTS is initialized successfully
                     Log.e("TTS_Android","TTS is initialized successfully");
+                    notifyObservers("TTSAndroidIsInitialized");
                 }else {
                     Log.e("TTS_Android", "TTS Initilization Failed!" + status);
+                    notifyObservers("TTSAndroidIsInitialized");
 
                 }
 
