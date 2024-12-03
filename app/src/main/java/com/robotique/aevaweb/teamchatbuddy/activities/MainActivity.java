@@ -3853,6 +3853,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             finish();
             return;
         }
+        isFirstLaunch = true;
         init();
     }
 
