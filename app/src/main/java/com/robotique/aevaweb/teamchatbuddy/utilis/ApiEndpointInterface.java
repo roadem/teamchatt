@@ -35,18 +35,17 @@ public interface ApiEndpointInterface {
             @Header("content-type") String contentType
     );
 
-    @POST("/api/v1/projects/{project_id}/conversations")
+    @POST
     Call<JsonObject> getSessionID(
-            @Path(value = "project_id",encoded = true) String projectID,
+            @Url String endpoint,
             @Body RequestBody requestBody,
             @Header("accept")String accept,
             @Header("Authorization") String apiKey,
             @Header("content-type") String contentType
     );
-    @POST("/api/v1/projects/{project_id}/conversations/{session_id}/messages")
+    @POST
     Call<ResponseBody> getCustomGPT(
-            @Path(value = "project_id",encoded = true) String projectID,
-            @Path(value = "session_id",encoded = true) String sessionID,
+            @Url String endpoint,
             @Query("lang") String language,
             @Body RequestBody requestBody,
             @Header("accept")String accept,

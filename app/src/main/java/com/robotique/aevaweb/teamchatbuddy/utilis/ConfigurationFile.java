@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 38; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 39; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -167,6 +167,11 @@ public class ConfigurationFile {
             setProperty("hotword_es","hola/hola buddy");
             setProperty("hotword_de","hallo/hallo buddy");
 
+            props.addPropertyComment("Start_Message","");
+            props.addPropertyComment("Start_Message","Activates or deactivates the message spoken at the app's startup (Yes/No)");
+            setProperty("Start_Message","YES");
+            setProperty("Start_Message_fr","Bonjour je suis le robot Buddy de Blue Frog Robotics.");
+            setProperty("Start_Message_en","Hello, I am Buddy, the robot from Blue Frog Robotics.");
             props.addPropertyComment("Listening_time","");
             props.addPropertyComment("Listening_time","Maximum listening time (seconds) and number of successive listens");
             setProperty("Listening_time","10");
@@ -607,6 +612,8 @@ public class ConfigurationFile {
             setProperty("TRACKING_regard_center","30");
             props.addPropertyComment("TRACKING_timeout", "Time in seconds to close TeamChatBuddy if no person is tracked within this duration ");
             setProperty("TRACKING_timeout","0");
+            props.addPropertyComment("WATCHING_timeout","Time in seconds to close TeamChatBuddy if no person is watching Buddy within this duration ");
+            setProperty("WATCHING_timeout","0");
             props.addPropertyComment("TRACKING_Welcome","");
             props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
             props.addPropertyComment("TRACKING_Welcome", "Start Welcome");

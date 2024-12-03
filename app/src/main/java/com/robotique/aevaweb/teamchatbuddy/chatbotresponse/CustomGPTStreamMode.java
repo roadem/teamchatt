@@ -95,7 +95,9 @@ public class CustomGPTStreamMode {
 
     public void sendRequestToGetSessionID(ApiEndpointInterface api, RequestBody requestBody, String question) {
         try {
-            Call<JsonObject> call = api.getSessionID(teamChatBuddyApplication.getparam("CustomGPT_Project_ID"), requestBody, "application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
+            String endPoint= teamChatBuddyApplication.getParamFromFile("CustomGPT_ApiEndpoint_SessionID","TeamChatBuddy.properties");
+            endPoint = endPoint.replace("{project_id}",teamChatBuddyApplication.getparam("CustomGPT_Project_ID"));
+            Call<JsonObject> call = api.getSessionID(endPoint, requestBody, "application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
 
             call.enqueue(new Callback<JsonObject>() {
                 @Override
@@ -143,7 +145,7 @@ public class CustomGPTStreamMode {
     private void getResponseFromCustomGPT(String question,String sessionId){
         try {
 
-            Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,"https://app.customgpt.ai", 50);
+            Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("CustomGPT_url","TeamChatBuddy.properties"), 50);
             ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
             JSONObject jsonParams = new JSONObject();
             // define the model
@@ -176,7 +178,9 @@ public class CustomGPTStreamMode {
             }
             RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
             Log.e("MEHDI","ennvoie requete CustomGPT  sessionID "+sessionId);
-            Call<ResponseBody> call = api.getCustomGPT( teamChatBuddyApplication.getparam("CustomGPT_Project_ID"),sessionId.trim(), teamChatBuddyApplication.getLangue().getLanguageCode().split("-")[0],requestBody,"application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
+            String endpoint = teamChatBuddyApplication.getParamFromFile("CustomGPT_ApiEndpoint","TeamChatBuddy.properties");
+            endpoint =endpoint.replace("{project_id}",teamChatBuddyApplication.getparam("CustomGPT_Project_ID")).replace("{session_id}",sessionId.trim());
+            Call<ResponseBody> call = api.getCustomGPT( endpoint, teamChatBuddyApplication.getLangue().getLanguageCode().split("-")[0],requestBody,"application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
 
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
