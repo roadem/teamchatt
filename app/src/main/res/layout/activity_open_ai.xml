@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.OpenAiActivity">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_black">
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/bg_blue">
 
-            <!-- close btn -->
+            <!-- Close button -->
             <RelativeLayout
                 android:id="@+id/close_open_ai"
                 android:layout_width="100px"
                 android:layout_height="100px"
-                android:layout_marginTop="20px"
                 android:layout_marginStart="140px"
+                android:layout_marginTop="20px"
+                android:background="@drawable/ellipse_opened"
                 android:clickable="true"
                 android:elevation="0.8dp"
-                android:background="@drawable/ellipse_opened"
                 android:onClick="closeOpenAiPage">
+
                 <ImageView
                     android:layout_width="40px"
                     android:layout_height="40px"
                     android:layout_centerInParent="true"
                     android:src="@drawable/dollar"
-                    android:tint="@color/white"/>
+                    android:tint="@color/white" />
             </RelativeLayout>
 
             <!-- White window -->
@@ -39,153 +41,240 @@
                 android:layout_width="match_parent"
                 android:layout_height="348dp"
                 android:layout_marginHorizontal="60px"
-                android:layout_marginBottom="35dp"
                 android:layout_marginTop="140px"
-                android:paddingVertical="20px"
+                android:layout_marginBottom="35dp"
+                android:background="@drawable/window_bg"
                 android:orientation="vertical"
-                android:background="@drawable/window_bg">
+                android:paddingVertical="20px"
+                android:weightSum="3">
 
-                <!--  TITLE  -->
+                <!-- Title -->
                 <TextView
                     android:id="@+id/layout_open_ai_title"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="0.3"
+                    android:gravity="center"
                     android:text="@string/consommation_title_fr"
                     android:textColor="#000000"
                     android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:gravity="center"
-                    android:layout_gravity="center"/>
+                    android:textStyle="bold" />
 
-                <!--  CONTENT  -->
-                <RelativeLayout
-                    android:id="@+id/layout_open_ai_content"
+                <!-- Scrollable content -->
+                <ScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginHorizontal="20px">
+                    android:layout_height="0dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="2.2"
+                    >
 
-                    <!--  TABLE  -->
-                    <RelativeLayout
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/border"
-                        android:layout_marginBottom="10dp"
-                        android:layout_marginTop="10dp"
-                        android:layout_above="@+id/refresh_btn">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
-                        <!-- Header row -->
-                        <LinearLayout
-                            android:id="@+id/list_prices_header"
+                        <!-- First List (Prices) -->
+                        <RelativeLayout
+                            android:id="@+id/list_models_with_prices"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:background="@drawable/border"
-                            android:weightSum="4">
+                            android:layout_marginBottom="10dp"
+                            android:background="@drawable/border">
 
-                            <TextView
-                                android:id="@+id/header_model_txt"
-                                android:layout_width="0dp"
+                            <LinearLayout
+                                android:id="@+id/list_prices_header"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/model_fr"
-                                android:textStyle="bold"
-                                android:textColor="@android:color/black"
-                                android:gravity="center"
-                                android:padding="8dp"/>
+                                android:background="@drawable/border"
+                                android:orientation="horizontal"
+                                android:weightSum="3">
 
-                            <TextView
-                                android:id="@+id/header_input_txt"
-                                android:layout_width="0dp"
+                                <TextView
+                                    android:id="@+id/header_model_txt"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="0.8"
+                                    android:gravity="center"
+                                    android:padding="8dp"
+                                    android:text="@string/model_fr"
+                                    android:textColor="@android:color/black"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/header_input_txt"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1.1"
+                                    android:gravity="center"
+                                    android:padding="8dp"
+                                    android:text="@string/input_fr"
+                                    android:textColor="@android:color/black"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/header_output_txt"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1.1"
+                                    android:gravity="center"
+                                    android:padding="8dp"
+                                    android:text="@string/output_fr"
+                                    android:textColor="@android:color/black"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/list_prices"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/input_fr"
-                                android:textStyle="bold"
-                                android:textColor="@android:color/black"
-                                android:gravity="center"
-                                android:padding="8dp"/>
+                                android:layout_below="@id/list_prices_header" />
 
-                            <TextView
-                                android:id="@+id/header_output_txt"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/output_fr"
-                                android:textStyle="bold"
-                                android:textColor="@android:color/black"
-                                android:gravity="center"
-                                android:padding="8dp"/>
+                        </RelativeLayout>
 
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:textStyle="bold"
-                                android:textColor="@android:color/black"
-                                android:gravity="center"
-                                android:padding="8dp"/>
-
-                        </LinearLayout>
-
-                        <!-- RecyclerView for the rest of the table -->
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/list_prices"
+                        <!-- Second List -->
+                        <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_below="@id/list_prices_header"/>
-
-                    </RelativeLayout>
-
-
-
-                    <!--  REFRESH  -->
-                    <ImageView
-                        android:id="@+id/refresh_btn"
-                        android:layout_width="100px"
-                        android:layout_height="30dp"
-                        android:clickable="true"
-                        android:src="@drawable/refresh"
-                        android:tint="@color/black"
-                        android:onClick="refresh"
-                        android:layout_alignParentBottom="true"
-                        android:layout_alignParentEnd="true"/>
+                            android:layout_below="@id/list_models_with_prices"
+                            android:layout_marginBottom="10dp"
+                            >
 
 
-                    <!--  TOTAL  -->
-                    <TextView
-                        android:id="@+id/total_txt"
-                        android:layout_width="400px"
-                        android:layout_height="30dp"
-                        android:layout_gravity="center_horizontal|center_vertical"
-                        android:background="@drawable/button_black_bg"
-                        android:importantForAutofill="noExcludeDescendants"
-                        android:inputType="number"
-                        android:gravity="center"
-                        android:textAlignment="center"
-                        android:textColor="#FFFFFF"
-                        android:textSize="18dp"
-                        android:layout_marginRight="20px"
-                        android:layout_toLeftOf="@+id/refresh_btn"
-                        android:layout_alignParentBottom="true" />
+                            <TextView
+                                android:id="@+id/second_list_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:padding="8dp"
+                                android:text="@string/other_models_fr"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/black"
+                                android:textSize="18sp"
+                                android:textAlignment="center"
+                                android:layout_centerHorizontal="true"
+                                />
+
+                            <TextView
+                                android:id="@+id/list_empty"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:padding="8dp"
+                                android:text="@string/section_empty_fr"
+                                android:textColor="@android:color/black"
+                                android:textSize="18sp"
+                                android:textAlignment="center"
+                                android:layout_centerHorizontal="true"
+                                android:visibility="gone"
+                                android:layout_below="@+id/second_list_title"
+                                />
+
+                            <LinearLayout
+                                android:id="@+id/list_no_prices_header"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/border"
+                                android:orientation="horizontal"
+                                android:weightSum="2"
+                                android:layout_below="@+id/second_list_title">
+
+                                <TextView
+                                    android:id="@+id/header_model_name"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="0.8"
+                                    android:gravity="center"
+                                    android:padding="8dp"
+                                    android:text="@string/model_fr"
+                                    android:textColor="@android:color/black"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:id="@+id/header_input_token"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1.2"
+                                    android:gravity="center"
+                                    android:padding="8dp"
+                                    android:text="@string/number_of_tokens_fr"
+                                    android:textColor="@android:color/black"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
 
 
-                    <!--  TOTAL-TITLE  -->
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/models_no_prices_list"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/list_no_prices_header"
+                                android:background="@drawable/border"/>
+
+                        </RelativeLayout>
+
+                    </LinearLayout>
+                </ScrollView>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="0.5"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp"
+                    android:gravity="end"
+                    android:layout_alignParentEnd="true">
+
+                    <!-- Total Title -->
                     <TextView
                         android:id="@+id/total_title_txt"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="30dp"
-                        android:tint="@color/black"
-                        android:gravity="center|end"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginRight="10dp"
                         android:singleLine="true"
                         android:text="@string/consommation_title_2_fr"
                         android:textColor="#000000"
                         android:textSize="18dp"
-                        android:layout_marginRight="20px"
-                        android:layout_toLeftOf="@+id/total_txt"
-                        android:layout_alignParentBottom="true"/>
+                        android:tint="@color/black"
+                        />
 
-                </RelativeLayout>
+                    <!-- Total Consumption -->
+                    <TextView
+                        android:id="@+id/total_txt"
+                        android:layout_width="400px"
+                        android:layout_height="30dp"
+                        android:layout_marginRight="5dp"
+                        android:background="@drawable/button_black_bg"
+                        android:importantForAutofill="noExcludeDescendants"
+                        android:inputType="number"
+                        android:textAlignment="center"
+                        android:textColor="#FFFFFF"
+                        android:textSize="18dp"
+                        />
+
+                    <!--  REFRESH  -->
+                    <ImageView
+                        android:id="@+id/refresh_btn"
+                        android:layout_width="70dp"
+                        android:layout_height="30dp"
+                        android:clickable="true"
+                        android:onClick="refresh"
+                        android:src="@drawable/refresh"
+                        android:tint="@color/black"
+                        android:layout_gravity="end"
+                        />
+
+                </LinearLayout>
 
             </LinearLayout>
+
         </RelativeLayout>
+
     </RelativeLayout>
+
 </RelativeLayout>

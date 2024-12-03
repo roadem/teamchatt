@@ -1110,16 +1110,30 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
                         }
                         else if (teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
-                            if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
-                                teamChatBuddyApplication.setSpeaking(true);
-                                isListeningFreeSpeech = true;
-                                teamChatBuddyApplication.setActivityClosed(false);
-                                teamChatBuddyApplication.setStartRecording(true);
-                                startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                            Log.e("TEST_HOT","hotword Success tracking activé ");
+                            if(teamChatBuddyApplication.getParamFromFile("WELCOME_hotword","TeamChatBuddy.properties").equalsIgnoreCase("Yes")){
+                                Log.e("TEST_HOT"," welcome hotword yes  "+iInvitationCallback);
+                                invitation(new IInvitationCallback() {
+                                    @Override
+                                    public void onEnd(String s) {
+                                        Log.e(TAG_TRACKING, "Invitation onEnd Callback : "+s);
+                                        iInvitationCallback = null;
+                                        if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                            Log.e("TEST_HOT", "Invitation onEnd Callback : Tracking_Auto_Listen");
+                                            startListeningQuestion();
+                                        }
+                                        else{
+                                            Log.e("TEST_HOT", "Invitation onEnd Callback : else ");
+                                            teamChatBuddyApplication.setAlreadyChatting(false);
+                                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                        }
+
+                                    }
+                                });
                             }
                             else{
-                                if (teamChatBuddyApplication.isShouldLaunchListeningAfterGetingHotWord()){
-                                    Log.e("TEST_HOT","hotword Success isShouldLaunchListeningAfterGetingHotWord()");
+                                if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                    Log.e("TEST_HOT","hotword Success !Tracking_Auto_Listen");
                                     teamChatBuddyApplication.setSpeaking(true);
                                     isListeningFreeSpeech = true;
                                     teamChatBuddyApplication.setActivityClosed(false);
@@ -1127,15 +1141,25 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
                                 }
                                 else{
-                                    Log.e("TEST_HOT","hotword Success !isShouldLaunchListeningAfterGetingHotWord()");
-                                    if (regarde_camera){
-                                        Log.e("TEST_HOT","hotword Success regarde_camera");
+                                    if (teamChatBuddyApplication.isShouldLaunchListeningAfterGetingHotWord()){
+                                        Log.e("TEST_HOT","hotword Success isShouldLaunchListeningAfterGetingHotWord()");
                                         teamChatBuddyApplication.setSpeaking(true);
                                         isListeningFreeSpeech = true;
                                         teamChatBuddyApplication.setActivityClosed(false);
                                         teamChatBuddyApplication.setStartRecording(true);
-                                        teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
                                         startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                    }
+                                    else{
+                                        Log.e("TEST_HOT","hotword Success !isShouldLaunchListeningAfterGetingHotWord()");
+                                        if (regarde_camera){
+                                            Log.e("TEST_HOT","hotword Success regarde_camera");
+                                            teamChatBuddyApplication.setSpeaking(true);
+                                            isListeningFreeSpeech = true;
+                                            teamChatBuddyApplication.setActivityClosed(false);
+                                            teamChatBuddyApplication.setStartRecording(true);
+                                            teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
+                                            startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                        }
                                     }
                                 }
                             }
@@ -2963,6 +2987,38 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     }
                     else if(type.equals("INVITATION")){
                         Log.e("TEAMCHAT_BUDDY_TRACKING"," --- speakTTS from speak Main");
+                        if (settingClass.getSwitchVisibility().equals( "true" )) {
+                            if (teamChatBuddyApplication.getCurrentLanguage().equals( "en" )) {
+                                buddy_texte_resp.setText( String.format( "Response :  %s ", texte ) );
+                            } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "fr" )) {
+                                buddy_texte_resp.setText( String.format( "Réponse :  %s ", texte ) );
+                            } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "de" )) {
+                                buddy_texte_resp.setText( String.format( "Antwort :  %s ", texte ) );
+                            } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "es" )) {
+                                buddy_texte_resp.setText( String.format( "Respuesta :  %s ", texte ) );
+                            } else {
+                                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate( "Response" ).addOnSuccessListener( new OnSuccessListener<String>() {
+                                    @Override
+                                    public void onSuccess(String translatedText) {
+                                        buddy_texte_resp.setText( String.format( translatedText + " :  %s ", texte ) );
+                                    }
+
+                                } ).addOnFailureListener( new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.e( TAG, "translatedText exception  " + e );
+                                    }
+                                } );
+
+                            }
+                            lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+                            lyt_open_menu_chat.setVisibility(View.INVISIBLE);
+                            if(buddy_texte_qst_lyt.getVisibility() != View.VISIBLE) buddy_texte_resp_lyt.setTranslationY(-155);
+                            else buddy_texte_resp_lyt.setTranslationY(0);
+                            buddy_texte_resp_lyt.setVisibility(View.VISIBLE);
+                            buddy_texte_resp.setMovementMethod( new ScrollingMovementMethod() );
+                            buddy_texte_resp.scrollTo( 0, 0 );
+                        }
                         teamChatBuddyApplication.speakTTS(texte, LabialExpression.SPEAK_NEUTRAL,type);
                     }
                     else if (type.equals("STARTMESSAGE")){
@@ -3226,15 +3282,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             TRACKING_DELAY_START_LISTEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_startlisten", "TeamChatBuddy.properties"));
             TRACKING_DELAY_STOP_LISTEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_stoplisten", "TeamChatBuddy.properties"));
             TRACKING_REGARD_CENTER = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_regard_center", "TeamChatBuddy.properties"));
-            TRACKING_DELAY_WELCOME = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_delay_welcome", "TeamChatBuddy.properties"));
-            TRACKING_DURATION_WELCOME = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_duration_welcome", "TeamChatBuddy.properties"));
-            TRACKING_WELCOME_FR = teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_FR", "TeamChatBuddy.properties");
-            TRACKING_WELCOME_EN =teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_EN", "TeamChatBuddy.properties");
-            TRACKING_WELCOME_MODEL = teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_model", "TeamChatBuddy.properties");
-            TRACKING_WELCOME_TEMPERATURE = Double.parseDouble(teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_temperature", "TeamChatBuddy.properties"));
-            TRACKING_WELCOME_PROMPT_FR = teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_prompt_FR", "TeamChatBuddy.properties");
-            TRACKING_WELCOME_PROMPT_EN = teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_prompt_EN", "TeamChatBuddy.properties");
-            TRACKING_WELCOME_MAX_TOKEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_welcome_maxtoken", "TeamChatBuddy.properties"));
+            TRACKING_DELAY_WELCOME = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("WELCOME_delay", "TeamChatBuddy.properties"));
+            TRACKING_DURATION_WELCOME = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("WELCOME_duration_tracking", "TeamChatBuddy.properties"));
+            TRACKING_WELCOME_FR = teamChatBuddyApplication.getParamFromFile("WELCOME_messages_FR", "TeamChatBuddy.properties");
+            TRACKING_WELCOME_EN =teamChatBuddyApplication.getParamFromFile("WELCOME_messages_EN", "TeamChatBuddy.properties");
+            TRACKING_WELCOME_MODEL = teamChatBuddyApplication.getParamFromFile("WELCOME_model", "TeamChatBuddy.properties");
+            TRACKING_WELCOME_TEMPERATURE = Double.parseDouble(teamChatBuddyApplication.getParamFromFile("WELCOME_temperature", "TeamChatBuddy.properties"));
+            TRACKING_WELCOME_PROMPT_FR = teamChatBuddyApplication.getParamFromFile("WELCOME_prompt_FR", "TeamChatBuddy.properties");
+            TRACKING_WELCOME_PROMPT_EN = teamChatBuddyApplication.getParamFromFile("WELCOME_prompt_EN", "TeamChatBuddy.properties");
+            TRACKING_WELCOME_MAX_TOKEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("WELCOME_maxtoken", "TeamChatBuddy.properties"));
             try {
                 TRACKING_TIMEOUT=Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_timeout","TeamChatBuddy.properties"));
             }

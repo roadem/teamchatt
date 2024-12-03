@@ -255,29 +255,41 @@
     <string name="consommation_title_fr">Consommation OpenAI</string>
     <string name="consommation_title_2_fr">Consommation d\'openAI en $</string>
     <string name="model_fr">Modèle</string>
-    <string name="input_fr">Entrée ($)</string>
-    <string name="output_fr">Sortie ($)</string>
+    <string name="input_fr">Entrée</string>
+    <string name="output_fr">Sortie</string>
     <string name="toast_pricing_indispo_fr">Prix OpenAi non disponible</string>
+    <string name="other_models_fr">Autres modèles</string>
+    <string name="section_empty_fr">Cette section est actuellement vide.</string>
+    <string name="number_of_tokens_fr">Nombre de tokens</string>
     <!--english-->
     <string name="consommation_title_en">OpenAI Consumption</string>
     <string name="consommation_title_2_en">OpenAI consumption in $</string>
     <string name="model_en">Model</string>
-    <string name="input_en">Input ($)</string>
-    <string name="output_en">Ouput ($)</string>
+    <string name="input_en">Input</string>
+    <string name="output_en">Ouput</string>
     <string name="toast_pricing_indispo_en">OpenAI price not available</string>
+    <string name="other_models_en">Other models</string>
+    <string name="section_empty_en">This section is currently empty.</string>
+    <string name="number_of_tokens_en">Number of tokens</string>
     <!-- spanish -->
     <string name="consommation_title_es">Consumo OpenAI</string>
     <string name="consommation_title_2_es">Consumo openAI en $</string>
     <string name="model_es">Modelo</string>
-    <string name="input_es">Entrada ($)</string>
-    <string name="output_es">Salida ($)</string>
+    <string name="input_es">Entrada</string>
+    <string name="output_es">Salida</string>
     <string name="toast_pricing_indispo_es">Precio de OpenAI no disponible</string>
+    <string name="other_models_es">Otros modelos</string>
+    <string name="section_empty_es">Esta sección está actualmente vacía.</string>
+    <string name="number_of_tokens_es">Número de tokens</string>
     <!-- allemand -->
     <string name="consommation_title_de">OpenAI Konsum</string>
     <string name="consommation_title_2_de">OpenAI-Verbrauch in $</string>
     <string name="model_de">Modell</string>
-    <string name="input_de">Eingabe ($)</string>
-    <string name="output_de">Ausgabe ($)</string>
+    <string name="input_de">Eingabe</string>
+    <string name="output_de">Ausgabe</string>
     <string name="toast_pricing_indispo_de">OpenAI-Preis nicht verfügbar</string>
+    <string name="other_models_de">Andere Modelle</string>
+    <string name="section_empty_de">Dieser Abschnitt ist derzeit leer.</string>
+    <string name="number_of_tokens_de">Anzahl der Tokens</string>
 
 </resources>
