@@ -395,6 +395,9 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
+
 
             setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: ");
 
@@ -436,10 +439,16 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_35=Tell me about Blue Frog <CMD_PROMPT %BFR%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_36=Tell me a joke (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_37=Change the header <CMD_HEADER %HEADER%>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_38=Stop the radio <CMD_STOP_RADIO>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_39=Stop the music <CMD_STOP_MUSIC>");
+
 
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
             setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done" );
+
+            setProperty( "CMD_STOP_MUSIC_fr", "Ok j'arrête la musique// " );
+            setProperty( "CMD_STOP_MUSIC_en", "Ok I'll stop the music// " );
 
             setProperty( "CMD_DATE_fr", "// Nous sommes aujourd'hui le [1]" );
             setProperty( "CMD_DATE_en", "// Today is [1]" );
@@ -485,6 +494,9 @@ public class ConfigurationFile {
 
             setProperty( "CMD_RADIO_fr", "Je lance la radio [1] //" );
             setProperty( "CMD_RADIO_en", "I'm starting the radio [1] //" );
+
+            setProperty( "CMD_STOP_RADIO_fr", "Ok j'arrête la radio// " );
+            setProperty( "CMD_STOP_RADIO_en", "Ok I'll stop the radio// " );
 
             setProperty( "SWITCHBOT_LIGHT_fr", "Je mets la lumière [1] // C'est fait" );
             setProperty( "SWITCHBOT_LIGHT_en", "I'm turning [1] the light // Done" );
@@ -553,7 +565,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Picture_Description_URL","");
             setProperty("Picture_Description_URL","https://api.openai.com/");
             setProperty("Picture_Description_model","gpt-4o");
-            setProperty("Picture_Description_max_tokens","500");
+            setProperty("Picture_Description_max_tokens","300");
             setProperty("Picture_Description_resolution","Low/Medium/High");
             setProperty("DESCRIBE_PHOTO","Décris moi cette image de façon détaillée sans * ni markdown");
             setProperty("RESOLVE_PHOTO","Résout le problème sur la photo de manière claire et détaillé");

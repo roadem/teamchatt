@@ -604,7 +604,12 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
             x++;
         }
         for (int z=0; z < mDataset.length;z++){
-            question=question+"<br>"+mDataset[z].getType()+" : "+mDataset[z].getValue()+"<br>";
+            if(mDataset[z].getType().equals("reponse")){
+                question=question+"<br>"+mDataset[z].getType()+" : "+mDataset[z].getValue()+" ["+mDataset[z].getDuration()+"]";
+            }
+            else{
+                question=question+"<br>"+mDataset[z].getType()+" : "+mDataset[z].getValue();
+            }
         }
 
         return question;
