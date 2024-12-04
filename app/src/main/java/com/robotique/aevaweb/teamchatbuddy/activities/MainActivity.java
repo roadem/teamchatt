@@ -969,7 +969,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             handlerTTSError.removeCallbacks(runnableTTSError);
                             handlerTTSError.removeCallbacksAndMessages(null);
                         }
-                        if (!teamChatBuddyApplication.getSpeaking() && !mlKitIsDownloading){
+                        if (teamChatBuddyApplication.getBIExecution()){
+                            BIPlayer.getInstance().stopBehaviour();
+                        }
+                       else if (!teamChatBuddyApplication.getSpeaking() && !mlKitIsDownloading){
                             teamChatBuddyApplication.setStartRecording(true);
                             teamChatBuddyApplication.setSpeaking(true);
                             if(!isListeningFreeSpeech ) {
