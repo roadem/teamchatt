@@ -300,7 +300,7 @@ public class ConfigurationFile {
             props.addPropertyComment("show_openAI_prices","Ability to display/manage openAI prices (Yes/No)");
             setProperty("show_openAI_prices","No");
             setProperty("Models_price","gpt-4o_0.005_0.015/gpt-4_0.03_0.06/gpt-4o-mini_0.00015_0.0006/whisper-1_0.006_0");
-            props.addPropertyComment("Models_price","gpt-3.5-turbo_0.0005_0.0015");
+            props.addPropertyComment("ChatGPT_url","gpt-3.5-turbo_0.0005_0.0015");
 
             props.addPropertyComment("ChatGPT_url", "");
             props.addPropertyComment("ChatGPT_url", "ChatGPT parameters");

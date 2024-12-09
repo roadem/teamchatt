@@ -5016,7 +5016,6 @@ public class Commande {
 
     private void playRadio(String radioUrl){
         CMD_STOP_RADIO();
-        CMD_STOP_MUSIC();
         radioPlayer = new MediaPlayer();
         radioPlayer.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -5080,7 +5079,6 @@ public class Commande {
 
         Log.i( TAG, "CMD MUSIC début." );
 
-        CMD_STOP_RADIO();
         CMD_STOP_MUSIC();
         musicPlayer = new MediaPlayer();
         musicPlayer.setAudioAttributes(new AudioAttributes.Builder()
