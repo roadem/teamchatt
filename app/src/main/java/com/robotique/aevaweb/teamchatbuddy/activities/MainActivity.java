@@ -260,8 +260,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private Boolean useListeningNumberWithAutomaicListening=false;
     private Boolean applyBIAfterDelay=false;
 
-    Runnable runnableToast;
-    private Handler handlerToast = new Handler(Looper.getMainLooper());
     boolean isConnected = true;
     private Toast currentToast;
     private IStartMessageCallback iStartMessageCallback;
@@ -289,7 +287,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     handlerProgressBar.removeCallbacksAndMessages(null);
                     handlerProgressBar.removeCallbacks(runnableProgressBar);
                     launch_view.setVisibility(View.INVISIBLE);
-                    handlerToast.removeCallbacks(runnableToast);
                     if(timerDownloading!=null){
                         timerDownloading.cancel();
                     }
@@ -785,10 +782,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             if(timerDownloading!=null){
                 timerDownloading.cancel();
             }
-            if(handlerToast!=null){
-                handlerToast.removeCallbacks(runnableToast);
-                handlerToast.removeCallbacksAndMessages(null);
-            }
         }
     }
 
@@ -1119,18 +1112,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 invitation(new IInvitationCallback() {
                                     @Override
                                     public void onEnd(String s) {
-                                        Log.e(TAG_TRACKING, "Invitation onEnd Callback : "+s);
+                                        Log.e("TEST_HOT", "Invitation onEnd Callback welcome hotword  : "+s);
                                         iInvitationCallback = null;
-                                        if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
-                                            Log.e("TEST_HOT", "Invitation onEnd Callback : Tracking_Auto_Listen");
-                                            startListeningQuestion();
-                                        }
-                                        else{
-                                            Log.e("TEST_HOT", "Invitation onEnd Callback : else ");
-                                            teamChatBuddyApplication.setAlreadyChatting(false);
-                                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
-                                        }
-
+                                        startListeningQuestion();
                                     }
                                 });
                             }
@@ -1702,9 +1686,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         if(timerDownloading!=null){
                             timerDownloading.cancel();
                         }
-                        if(handlerToast!=null){
-                            handlerToast.removeCallbacks(runnableToast);
-                        }
                     }
                 });
             }
@@ -1806,6 +1787,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        mlKitIsDownloading = true;
+                        french_is_downloaded = false;
+                        english_is_downloaded = false;
+                        languageToEnglish_is_downloaded =false;
                         teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode().split("-")[0].trim());
                         handlerProgressBar.postDelayed(runnableProgressBar,500);
 
@@ -2061,33 +2046,25 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         //init chatbots
         responseFromChatbot = new ResponseFromChatbot(teamChatBuddyApplication,this);
 
-        runnableToast = new Runnable() {
-            @Override
-            public void run() {
-                if (mlKitIsDownloading) {
-                    if (isConnected) {
-                        showToastMessage();
-                        handlerToast.postDelayed(this, 2000); // Show toast every 2 seconds
-                    }
-                }
-            }
-        };
 
-        timerDownloading = new CountDownTimer((long) Integer.parseInt(teamChatBuddyApplication.getParamFromFile("MLkit_timeout_in_seconds", "TeamChatBuddy.properties")) * 2000, 1000) {
+        Long mLkit_timeout_in_seconds = (long) Integer.parseInt(teamChatBuddyApplication.getParamFromFile("MLkit_timeout_in_seconds", "TeamChatBuddy.properties")) * 1000;
+
+        timerDownloading = new CountDownTimer(mLkit_timeout_in_seconds, 1000) {
             @Override
             public void onTick(long l) {
+                if(l < mLkit_timeout_in_seconds - 1000) {
+                    if (mlKitIsDownloading) {
+                        if (isConnected) {
+                            showToastMessage();
+                        }
 
-                if (mlKitIsDownloading) {
-                    if (isConnected) {
-                        handlerToast.post(runnableToast);
                     }
-
                 }
             }
 
             @Override
             public void onFinish() {
-                handlerToast.removeCallbacks(runnableToast);
+                if(currentToast != null) currentToast.cancel();
                 launch_view.setVisibility(View.GONE);
                 Toast.makeText(getApplicationContext(), R.string.toast_message_error_downloading_en, Toast.LENGTH_LONG).show();
                 teamChatBuddyApplication.setLangue(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class));
@@ -2095,12 +2072,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             }
         };
-
-        //start hotword listening
-        mlKitIsDownloading = true;
-        french_is_downloaded = false;
-        english_is_downloaded = false;
-        languageToEnglish_is_downloaded =false;
 
         teamChatBuddyApplication.setActivityClosed(false);
 

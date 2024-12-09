@@ -48,24 +48,48 @@ public class OpenAiInfoAdapter extends RecyclerView.Adapter<OpenAiInfoAdapter.Op
         holder.modelName.setText(info.getModelName());
 
         if(modelsWithPrices){
+
             holder.layout_models_no_prices.setVisibility(View.GONE);
             holder.layout_models_prices.setVisibility(View.VISIBLE);
             String _outputTokens = teamChatBuddyApplication.getparam(info.getModelName() +"_outputTokens");
             String _inputTokens = teamChatBuddyApplication.getparam(info.getModelName() +"_inputTokens");
             String _entryConsumption = teamChatBuddyApplication.getparam(info.getModelName() +"_entryConsumption");
             String _outputConsumption = teamChatBuddyApplication.getparam(info.getModelName() +"_outputConsumption");
-            if(_outputTokens !=null && !_outputTokens.isEmpty()){
-                holder.outputTokens.setText(Double.parseDouble(_outputTokens)+"");
+            if(info.getModelName().equals("whisper-1")){
+                holder.outputConsumption.setVisibility(View.GONE);
+                holder.outputTokens.setVisibility(View.GONE);
+                holder.entryTokens.setText("0 minutes");
+                holder.entryConsumption.setText("0,00 $");
+                if(_inputTokens !=null && !_inputTokens.isEmpty()){
+                    holder.entryTokens.setText(Double.parseDouble(_inputTokens)+" minutes");
+                }
+                if(_entryConsumption !=null && !_entryConsumption.isEmpty()){
+                    holder.entryConsumption.setText(decimalFormatter.format(Double.parseDouble(_entryConsumption))+" $");
+                }
             }
-            if(_inputTokens !=null && !_inputTokens.isEmpty()){
-                holder.entryTokens.setText(Double.parseDouble(_inputTokens)+"");
+            else{
+                holder.outputTokens.setText("0 tokens");
+                holder.entryTokens.setText("0 tokens");
+                holder.entryConsumption.setText("0,00 $");
+                holder.outputConsumption.setText("0,00 $");
+
+                holder.outputConsumption.setVisibility(View.VISIBLE);
+                holder.outputTokens.setVisibility(View.VISIBLE);
+
+                if(_outputTokens !=null && !_outputTokens.isEmpty()){
+                    holder.outputTokens.setText(Double.parseDouble(_outputTokens)+" tokens");
+                }
+                if(_inputTokens !=null && !_inputTokens.isEmpty()){
+                    holder.entryTokens.setText(Double.parseDouble(_inputTokens)+" tokens");
+                }
+                if(_entryConsumption !=null && !_entryConsumption.isEmpty()){
+                    holder.entryConsumption.setText(decimalFormatter.format(Double.parseDouble(_entryConsumption))+" $");
+                }
+                if(_outputConsumption !=null && !_outputConsumption.isEmpty()){
+                    holder.outputConsumption.setText(decimalFormatter.format(Double.parseDouble(_outputConsumption))+" $");
+                }
             }
-            if(_entryConsumption !=null && !_entryConsumption.isEmpty()){
-                holder.entryConsumption.setText(decimalFormatter.format(Double.parseDouble(_entryConsumption))+"");
-            }
-            if(_outputConsumption !=null && !_outputConsumption.isEmpty()){
-                holder.outputConsumption.setText(decimalFormatter.format(Double.parseDouble(_outputConsumption))+"");
-            }
+
         }
         else {
 

@@ -194,8 +194,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private LinearLayout menu_option_affichage_lyt;
 
 
-    Runnable runnableToast;
-    private Handler handlerToast = new Handler(Looper.getMainLooper());
     private boolean isConnected = true;
     private boolean isClosingSettings = false;
     private Toast currentToast;
@@ -683,21 +681,23 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
         });
 
-        timerEcoute = new CountDownTimer((long)
-                Integer.parseInt(teamChatBuddyApplication.getParamFromFile("MLkit_timeout_in_seconds", "TeamChatBuddy.properties")) * 2000,
-                1000) {
+        Long mLkit_timeout_in_seconds = (long) Integer.parseInt(teamChatBuddyApplication.getParamFromFile("MLkit_timeout_in_seconds", "TeamChatBuddy.properties")) * 1000;
+
+        timerEcoute = new CountDownTimer(mLkit_timeout_in_seconds, 1000) {
             @Override
             public void onTick(long l) {
-                Log.i("HHO","--- onTick s---");
-                if (modelDownloading) {
-                    if(isConnected){
-                        handlerToast.post(runnableToast);
+                if(l < mLkit_timeout_in_seconds - 1000) {
+                    if (modelDownloading) {
+                        if (isConnected) {
+                            showToastMessage();
+                        }
+
                     }
                 }
             }
             @Override
             public void onFinish() {
-                handlerToast.removeCallbacks(runnableToast);
+                if(currentToast != null) currentToast.cancel();
                 launch_view.setVisibility(View.INVISIBLE);
                 teamChatBuddyApplication.setLangue(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class));
                 setPreviousLanguage();
@@ -936,17 +936,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                         teamChatBuddyApplication.setLangue(langue);
                         set.setLangue(langue.getNom());
                         modelDownloading = true;
-                        runnableToast = new Runnable() {
-                            @Override
-                            public void run() {
-                                if (modelDownloading) {
-                                    if(isConnected){
-                                        showToastMessage();
-                                        handlerToast.postDelayed(this, 1000); // Show toast every 2 seconds
-                                    }
-                                }
-                            }
-                        };
                         teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,teamChatBuddyApplication.getLangue().getLanguageCode().split("-")[0].trim());
                         handlerProgressBar.postDelayed(runnableProgressBar,500);
 
@@ -1658,7 +1647,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                     modelDownloading = false;
                     setLanguageText();
                     langueSpinnerAdapter.notifyDataSetChanged();
-                    handlerToast.removeCallbacks(runnableToast);
                     if(currentToast!=null){
                         currentToast.cancel();
                     }
@@ -1704,10 +1692,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         if(timerEcoute!=null){
             timerEcoute.cancel();
         }
-        if(handlerToast!=null){
-            handlerToast.removeCallbacks(runnableToast);
-            handlerToast.removeCallbacksAndMessages(null);
-        }
+        if(currentToast != null) currentToast.cancel();
         if(modelDownloading && !isClosingSettings){
             //set previous langue
             setPreviousLanguage();
@@ -1752,9 +1737,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                         if(timerEcoute!=null){
                             timerEcoute.cancel();
                         }
-                        if(handlerToast!=null){
-                            handlerToast.removeCallbacks(runnableToast);
-                        }
+                        if(currentToast != null) currentToast.cancel();
 
                     }
                 });

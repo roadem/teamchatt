@@ -609,7 +609,7 @@ public class ConfigurationFile {
             setProperty("TRACKING_Camera","No");
             setProperty("TRACKING_Head","No");
             setProperty("TRACKING_Body","No");
-            setProperty("WELCOME_hotword","No");
+            setProperty("WELCOME_hotword","Yes");
 
             props.addPropertyComment("TRACKING_watch","");
             props.addPropertyComment("TRACKING_watch", "Tracking is performed only if the robot detects that the target is looking at it");
