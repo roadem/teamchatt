@@ -1419,7 +1419,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         //Tracking invitation
         if (getparam("Tracking_Invitation").equals("")) {
-            if (getParamFromFile("TRACKING_Welcome",configurationFilePseudo).trim().equalsIgnoreCase("No")){
+            if (getParamFromFile("WELCOME_tracking",configurationFilePseudo).trim().equalsIgnoreCase("No")){
                 setparam("Tracking_Invitation", "false");
             }
             else {
@@ -1429,7 +1429,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         //Tracking invitation chatGpt
         if (getparam("Tracking_Invitation_ChatGpt").equals("")) {
-            if (getParamFromFile("TRACKING_welcome_CHATGPT",configurationFilePseudo).trim().equalsIgnoreCase("No")){
+            if (getParamFromFile("WELCOME_CHATGPT",configurationFilePseudo).trim().equalsIgnoreCase("No")){
                 setparam("Tracking_Invitation_ChatGpt", "false");
             }
             else {
@@ -4405,10 +4405,66 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     if (modelName.toLowerCase().contains("whisper")) {
                         Log.i("USAGE", "(is calculating) inputPrice="+info.getInputPrice() + " ,  duration=" + inputTokens + " --> "+info.getInputPrice() + " * " + inputTokens);
                         prixCalcul += info.getInputPrice() * inputTokens;
+                        setparam(info.getModelName() + "_outputConsumption", String.valueOf(0));
+
+                        String _outputTokens = getparam(modelName + "_outputTokens");
+                        if (_outputTokens.isEmpty()) {
+                            setparam(modelName+"_outputTokens", String.valueOf(outputTokens));
+                        }
+                        else{
+                            setparam(modelName+"_outputTokens", String.valueOf(Double.parseDouble(_outputTokens)+outputTokens));
+                        }
+
+                        String _inputTokens = getparam(modelName + "_inputTokens");
+                        if (_inputTokens.isEmpty()) {
+                            setparam(modelName+"_inputTokens", String.valueOf(inputTokens));
+                        }
+                        else{
+                            setparam(modelName+"_inputTokens", String.valueOf(Double.parseDouble(_inputTokens)+inputTokens));
+                        }
+
+                        String _entryConsumption = getparam(modelName + "_entryConsumption");
+                        if (_entryConsumption.isEmpty()) {
+                            setparam(modelName+"_entryConsumption", String.valueOf(inputTokens*info.getInputPrice()));
+                        }
+                        else{
+                            setparam(modelName+"_entryConsumption", String.valueOf(Double.parseDouble(_entryConsumption)+inputTokens*info.getInputPrice()));
+                        }
                     } else {
                         prixCalcul += (info.getInputPrice() * inputTokens + info.getOutputPrice() * outputTokens) / 1000;
                         Log.i("USAGE", "(is calculating) inputPrice="+info.getInputPrice() + " ,  inputTokens=" + inputTokens + " ,  outputPrice=" + info.getOutputPrice() + " ,  outputTokens=" + outputTokens
                                 + " --> ("+info.getInputPrice() + " * " + inputTokens+ " + " + info.getOutputPrice()+ " * " + outputTokens+ ")/1000");
+                        String _outputTokens = getparam(modelName + "_outputTokens");
+                        if (_outputTokens.isEmpty()) {
+                            setparam(modelName+"_outputTokens", String.valueOf(outputTokens));
+                        }
+                        else{
+                            setparam(modelName+"_outputTokens", String.valueOf(Double.parseDouble(_outputTokens)+outputTokens));
+                        }
+
+                        String _inputTokens = getparam(modelName + "_inputTokens");
+                        if (_inputTokens.isEmpty()) {
+                            setparam(modelName+"_inputTokens", String.valueOf(inputTokens));
+                        }
+                        else{
+                            setparam(modelName+"_inputTokens", String.valueOf(Double.parseDouble(_inputTokens)+inputTokens));
+                        }
+
+                        String _entryConsumption = getparam(modelName + "_entryConsumption");
+                        if (_entryConsumption.isEmpty()) {
+                            setparam(modelName+"_entryConsumption", String.valueOf(inputTokens*info.getInputPrice()/1000));
+                        }
+                        else{
+                            setparam(modelName+"_entryConsumption", String.valueOf(Double.parseDouble(_entryConsumption)+inputTokens*info.getInputPrice()/1000));
+                        }
+
+                        String _outputConsumption = getparam(modelName + "_outputConsumption");
+                        if (_outputConsumption.isEmpty()) {
+                            setparam(modelName+"_outputConsumption", String.valueOf(outputTokens*info.getInputPrice()/1000));
+                        }
+                        else{
+                            setparam(modelName+"_outputConsumption", String.valueOf(Double.parseDouble(_outputConsumption)+outputTokens*info.getInputPrice()/1000));
+                        }
                     }
                     break;
                 }
@@ -4416,7 +4472,21 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
             if (!modelFound) {
                 Log.e("USAGE","Model ("+modelName+") not found !");
-                priceNotAvailable();
+                String _outputTokens = getparam(modelName + "_outputTokens");
+                if (_outputTokens.isEmpty()) {
+                    setparam(modelName+"_outputTokens", String.valueOf(outputTokens));
+                }
+                else{
+                    setparam(modelName+"_outputTokens", String.valueOf(Double.parseDouble(_outputTokens)+outputTokens));
+                }
+
+                String _inputTokens = getparam(modelName + "_inputTokens");
+                if (_inputTokens.isEmpty()) {
+                    setparam(modelName+"_inputTokens", String.valueOf(inputTokens));
+                }
+                else{
+                    setparam(modelName+"_inputTokens", String.valueOf(Double.parseDouble(_inputTokens)+inputTokens));
+                }
             } else {
                 totalConsumptionSaved += prixCalcul;
                 setparam("Total_cons", String.valueOf(totalConsumptionSaved));

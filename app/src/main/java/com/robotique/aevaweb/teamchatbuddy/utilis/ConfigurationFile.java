@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 39; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 40; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -299,7 +299,8 @@ public class ConfigurationFile {
             props.addPropertyComment("show_openAI_prices","Consumption Parameters");
             props.addPropertyComment("show_openAI_prices","Ability to display/manage openAI prices (Yes/No)");
             setProperty("show_openAI_prices","No");
-            setProperty("Models_price","gpt-3.5-turbo_0.0005_0.0015/gpt-4o_0.005_0.015/gpt-4_0.03_0.06/gpt-4o-mini_0.00015_0.0006/whisper-1_0.006_0");
+            setProperty("Models_price","gpt-4o_0.005_0.015/gpt-4_0.03_0.06/gpt-4o-mini_0.00015_0.0006/whisper-1_0.006_0");
+            props.addPropertyComment("ChatGPT_url","gpt-3.5-turbo_0.0005_0.0015");
 
             props.addPropertyComment("ChatGPT_url", "");
             props.addPropertyComment("ChatGPT_url", "ChatGPT parameters");
@@ -364,7 +365,7 @@ public class ConfigurationFile {
             setProperty("CMD_fr_5","Quelle heure est-il ? <CMD_HOUR>");
             setProperty("CMD_fr_6","Arrête d’écouter <CMD_STOP>");
             setProperty("CMD_fr_7","Quitte l’application <CMD_QUIT>");
-            setProperty("CMD_fr_8","Lance l’application (Buddylab/Spark)  <CMD_RUN Buddylab>");
+            setProperty("CMD_fr_8","Lance-moi l’application « BuddyLab » (Buddylab/Spark) <CMD_RUN Buddylab>");
             setProperty("CMD_fr_9","Exécute une danse <CMD_DANCE>");
             setProperty("CMD_fr_10","Qu'est ce que tu vois <CMD_PHOTO %DESCRIBE_PHOTO%>");
             setProperty("CMD_fr_11","Lance le comportement énervé <CMD_BI angry>");
@@ -372,7 +373,7 @@ public class ConfigurationFile {
             setProperty("CMD_fr_13","Mets-moi la radio « RTL »  <CMD_RADIO RTL>");
             setProperty("CMD_fr_14","Montre-moi une image de chien rouge <CMD_IMAGE chien rouge>");
             setProperty("CMD_fr_15","Ferme l'image <CMD_CLOSE_IMAGE>");
-            setProperty("CMD_fr_16","Génère une musique de jazz avec une trompette <CMD_MUSIC jazz avec une trompette>");
+            setProperty("CMD_fr_16","Génère-moi une musique de « jazz avec une trompette » <CMD_MUSIC jazz avec une trompette>");
 
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_17=Mets la température à zéro <CMD_TEMP 0>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_18=Avance sur 3 mètres <CMD_MOVE 3>");
@@ -390,11 +391,14 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_30=Appelle Cyril <HEALYSA_CALL Cyril>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_31=Où se trouve Nabila <HEALYSA_LOC Nabila>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_32=Allume la lumière <SWITCHBOT_LIGHT On>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Mets la langue Anglais (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Change-moi la langue en « Anglais »  (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
+
 
             setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: ");
 
@@ -405,7 +409,7 @@ public class ConfigurationFile {
             setProperty("CMD_en_5", "What time is it? <CMD_HOUR>");
             setProperty("CMD_en_6", "Stop listening <CMD_STOP>");
             setProperty("CMD_en_7", "Exit the application <CMD_QUIT>");
-            setProperty("CMD_en_8", "Launch application (Buddylab/Spark) <CMD_RUN Buddylab>");
+            setProperty("CMD_en_8", "Launch the application « BuddyLab » (Buddylab/Spark)  <CMD_RUN Buddylab>");
             setProperty("CMD_en_9", "Execute a dance <CMD_DANCE>");
             setProperty("CMD_en_10", "What do you see <CMD_PHOTO %DESCRIBE_PHOTO%>");
             setProperty("CMD_en_11", "Launch the behavior angry <CMD_BI angry>");
@@ -413,7 +417,7 @@ public class ConfigurationFile {
             setProperty("CMD_en_13", "Start the 'RTL' radio <CMD_RADIO RTL>");
             setProperty("CMD_en_14", "Show me an image of a red dog <CMD_IMAGE red dog>");
             setProperty("CMD_en_15", "Close the image <CMD_CLOSE_IMAGE>");
-            setProperty("CMD_en_16", "Generate music jazz with a trumpet <CMD_MUSIC jazz with a trumpet>");
+            setProperty("CMD_en_16", "Generate music « jazz with a trumpet » <CMD_MUSIC jazz with a trumpet>");
 
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_17=Set the temperature to zero <CMD_TEMP 0>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_18=Move forward 3 meters <CMD_MOVE 3>");
@@ -431,15 +435,21 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_30=Call Cyril <HEALYSA_CALL Cyril>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_31=Where is Nabila <HEALYSA_LOC Nabila>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_32=Turn on the light <SWITCHBOT_LIGHT On>");
-            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_33=Set the language to French (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_33=Change the language to « French » (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Français>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_34=I have a real problem can you help me <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_35=Tell me about Blue Frog <CMD_PROMPT %BFR%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_36=Tell me a joke (dark/Any/Misc/Programming/Pun/Spooky/Christmas) <CMD_JOKE Any>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_37=Change the header <CMD_HEADER %HEADER%>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_38=Stop the radio <CMD_STOP_RADIO>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_39=Stop the music <CMD_STOP_MUSIC>");
+
 
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
             setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done" );
+
+            setProperty( "CMD_STOP_MUSIC_fr", "Ok j'arrête la musique// " );
+            setProperty( "CMD_STOP_MUSIC_en", "Ok I'll stop the music// " );
 
             setProperty( "CMD_DATE_fr", "// Nous sommes aujourd'hui le [1]" );
             setProperty( "CMD_DATE_en", "// Today is [1]" );
@@ -485,6 +495,9 @@ public class ConfigurationFile {
 
             setProperty( "CMD_RADIO_fr", "Je lance la radio [1] //" );
             setProperty( "CMD_RADIO_en", "I'm starting the radio [1] //" );
+
+            setProperty( "CMD_STOP_RADIO_fr", "Ok j'arrête la radio// " );
+            setProperty( "CMD_STOP_RADIO_en", "Ok I'll stop the radio// " );
 
             setProperty( "SWITCHBOT_LIGHT_fr", "Je mets la lumière [1] // C'est fait" );
             setProperty( "SWITCHBOT_LIGHT_en", "I'm turning [1] the light // Done" );
@@ -553,7 +566,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Picture_Description_URL","");
             setProperty("Picture_Description_URL","https://api.openai.com/");
             setProperty("Picture_Description_model","gpt-4o");
-            setProperty("Picture_Description_max_tokens","500");
+            setProperty("Picture_Description_max_tokens","300");
             setProperty("Picture_Description_resolution","Low/Medium/High");
             setProperty("DESCRIBE_PHOTO","Décris moi cette image de façon détaillée sans * ni markdown");
             setProperty("RESOLVE_PHOTO","Résout le problème sur la photo de manière claire et détaillé");
@@ -596,6 +609,7 @@ public class ConfigurationFile {
             setProperty("TRACKING_Camera","No");
             setProperty("TRACKING_Head","No");
             setProperty("TRACKING_Body","No");
+            setProperty("WELCOME_hotword","Yes");
 
             props.addPropertyComment("TRACKING_watch","");
             props.addPropertyComment("TRACKING_watch", "Tracking is performed only if the robot detects that the target is looking at it");
@@ -617,28 +631,27 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_Welcome","");
             props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
             props.addPropertyComment("TRACKING_Welcome", "Start Welcome");
-            setProperty("TRACKING_Welcome","Yes");
+            setProperty("WELCOME_tracking","Yes");
             props.addPropertyComment("TRACKING_delay_welcome", "Delay in minuts to welcome after watching no one");
-            setProperty("TRACKING_delay_welcome","10");
+            setProperty("WELCOME_delay","2");
             props.addPropertyComment("TRACKING_duration_welcome", "the person looks at Buddy for 2 seconds to issue an invitation");
-            setProperty("TRACKING_duration_welcome","2");
+            setProperty("WELCOME_duration_tracking","2");
             props.addPropertyComment("TRACKING_welcome_FR", "Welcoming messages");
             String[] TRACKING_INVITATIONS_FR = {"Bonjour, comment puis-je vous aider?/Bonjour ! En quoi puis-je rendre votre journée plus agréable?/Bonjour, que puis-je faire pour vous aujourd'hui?"};
-            setProperty("TRACKING_welcome_FR", Arrays.toString(TRACKING_INVITATIONS_FR));
+            setProperty("WELCOME_messages_FR", Arrays.toString(TRACKING_INVITATIONS_FR));
             String[] TRACKING_INVITATIONS_EN = {"Hello, how can I help you?/Hello! How can I make your day more enjoyable?/Hello, what can I do for you today?"};
-            setProperty("TRACKING_welcome_EN", Arrays.toString(TRACKING_INVITATIONS_EN));
+            setProperty("WELCOME_messages_EN", Arrays.toString(TRACKING_INVITATIONS_EN));
             props.addPropertyComment("TRACKING_welcome_CHATGPT", "Welcome message with ChatGPT");
-            setProperty("TRACKING_welcome_CHATGPT","Yes");
+            setProperty("WELCOME_CHATGPT","Yes");
             props.addPropertyComment("TRACKING_welcome_model", "Welcome ChatGPT model");
-            setProperty("TRACKING_welcome_model","gpt-4o-mini");
+            setProperty("WELCOME_model","gpt-4o-mini");
             props.addPropertyComment("TRACKING_welcome_temperature", "Welcome Temperature");
-            setProperty("TRACKING_welcome_temperature","0.5");
+            setProperty("WELCOME_temperature","0.5");
             props.addPropertyComment("TRACKING_welcome_prompt_FR", "Welcome Prompt for ChatGPT");
-            setProperty("TRACKING_welcome_prompt_FR","dis une invitation au dialogue");
-            setProperty("TRACKING_welcome_prompt_EN","say an invitation to dialogue");
+            setProperty("WELCOME_prompt_FR","dis une invitation au dialogue");
+            setProperty("WELCOME_prompt_EN","say an invitation to dialogue");
             props.addPropertyComment("TRACKING_welcome_maxtoken", "Welcome max token");
-            setProperty("TRACKING_welcome_maxtoken","100");
-
+            setProperty("WELCOME_maxtoken","100");
 
 
             FileOutputStream fileOut = new FileOutputStream(configFile);

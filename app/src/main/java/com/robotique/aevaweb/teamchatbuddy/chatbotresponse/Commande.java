@@ -1553,11 +1553,118 @@ public class Commande {
                     }
                 });
                 break;
+            case "CMD_STOP_RADIO":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_STOP_RADIO", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_RADIO();
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_RADIO();
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_RADIO();
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_STOP_MUSIC":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_STOP_MUSIC", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_MUSIC();
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_MUSIC();
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_MUSIC();
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
             default:
                 is_command = false;
                 Log.i(TAG,"DEFAULT : "+ action);
         }
         return is_command;
+    }
+
+
+    public void CMD_STOP_RADIO(){
+        if (radioPlayer != null) {
+            Log.i( TAG, "stop radioPlayer");
+            radioPlayer.stop();
+            radioPlayer.release();
+            radioPlayer = null;
+        }
+    }
+
+    public void CMD_STOP_MUSIC(){
+        if (musicPlayer != null) {
+            Log.i( TAG, "stop musicPlayer");
+            musicPlayer.stop();
+            musicPlayer.release();
+            musicPlayer = null;
+        }
     }
 
 
@@ -2731,7 +2838,6 @@ public class Commande {
         } );
     }
     public void CMD_STOP(){
-        stopMediaPlayer();
         BIPlayer.getInstance().stopBehaviour();
         teamChatBuddyApplication.setQuestionNumber(teamChatBuddyApplication.getQuestionNumber() + 1);
         teamChatBuddyApplication.setActivityClosed(true);
@@ -4909,7 +5015,7 @@ public class Commande {
     }
 
     private void playRadio(String radioUrl){
-        stopMediaPlayer();
+        CMD_STOP_RADIO();
         radioPlayer = new MediaPlayer();
         radioPlayer.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -4973,7 +5079,7 @@ public class Commande {
 
         Log.i( TAG, "CMD MUSIC début." );
 
-        stopMediaPlayer();
+        CMD_STOP_MUSIC();
         musicPlayer = new MediaPlayer();
         musicPlayer.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -5033,21 +5139,6 @@ public class Commande {
             }
         });
 
-    }
-
-    private void stopMediaPlayer(){
-        if (radioPlayer != null) {
-            Log.i( TAG, "stop radioPlayer");
-            radioPlayer.stop();
-            radioPlayer.release();
-            radioPlayer = null;
-        }
-        if (musicPlayer != null) {
-            Log.i( TAG, "stop musicPlayer");
-            musicPlayer.stop();
-            musicPlayer.release();
-            musicPlayer = null;
-        }
     }
 
     public void createJsonFile(String fileName, JSONObject jsonObject){
