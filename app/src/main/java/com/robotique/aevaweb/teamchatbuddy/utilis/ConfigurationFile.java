@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 40; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 41; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -164,8 +164,10 @@ public class ConfigurationFile {
             props.addPropertyComment("hotword_fr", "List of hot words in French, English, Spanish and German");
             setProperty("hotword_fr", "ok buddy/hello/bonjour/salut/bonsoir/écoute/écoute-moi");
             setProperty("hotword_en","okay buddy/hello/good morning/good evening/listen/listen to me");
-            setProperty("hotword_es","hola/hola buddy");
-            setProperty("hotword_de","hallo/hallo buddy");
+
+            props.addPropertyComment("Options_Access", "");
+            props.addPropertyComment("Options_Access","Options Access (Yes/No)");
+            setProperty("Options_Access","No");
 
             props.addPropertyComment("Start_Message","");
             props.addPropertyComment("Start_Message","Activates or deactivates the message spoken at the app's startup (Yes/No)");
@@ -180,7 +182,13 @@ public class ConfigurationFile {
             props.addPropertyComment("Language","");
             props.addPropertyComment("Language","Languages available FR/EN/ES/DE");
             setProperty("Language","FR");
-            setProperty("Languages_available","Français _fr/Anglais _en/Espagnol _es/Allemand _de-DE/Italien _it-IT");
+            setProperty("Languages_available","Français /Anglais /Espagnol /Allemand /Italien /Japonais/Arabe /Chinois /Danois /Néerlandais /Norvégien");
+            setProperty("Language_Code_Used_In_STT_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/cmn-Hans-CN/da-DK/nl-NL/no-NO");
+            setProperty("Language_Code_Used_In_TTS_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
+            setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
+            setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/no-NO");
+            setProperty("Language_Code_Used_In_Whisper","fr/en/es/de/it/ja/ar/zh/da/nl/no");
+            setProperty("Language_Code_Used_In_Mlkit","fr/en/es/de/it/ja/ar/zh/da/nl/no");
 
             props.addPropertyComment("Speech_volume","");
             props.addPropertyComment("Speech_volume","Speech volume (between 0 and 100)");
@@ -191,8 +199,6 @@ public class ConfigurationFile {
             setProperty("Response_Timeout_in_seconds","8");
             setProperty("Message_Timeout_NotRespected_fr","Ça prend un peu de temps, la connexion est un peu lente./Aahh! Internet n'est pas très rapide aujourd'hui/une petite seconde je connecte mes circuits");
             setProperty("Message_Timeout_NotRespected_en","It takes a little time, the connection is a bit slow./ohh! The internet is not very fast today/Just a moment, I'm connecting my circuits.");
-            setProperty("Message_Timeout_NotRespected_es","Tarda un poco, la conexión es un poco lenta./¡ohh! Internet no es muy rápido hoy en día/Un momento, estoy conectando mis circuitos.");
-            setProperty("Message_Timeout_NotRespected_de","Es dauert ein wenig, die Verbindung ist ein wenig langsam./ohh! Das Internet ist heute nicht sehr schnell/Einen Moment, ich schließe meine Schaltkreise.");
 
             props.addPropertyComment("Display_of_speech","");
             props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No)");
@@ -233,8 +239,6 @@ public class ConfigurationFile {
             props.addPropertyComment("chatBotServerNoResponce_fr", "Responses in case of API error");
             setProperty("chatBotServerNoResponce_fr","Je n’ai pas de réponse ");
             setProperty("chatBotServerNoResponce_en","I have no response ");
-            setProperty("chatBotServerNoResponce_es","No tengo respuesta");
-            setProperty("chatBotServerNoResponce_de","Ich habe keine Antwort");
 
             props.addPropertyComment("Chat_TextSize", "");
             props.addPropertyComment("Chat_TextSize", "Conversation window font size (between 20 and 50 px)");
@@ -322,10 +326,8 @@ public class ConfigurationFile {
 
             props.addPropertyComment("header", "");
             props.addPropertyComment("header","Customization of ChatGPT dialogues");
-            setProperty("header","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
-            setProperty("entete","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
-            setProperty("Cabecera","Eres un robot humanoide llamado BUDDY, un robot emocional fabricado por Blue Frog Robotics en París, responde con 20 palabras como máximo.");
-            setProperty("Kopfzeile","Du bist ein humanoider Roboter namens BUDDY. Du bist ein emotionaler Roboter, der von der Firma Blue Frog Robotics in Paris hergestellt wird, antwort mit maximal 20 Wörtern.");
+            setProperty("Chatgpt_header","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
+            setProperty("Chatgpt_entete","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
 
             props.addPropertyComment("CustomGPT_url","");
             props.addPropertyComment("CustomGPT_url","CustomGPT parameters");
@@ -338,9 +340,15 @@ public class ConfigurationFile {
             props.addPropertyComment("CustomGPT_header","Customization of CustomGPT dialogues");
             setProperty("CustomGPT_header","" );
             setProperty("CustomGPT_entete","");
-            setProperty("CustomGPT_cabecera","");
-            setProperty("CustomGPT_kopfzeile","");
 
+            props.addPropertyComment("Response_format_fr","");
+            props.addPropertyComment("Response_format_fr","Response_format_fr and Response_format_en specify response formats in French and English.");
+            setProperty("Response_format_fr","<répond sans mise en forme>");
+            setProperty("Response_format_en","<respond without formatting>");
+
+            props.addPropertyComment("Response_filter","");
+            props.addPropertyComment("Response_filter","This key allows filtering ChatGPT responses by replacing each first string within [] with the second string after the / in the response.");
+            setProperty("Response_filter","[**/ ] [#/ ]");
 
             props.addPropertyComment("MLkit_timeout_in_seconds", "");
             props.addPropertyComment("MLkit_timeout_in_seconds", "Maximum waiting time (in seconds) for MLkit download before timing out");

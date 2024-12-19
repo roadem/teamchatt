@@ -115,7 +115,7 @@ public class CustomProperties extends Properties {
                     }
                 }
 
-                if (!val.contains("#") && !key.contains("#")) {
+                if (!val.startsWith("#") && !key.contains("#")) {
                     if(key.equals("Pattern_End_Phrase")) writeln(awriter, key + "=" + escapePropertyValue(val));
                     else writeln(awriter, key + "=" + val);
                 }
