@@ -282,7 +282,7 @@ public class ChatGptStreamMode {
             app.calcul_consommation(app.getparam("model"),requestTotalTokens,responseTotalTokens);
 
             // Sauvegarder formattedContent dans ChatGPT-recv-stream.txt
-            storeStreamResponse(fileName, formattedContent.toString());
+            storeStreamResponse(fileName, formattedContent.toString(), text);
 
         }
         catch (Exception e) {
@@ -358,7 +358,7 @@ public class ChatGptStreamMode {
         app.setparam("messages", existingHistoryArray.toString());
     }
 
-    private void storeStreamResponse(String fileName, String formattedContent) {
+    private void storeStreamResponse(String fileName, String formattedContent, String fullResponse) {
         Log.w(TAG_STREAM, "storeStreamResponse()");
         try{
             File file = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName + ".txt");
@@ -368,6 +368,14 @@ public class ChatGptStreamMode {
             }
             FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(formattedContent);
+            fileWriter.write("\n");
+
+            // Ajouter la réponse complète à la fin
+            if (fullResponse != null && !fullResponse.isEmpty()) {
+                fileWriter.write("\n--- Full Response ---\n");
+                fileWriter.write(fullResponse);
+            }
+
             fileWriter.close();
             Log.i(TAG_STREAM, "storeStreamResponse() : new file added");
         }
@@ -507,6 +515,10 @@ public class ChatGptStreamMode {
 
     private void onNewPhrase() {
         Log.w(TAG_STREAM, "Phrase: " + phrase);
+        if (app.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !app.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+            phrase = app.applyFilters(app.getParamFromFile("Response_filter","TeamChatBuddy.properties"),phrase);
+        }
+        Log.w(TAG_STREAM, "Phrase after response filter: " + phrase);
         phrasesQueue.add(phrase);
     }
 
@@ -617,12 +629,6 @@ public class ChatGptStreamMode {
                 }
                 else if (app.getLangue().getNom().equals("Français")) {
                     errorMsg =  app.getParamFromFile("chatBotServerNoResponce_fr","TeamChatBuddy.properties");
-                }
-                else if (app.getLangue().getNom().equals("Espagnol")) {
-                    errorMsg = app.getParamFromFile("chatBotServerNoResponce_es","TeamChatBuddy.properties");
-                }
-                else if (app.getLangue().getNom().equals("Allemand")){
-                    errorMsg =  app.getParamFromFile("chatBotServerNoResponce_de","TeamChatBuddy.properties");
                 }
                 else{
                     app.getEnglishLanguageSelectedTranslator().translate(app.getParamFromFile("chatBotServerNoResponce_en","TeamChatBuddy.properties"))

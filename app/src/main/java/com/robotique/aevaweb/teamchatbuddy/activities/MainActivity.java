@@ -116,6 +116,8 @@ import java.util.Timer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import darren.googlecloudtts.model.VoicesList;
 
@@ -199,12 +201,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private String directionRegardNez= "";
     private String langueFr = "Français";
     private String langueEn = "Anglais";
-    private String langueEs = "Espagnol";
-    private String langueDe = "Allemand";
     private String header ="header";
     private String entete ="entete";
-    private String cabecera ="Cabecera";
-    private String kopfzeile ="Kopfzeile";
     private String openAIKey = "openAI_API_Key";
     private String info_toast = "";
     private String gptResponse;
@@ -452,7 +450,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 french_is_downloaded = false;
                 english_is_downloaded = false;
                 languageToEnglish_is_downloaded =false;
-                teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode().split("-")[0].trim());
+                List<String> mlkitLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Mlkit");
+                String codeLanguageMlkit = mlkitLangueCode.get(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getId()-1);
+                teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,codeLanguageMlkit.trim());
                 handlerProgressBar.postDelayed(runnableProgressBar,500);
                 timerDownloading.start();
             }
@@ -991,7 +991,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     buddy_texte_qst.setMovementMethod(null);
                                     buddy_texte_resp.setMovementMethod(null);
                                 }
-                                lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                                if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                                    lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                                }
                                 lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
@@ -1177,12 +1179,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 else if (settingClass.getLangue().equals(langueFr)) {
                                     buddy_texte_qst.setText(String.format("J'ai entendu :  %s ", detectedSTTMessage));
                                 }
-                                else if (settingClass.getLangue().equals(langueEs)) {
-                                    buddy_texte_qst.setText(String.format("He oído :  %s ", detectedSTTMessage));
-                                }
-                                else if (settingClass.getLangue().equals(langueDe)) {
-                                    buddy_texte_qst.setText(String.format("Ich habe gehört :  %s ", detectedSTTMessage));
-                                }
                                 else {
                                     teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate("I heard ").addOnSuccessListener(new OnSuccessListener<String>() {
                                         @Override
@@ -1229,16 +1225,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                             teamChatBuddyApplication.getCurrentLanguage().equals("fr")
                                                                     && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").trim().isEmpty()
                                                     )
-                                                    ||
-                                                    (
-                                                            teamChatBuddyApplication.getCurrentLanguage().equals("es")
-                                                                    && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_es","TeamChatBuddy.properties").trim().isEmpty()
-                                                    )
-                                                    ||
-                                                    (
-                                                            teamChatBuddyApplication.getCurrentLanguage().equals("de")
-                                                                    && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_de","TeamChatBuddy.properties").trim().isEmpty()
-                                                    )
                                                     ||(
                                                     !teamChatBuddyApplication.getCurrentLanguage().equals("en")
                                                             && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").trim().isEmpty()
@@ -1272,16 +1258,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                         String[] message_Timeout_NotRespected_fr = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").split("/");
                                                         int randomNumber_message_Timeout_NotRespected_fr = new Random().nextInt(message_Timeout_NotRespected_fr.length);
                                                         speak(message_Timeout_NotRespected_fr[randomNumber_message_Timeout_NotRespected_fr],"timeOutExpired");
-                                                    }
-                                                    else if (teamChatBuddyApplication.getCurrentLanguage().equals("es")){
-                                                        String[] message_Timeout_NotRespected_es = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_es","TeamChatBuddy.properties").split("/");
-                                                        int randomNumber_message_Timeout_NotRespected_es = new Random().nextInt(message_Timeout_NotRespected_es.length);
-                                                        speak(message_Timeout_NotRespected_es[randomNumber_message_Timeout_NotRespected_es],"timeOutExpired");
-                                                    }
-                                                    else if (teamChatBuddyApplication.getCurrentLanguage().equals("de")){
-                                                        String[] message_Timeout_NotRespected_de = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_de","TeamChatBuddy.properties").split("/");
-                                                        int randomNumber_message_Timeout_NotRespected_de = new Random().nextInt(message_Timeout_NotRespected_de.length);
-                                                        speak(message_Timeout_NotRespected_de[randomNumber_message_Timeout_NotRespected_de],"timeOutExpired");
                                                     }
                                                     else {
                                                         String[] message_Timeout_NotRespected_en = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
@@ -1321,7 +1297,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
                     buddy_texte_qst.setMovementMethod(null);
                     buddy_texte_resp.setMovementMethod(null);
-                    lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                    if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                        lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                    }
                     lyt_open_menu_chat.setVisibility(View.VISIBLE);
                     isSpeaking =false;
                     if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
@@ -1385,7 +1363,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
                                             buddy_texte_qst.setMovementMethod(null);
                                             buddy_texte_resp.setMovementMethod(null);
-                                            lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                                            if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                                                lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                                            }
                                             lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                             isSpeaking =false;
                                             if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
@@ -1454,7 +1434,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                     buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
                                                     buddy_texte_qst.setMovementMethod(null);
                                                     buddy_texte_resp.setMovementMethod(null);
-                                                    lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                                                    if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                                                        lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                                                    }
                                                     lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                                     isSpeaking =false;
                                                     if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
@@ -1606,7 +1588,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     buddy_texte_qst.setMovementMethod(null);
                     buddy_texte_resp.setMovementMethod(null);
                 }
-                lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                    lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                }
                 lyt_open_menu_chat.setVisibility(View.VISIBLE);
                 try {
                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
@@ -1713,7 +1697,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     isCMDLangue = true;
                     settingClass.setLangue(teamChatBuddyApplication.getLangue().getNom());
                     mlKitIsDownloading = true;
-                    teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,teamChatBuddyApplication.getLangue().getLanguageCode().split("-")[0].trim());
+                    List<String> mlkitLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Mlkit");
+                    String codeLanguageMlkit = mlkitLangueCode.get(teamChatBuddyApplication.getLangue().getId()-1);
+                    teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,codeLanguageMlkit.trim());
                     handlerProgressBar.postDelayed(runnableProgressBar,500);
                     timerDownloading.start();
                 }
@@ -1779,7 +1765,42 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1],Integer.parseInt(message.split(";SPLIT;")[2]));
+                            if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
+                                if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
+                                    responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1]+" "+teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties"),Integer.parseInt(message.split(";SPLIT;")[2]));
+                                }
+                                else {
+                                    responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1],Integer.parseInt(message.split(";SPLIT;")[2]));
+                                }
+                            }
+                            else if (settingClass.getLangue().equals(langueFr)) {
+                                if (teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties").trim())){
+                                    responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1]+" "+teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties"),Integer.parseInt(message.split(";SPLIT;")[2]));
+                                }
+                                else {
+                                    responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1],Integer.parseInt(message.split(";SPLIT;")[2]));
+                                }
+                            }
+                            else {
+                                if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
+                                    teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
+                                        @Override
+                                        public void onSuccess(String translatedText) {
+
+                                            responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1]+" "+translatedText,Integer.parseInt(message.split(";SPLIT;")[2]));
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.e(TAG,"translatedText exception  "+e);
+                                        }
+                                    });
+
+                                }
+                                else {
+                                    responseFromChatbot.getResponseFromChatGPT(message.split(";SPLIT;")[1],Integer.parseInt(message.split(";SPLIT;")[2]));
+                                }
+                            }
                     }
                 });
             }
@@ -1791,7 +1812,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         french_is_downloaded = false;
                         english_is_downloaded = false;
                         languageToEnglish_is_downloaded =false;
-                        teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode().split("-")[0].trim());
+                        List<String> mlkitLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Mlkit");
+                        String codeLanguageMlkit = mlkitLangueCode.get(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getId()-1);
+                        teamChatBuddyApplication.downloadModel(imlKitDownloadCallback,codeLanguageMlkit.trim());
                         handlerProgressBar.postDelayed(runnableProgressBar,500);
 
                         timerDownloading.start();
@@ -1820,7 +1843,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
         buddy_texte_qst.setMovementMethod(null);
         buddy_texte_resp.setMovementMethod(null);
-        lyt_open_menu_settings.setVisibility(View.VISIBLE);
+        lyt_open_menu_settings.setVisibility(View.INVISIBLE);
         lyt_open_menu_chat.setVisibility(View.VISIBLE);
 
         commande = new Commande( this );
@@ -1957,8 +1980,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     private void getData(){
 
-
-
+        //Visibility of Settings button
+        if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+            lyt_open_menu_settings.setVisibility(View.VISIBLE);
+        }
+        else {
+            lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+        }
         //init Settings
         settingClass=new Setting();
         String listeningDuration =teamChatBuddyApplication.getParamFromFile("Listening_time","TeamChatBuddy.properties");
@@ -2083,9 +2111,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     public void setPreviousLanguage() {
         List<Langue> langues = new ArrayList<>();
         List<String> langueDisponible = teamChatBuddyApplication.getDisponibleLangue();
-        for (int i = 1; i < langueDisponible.size(); i++) {
-            langues.add(new Gson().fromJson(teamChatBuddyApplication.getparam(langueDisponible.get(i - 1)), Langue.class));
-            i++;
+        for (int i = 0; i < langueDisponible.size(); i++) {
+            langues.add(new Gson().fromJson(teamChatBuddyApplication.getparam(langueDisponible.get(i)), Langue.class));
         }
         if (langues.isEmpty()) {
             langues.add(new Gson().fromJson(teamChatBuddyApplication.getparam("Français"), Langue.class));
@@ -2119,10 +2146,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             currentToast = Toast.makeText(MainActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
         } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
             currentToast = Toast.makeText(MainActivity.this, R.string.mlkit_model_is_downloading_fr, Toast.LENGTH_SHORT);
-        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
-            currentToast = Toast.makeText(MainActivity.this, R.string.mlkit_model_is_downloading_es, Toast.LENGTH_SHORT);
-        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
-            currentToast = Toast.makeText(MainActivity.this, R.string.mlkit_model_is_downloading_de, Toast.LENGTH_SHORT);
         } else {
             currentToast = Toast.makeText(MainActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
         }
@@ -2533,7 +2556,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     private void refreshSTTLangue() {
-        teamChatBuddyApplication.refresh(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode(),this);
+        List<String> STTAndroidLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_STT_Android");
+        String codeLanguageSTTAndroid = STTAndroidLangueCode.get(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getId()-1);
+        teamChatBuddyApplication.refresh(codeLanguageSTTAndroid,this);
     }
 
     private void setAnimation(String emotion){
@@ -3710,7 +3735,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 buddy_texte_qst.setMovementMethod(null);
                                 buddy_texte_resp.setMovementMethod(null);
                             }
-                            lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                            if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                                lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                            }
                             lyt_open_menu_chat.setVisibility(View.VISIBLE);
                             try {
                                 BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);

@@ -107,8 +107,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     private String configFile ="TeamChatBuddy.properties";
     private String header ="header";
     private String entete ="entete";
-    private String cabecera ="Cabecera";
-    private String kopfzeile ="Kopfzeile";
     private String openAIKey = "openAI_API_Key";
     private String addDestinationMail="";
     private String addDestinationMailEditText="";
@@ -343,7 +341,9 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         return super.dispatchTouchEvent( event );
     }
     private void refreshSTTLangue() {
-        teamChatBuddyApplication.refresh(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getLanguageCode(),this);
+        List<String> STTAndroidLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_STT_Android");
+        String codeLanguageSTTAndroid = STTAndroidLangueCode.get(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getId()-1);
+        teamChatBuddyApplication.refresh(codeLanguageSTTAndroid,this);
     }
     /**
      * Récupération des questions/réponses
@@ -682,7 +682,42 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                         updateChat();
                         teamChatBuddyApplication.setActivityClosed(false);
                         if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
-                            responseFromChatbot.getResponseFromChatGPT(detectedSTTMessage, teamChatBuddyApplication.getQuestionNumber());
+                            if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
+                                if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
+                                    responseFromChatbot.getResponseFromChatGPT(detectedSTTMessage+" "+teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties"),teamChatBuddyApplication.getQuestionNumber());
+                                }
+                                else {
+                                    responseFromChatbot.getResponseFromChatGPT(detectedSTTMessage, teamChatBuddyApplication.getQuestionNumber());
+                                }
+                            }
+                            else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
+                                if (teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties").trim())){
+                                    responseFromChatbot.getResponseFromChatGPT(detectedSTTMessage+" "+teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties"),teamChatBuddyApplication.getQuestionNumber());
+                                }
+                                else {
+                                    responseFromChatbot.getResponseFromChatGPT(detectedSTTMessage, teamChatBuddyApplication.getQuestionNumber());
+                                }
+                            }
+                            else {
+                                if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
+                                    teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
+                                        @Override
+                                        public void onSuccess(String translatedText) {
+
+                                            responseFromChatbot.getResponseFromChatGPT(detectedSTTMessage+" "+translatedText,teamChatBuddyApplication.getQuestionNumber());
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.e(TAG,"translatedText exception  "+e);
+                                        }
+                                    });
+
+                                }
+                                else {
+                                    responseFromChatbot.getResponseFromChatGPT(detectedSTTMessage, teamChatBuddyApplication.getQuestionNumber());
+                                }
+                            }
                         }
                         else {
                             responseFromChatbot.getSessionId(detectedSTTMessage);
@@ -698,16 +733,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                                                 (
                                                         teamChatBuddyApplication.getCurrentLanguage().equals("fr")
                                                                 && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr",configFile).trim().isEmpty()
-                                                )
-                                                ||
-                                                (
-                                                        teamChatBuddyApplication.getCurrentLanguage().equals("es")
-                                                                && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_es",configFile).trim().isEmpty()
-                                                )
-                                                ||
-                                                (
-                                                        teamChatBuddyApplication.getCurrentLanguage().equals("de")
-                                                                && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_de",configFile).trim().isEmpty()
                                                 )
                                                 ||(
                                                 !teamChatBuddyApplication.getCurrentLanguage().equals("en")
@@ -740,16 +765,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                                                     String[] message_Timeout_NotRespected_fr = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr",configFile).split("/");
                                                     int randomNumber_message_Timeout_NotRespected_fr = new Random().nextInt(message_Timeout_NotRespected_fr.length);
                                                     speak(message_Timeout_NotRespected_fr[randomNumber_message_Timeout_NotRespected_fr],"timeOutExpired");
-                                                }
-                                                else if (teamChatBuddyApplication.getCurrentLanguage().equals("es")) {
-                                                    String[] message_Timeout_NotRespected_es = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_es",configFile).split("/");
-                                                    int randomNumber_message_Timeout_NotRespected_es = new Random().nextInt(message_Timeout_NotRespected_es.length);
-                                                    speak(message_Timeout_NotRespected_es[randomNumber_message_Timeout_NotRespected_es],"timeOutExpired");
-                                                }
-                                                else if (teamChatBuddyApplication.getCurrentLanguage().equals("de")) {
-                                                    String[] message_Timeout_NotRespected_de = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_de",configFile).split("/");
-                                                    int randomNumber_message_Timeout_NotRespected_de = new Random().nextInt(message_Timeout_NotRespected_de.length);
-                                                    speak(message_Timeout_NotRespected_de[randomNumber_message_Timeout_NotRespected_de],"timeOutExpired");
                                                 }
                                                 else {
                                                     String[] message_Timeout_NotRespected_en = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");

@@ -144,7 +144,8 @@ public class CustomGPTStreamMode {
     }
     private void getResponseFromCustomGPT(String question,String sessionId){
         try {
-
+            List<String> WhisperLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Whisper");
+            String codeLanguageWhisper = WhisperLangueCode.get(teamChatBuddyApplication.getLangue().getId()-1);
             Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("CustomGPT_url","TeamChatBuddy.properties"), 50);
             ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
             JSONObject jsonParams = new JSONObject();
@@ -157,7 +158,7 @@ public class CustomGPTStreamMode {
             jsonParams2=jsonParams;
             jsonParams2.put("projectID", teamChatBuddyApplication.getparam("CustomGPT_Project_ID"));
             jsonParams2.put("sessionID",sessionId.trim());
-            jsonParams2.put("language", teamChatBuddyApplication.getLangue().getLanguageCode().split("-")[0]);
+            jsonParams2.put("language", codeLanguageWhisper);
             //Mettre  le dernier fichier json envoyé à l’API
             String fileName = "CustomGPT-sent";
             File file1 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName + ".json");
@@ -180,7 +181,7 @@ public class CustomGPTStreamMode {
             Log.e("MEHDI","ennvoie requete CustomGPT  sessionID "+sessionId);
             String endpoint = teamChatBuddyApplication.getParamFromFile("CustomGPT_ApiEndpoint","TeamChatBuddy.properties");
             endpoint =endpoint.replace("{project_id}",teamChatBuddyApplication.getparam("CustomGPT_Project_ID")).replace("{session_id}",sessionId.trim());
-            Call<ResponseBody> call = api.getCustomGPT( endpoint, teamChatBuddyApplication.getLangue().getLanguageCode().split("-")[0],requestBody,"application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
+            Call<ResponseBody> call = api.getCustomGPT( endpoint, codeLanguageWhisper,requestBody,"application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
 
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
@@ -460,12 +461,6 @@ public class CustomGPTStreamMode {
                 else if (teamChatBuddyApplication.getLangue().getNom().equals("Français")) {
                     errorMsg =  teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_fr","TeamChatBuddy.properties");
                 }
-                else if (teamChatBuddyApplication.getLangue().getNom().equals("Espagnol")) {
-                    errorMsg = teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_es","TeamChatBuddy.properties");
-                }
-                else if (teamChatBuddyApplication.getLangue().getNom().equals("Allemand")){
-                    errorMsg =  teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_de","TeamChatBuddy.properties");
-                }
                 else{
                     teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_en","TeamChatBuddy.properties"))
                             .addOnSuccessListener(new OnSuccessListener<String>() {
@@ -660,12 +655,6 @@ public class CustomGPTStreamMode {
                 }
                 else if (teamChatBuddyApplication.getLangue().getNom().equals("Français")) {
                     errorMsg =  teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_fr","TeamChatBuddy.properties");
-                }
-                else if (teamChatBuddyApplication.getLangue().getNom().equals("Espagnol")) {
-                    errorMsg = teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_es","TeamChatBuddy.properties");
-                }
-                else if (teamChatBuddyApplication.getLangue().getNom().equals("Allemand")){
-                    errorMsg =  teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_de","TeamChatBuddy.properties");
                 }
                 else{
                     teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("chatBotServerNoResponce_en","TeamChatBuddy.properties"))
@@ -976,12 +965,6 @@ public class CustomGPTStreamMode {
         }
         else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr) ) {
             return teamChatBuddyApplication.getparam("CustomGPT_entete");
-        }
-        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs) ) {
-            return teamChatBuddyApplication.getparam("CustomGPT_cabecera");
-        }
-        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe) ){
-            return teamChatBuddyApplication.getparam("CustomGPT_kopfzeile");
         }
         else {
             return teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete");
