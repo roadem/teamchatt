@@ -220,7 +220,7 @@ public class Commande {
     }
 
     private Locale getCurrentLocale(){
-        List<String> langueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_STT_Android");
+        List<String> langueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_STT");
         String language = langueCode.get(teamChatBuddyApplication.getLangue().getId()-1).replace("-","_");
         Locale[] locales = Locale.getAvailableLocales();
         for (Locale locale : locales) {

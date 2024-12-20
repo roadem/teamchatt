@@ -349,28 +349,34 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      * Récupération des questions/réponses
      */
     private Replica[] initDataset() {
-        int x = 1;
+
         int size=0;
         ArrayList<Session> ss = teamChatBuddyApplication.getListSession();
-        int y=0;
         for (int i = 0; i < ss.size(); i++) {
 
             ArrayList<Replica> s = ss.get(i).getSession();
             size=size+s.size();
 
         }
-        Replica[] mDataset = new Replica[size];
         for (int i = 0; i < ss.size(); i++) {
 
             ArrayList<Replica> s = ss.get(i).getSession();
 
             for (int j = 0; j < s.size(); j++){
 
-                mDataset[y] =  s.get(j);
                 listRepGlobale.add(s.get(j));
-                y++;
             }
-            x++;
+        }
+        if (teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties").isEmpty()
+                && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))!=0){
+            while (listRepGlobale.size() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))) {
+                listRepGlobale.remove(0); // Supprime le premier élément
+            }
+        }
+
+        Replica[] mDataset = new Replica[listRepGlobale.size()];
+        for(int i=0; i<listRepGlobale.size(); i++){
+            mDataset[i] = listRepGlobale.get(i);
         }
 
         return mDataset;
@@ -380,6 +386,13 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      * Mettre à jour la liste des messages
      */
     private void updateChat(){
+        if (teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties").isEmpty()
+        && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))!=0){
+            while (listRepGlobale.size() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))) {
+                listRepGlobale.remove(0); // Supprime le premier élément
+            }
+        }
+
         Replica[] mDataset = new Replica[listRepGlobale.size()];
         for(int i=0; i<listRepGlobale.size(); i++){
             mDataset[i] = listRepGlobale.get(i);
@@ -1097,6 +1110,28 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 }
 
             }
+            else if (message.equals("SpeechRecognizerTimeout")){
+                stopListeningFreeSpeech();
+                click = 1;
+            }
+            else if (message.equals("SpeechRecognizerAttemptTimeout")){
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        teamChatBuddyApplication.setLed("neutral");
+                        micro_btn.setImageResource(R.drawable.micro_off);
+                    }
+                });
+                runnablePauseTime = new Runnable() {
+                    @Override
+                    public void run() {
+                        // startCycle(settingClass, listRep, nameActivity, adapter, cancelTheTimer);
+                        startNextCycle();
+                        Log.e("ARR", "startNextCycle  after handler ");
+                    }
+                };
+                handlerPauseTime.postDelayed(runnablePauseTime, 1000);
+            }
         }
     }
     /**
@@ -1104,7 +1139,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      */
 
     private void startListeningFreeSpeech(int duration) {
-
+        Boolean notUsingSpeechRecognizer=true;
         isListeningFreeSpeech = true;
         teamChatBuddyApplication.setOpenaialreadySwitchEmotion(false);
         teamChatBuddyApplication.setAppIsListeningToTheQuestion(true);
@@ -1119,7 +1154,8 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         }
         else{
             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android")){
-                teamChatBuddyApplication.startListeningQuestion(this);
+                notUsingSpeechRecognizer=false;
+                teamChatBuddyApplication.startListeningQuestion(this,"FirstListening");
             }else if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Whisper")) {
                 //startWhisperSTT(settingClass, listRep, nameActivity, adapter);
                 teamChatBuddyApplication.startWhisperRecording(this);
@@ -1128,37 +1164,40 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                     teamChatBuddyApplication.startListeningCerence(this);
                 }
                 else{
-                    teamChatBuddyApplication.startListeningQuestion(this);
+                    notUsingSpeechRecognizer=false;
+                    teamChatBuddyApplication.startListeningQuestion(this,"FirstListening");
                 }
             }
             else teamChatBuddyApplication.startListeningQuestionWithGoogleApi(this);
         }
-
-        if(timerEcoute != null) timerEcoute.cancel();
-        timerEcoute = new CountDownTimer(duration * 1000L,1000) {
-            @Override
-            public void onTick(long l) {
-                Log.d(TAG, "timerEcoute onTick");
-            }
-            @Override
-            public void onFinish() {
-
-                if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence")){
-                    Log.i(TAG, "timerEcoute onFinish");
-                    stopListeningFreeSpeech();
-                    click=1;
+        if (notUsingSpeechRecognizer) {
+            if (timerEcoute != null) timerEcoute.cancel();
+            timerEcoute = new CountDownTimer(duration * 1000L, 1000) {
+                @Override
+                public void onTick(long l) {
+                    Log.d(TAG, "timerEcoute onTick");
                 }
-                else{
-                    teamChatBuddyApplication.notifyObservers("Obtain audio transcription after the listening time has elapsed;SPLIT;false");
+
+                @Override
+                public void onFinish() {
+
+                    if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence")) {
+                        Log.i(TAG, "timerEcoute onFinish");
+                        stopListeningFreeSpeech();
+                        click = 1;
+                    } else {
+                        teamChatBuddyApplication.notifyObservers("Obtain audio transcription after the listening time has elapsed;SPLIT;false");
+                    }
                 }
-            }
-        };
-        timerEcoute.start();
+            };
+            timerEcoute.start();
+        }
 
         micro_btn.setImageResource(R.drawable.micro_on);
 
     }
     private void startCycle(){
+        Boolean notUsingSpeechRecognizer=true;
         isListeningFreeSpeech = true;
         teamChatBuddyApplication.setOpenaialreadySwitchEmotion(false);
         teamChatBuddyApplication.setAppIsListeningToTheQuestion(true);
@@ -1172,7 +1211,8 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         }
         else{
             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android")){
-                teamChatBuddyApplication.startListeningQuestion(this);
+                notUsingSpeechRecognizer=false;
+                teamChatBuddyApplication.startListeningQuestion(this,"startCycle");
             }else if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Whisper")) {
                 //startWhisperSTT(settingClass, listRep, nameActivity, adapter);
                 teamChatBuddyApplication.startWhisperRecording(this);
@@ -1181,39 +1221,41 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                     teamChatBuddyApplication.startListeningCerence(this);
                 }
                 else{
-                    teamChatBuddyApplication.startListeningQuestion(this);
+                    notUsingSpeechRecognizer=false;
+                    teamChatBuddyApplication.startListeningQuestion(this,"startCycle");
                 }
             }
             else teamChatBuddyApplication.startListeningQuestionWithGoogleApi(this);
         }
+        if (notUsingSpeechRecognizer) {
+            if (timerEcoute != null) timerEcoute.cancel();
+            timerEcoute = new CountDownTimer(teamChatBuddyApplication.getListeningDuration() * 1000L, 1000) {
+                @Override
+                public void onTick(long l) {
+                    Log.d(TAG, "timerEcoute onTick");
+                }
 
-        if(timerEcoute != null) timerEcoute.cancel();
-        timerEcoute = new CountDownTimer(teamChatBuddyApplication.getListeningDuration() * 1000L,1000) {
-            @Override
-            public void onTick(long l) {
-                Log.d(TAG, "timerEcoute onTick");
-            }
-            @Override
-            public void onFinish() {
-                Log.i(TAG, "timerEcoute onFinish");
-                if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence")){
-                    teamChatBuddyApplication.notifyObservers("end of cycle");
-                    runnablePauseTime =new Runnable() {
-                        @Override
-                        public void run() {
-                            // startCycle(settingClass, listRep, nameActivity, adapter, cancelTheTimer);
-                            startNextCycle();
-                            Log.e("ARR","startNextCycle  after handler ");
-                        }
-                    };
-                    handlerPauseTime.postDelayed(runnablePauseTime,1000);
+                @Override
+                public void onFinish() {
+                    Log.i(TAG, "timerEcoute onFinish");
+                    if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence")) {
+                        teamChatBuddyApplication.notifyObservers("end of cycle");
+                        runnablePauseTime = new Runnable() {
+                            @Override
+                            public void run() {
+                                // startCycle(settingClass, listRep, nameActivity, adapter, cancelTheTimer);
+                                startNextCycle();
+                                Log.e("ARR", "startNextCycle  after handler ");
+                            }
+                        };
+                        handlerPauseTime.postDelayed(runnablePauseTime, 1000);
+                    } else {
+                        teamChatBuddyApplication.notifyObservers("Obtain audio transcription after the listening time has elapsed;SPLIT;true");
+                    }
                 }
-                else{
-                    teamChatBuddyApplication.notifyObservers("Obtain audio transcription after the listening time has elapsed;SPLIT;true");
-                }
-            }
-        };
-        timerEcoute.start();
+            };
+            timerEcoute.start();
+        }
 
         micro_btn.setImageResource(R.drawable.micro_on);
     }

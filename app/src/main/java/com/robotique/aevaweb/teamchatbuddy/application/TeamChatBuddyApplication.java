@@ -909,7 +909,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         initBIDisplay();
         initTracking();
         Log.e("MRAA","init google api");
-        if(!alreadyCalled){
+
             Log.e("MRAA","init google api out if");
             if (getparam("STT_chosen").equalsIgnoreCase("Google")){
                 Log.e("MRAA","init google api inside if");
@@ -917,7 +917,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 releaseGoogleAPI();
                 initGoogleAPI();
             }
-        }
+
         notifyObservers("properties file done");
     }
 
@@ -1380,6 +1380,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 setparam("Tracking_Invitation_ChatGpt", "true");
             }
         }
+        //Tracking Timeout
+        if (getparam("TRACKING_timeout_Switch").equals("")) {
+            if (getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("No")){
+                setparam("TRACKING_timeout_Switch", "false");
+            }
+            else {
+                setparam("TRACKING_timeout_Switch", "true");
+            }
+        }
     }
 
     public List<String> separator(String hotword) {
@@ -1840,14 +1849,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         if (getParamFromFile("Language_Specification_STT",configurationFilePseudo).trim().equalsIgnoreCase("Yes")) {
             if (getparam("STT_chosen").equalsIgnoreCase("Android")) {
                 speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,Integer.parseInt(getParamFromFile("Android_Speech_minimum_length",configurationFilePseudo))*1000);
+                speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,getListeningDuration()*1000);
                 speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,Integer.parseInt(getParamFromFile("Android_Speech_silence_length",configurationFilePseudo))*1000);
                 speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, langue);
             }
             if (getparam("STT_chosen").equalsIgnoreCase("Cerence")) {
                 if (!langue.toLowerCase().contains("en") && !langue.toLowerCase().contains("fr")) {
                     speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                    speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,Integer.parseInt(getParamFromFile("Android_Speech_minimum_length",configurationFilePseudo))*1000);
+                    speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,getListeningDuration()*1000);
                     speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,Integer.parseInt(getParamFromFile("Android_Speech_silence_length",configurationFilePseudo))*1000);
                     speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, langue);
                 }
@@ -1873,7 +1882,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
 
     }
-    public void startListeningQuestion(Activity activity) {
+    public void startListeningQuestion(Activity activity,String type) {
         Log.e(TAG,"startListeningFreeSpeechStt fonction start");
         activity.runOnUiThread( new Runnable() {
             @Override
@@ -1975,6 +1984,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         break;
                                     case SpeechRecognizer.ERROR_NO_MATCH:
                                         Log.d(TAG, "No match");
+                                        if (type.equalsIgnoreCase("startCycle")){
+                                            notifyObservers("SpeechRecognizerAttemptTimeout");
+                                        }
+                                        else{
+                                            notifyObservers("SpeechRecognizerTimeout");
+                                        }
                                         break;
                                     case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
                                         Log.d(TAG, "RecognitionService busy");
@@ -1990,13 +2005,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         break;
                                     case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED:
                                             Log.e(TAG, "ERROR_LANGUAGE_NOT_SUPPORTED");
+                                        logErrorSTTAndroid(i,"SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED","Language not supported");
                                          break;
                                     default:
                                         Log.d(TAG, "Unknown error "+i);
                                         logErrorSTTAndroid(i,"Unknown error","Unknown error");
                                         break;
                                 }
-                                speechRecognizer.startListening(speechRecognizerIntent);
+                               // speechRecognizer.startListening(speechRecognizerIntent);
 
                             }
 
@@ -2005,17 +2021,17 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 ArrayList<String> data = bundle.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
                                 if (data!=null && data.size()>0) {
                                     if(!data.get(0).trim().equals("")) {
-                                        Log.e("zomilito", "question result onResults  : " + data.get(0));
+                                        Log.e(TAG, "question result onResults  : " + data.get(0));
                                         notifyObservers("STTQuestion_success;" + data.get(0));
                                         BuddySDK.UI.stopListenAnimation();
                                         setLed("neutral");
                                     }else{
-                                        Log.e("zomilito", "question result onResults  : vide " + data.get(0));
+                                        Log.e(TAG, "question result onResults  : vide " + data.get(0));
                                     }
                                 }
                                 else {
                                     Log.e(TAG, "question result onResults size = 0 : " );
-                                    speechRecognizer.startListening(speechRecognizerIntent);
+                                    //speechRecognizer.startListening(speechRecognizerIntent);
                                 }
                             }
 
@@ -2024,14 +2040,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 Log.i(TAG, "onPartialResults listen");
                                 ArrayList<String> data = bundle.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
                                 if (data!=null && data.size()>0) {
-                                    Log.e("zomilito", "data langth  : " + data.size());
+                                    Log.e(TAG, "data langth  : " + data.size());
                                     if(!data.get(0).trim().equals("")) {
-                                        Log.e("zomilito", "question result onPartialResults  : " + data.get(0));
+                                        Log.e(TAG, "question result onPartialResults  : " + data.get(0));
                                         notifyObservers("STTQuestion_success;" + data.get(0));
                                         BuddySDK.UI.stopListenAnimation();
                                         setLed("neutral");
                                     }else{
-                                        Log.e("zomilito", "question result onPartialResults  : vide " + data.get(0));
+                                        Log.e(TAG, "question result onPartialResults  : vide " + data.get(0));
                                     }
                                 }
                                 else {
@@ -2677,15 +2693,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public static Locale getLocale(String language){
 
         Locale[] locales = Locale.getAvailableLocales();
-
+        String normalizedLanguage = language.replace("-", "_").toLowerCase();
         for (Locale locale : locales) {
-            if (locale.toString().equals(language)) {
-                Log.w("GoogleSTT","getLocale("+language+") result : " + locale);
+            if (locale.toString().toLowerCase().equals(normalizedLanguage)) {
+                Log.w("GoogleSTT","getLocale("+normalizedLanguage+") result : " + locale);
                 return locale;
             }
         }
 
-        Log.e("GoogleSTT","getLocale("+language+") result : null");
+        Log.e("GoogleSTT","getLocale("+normalizedLanguage+") result : null");
 
         return Locale.ENGLISH;
     }
@@ -2697,13 +2713,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             Locale localeLanguage;
             List<String> langueCode = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_STT");
             String language = langueCode.get(getLangue().getId()-1);
+            Log.w("GoogleSTT","initGoogleAPI language= "+language);
             if (getParamFromFile("Language_Specification_STT",configurationFilePseudo).trim().equalsIgnoreCase("No")){
                 localeLanguage= null;
             }
             else {
                 localeLanguage=getLocale(language);
             }
-            Log.e("ARR","localeLanguage=  "+localeLanguage);
+            Log.e("GoogleSTT","localeLanguage=  "+localeLanguage);
             googleSTT = new GoogleSTT(getParamFromFile("ApiGoogle_Key",configurationFilePseudo), localeLanguage);
             googleSTTCallbacks = new GoogleSTTCallbacks() {
                 @Override

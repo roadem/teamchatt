@@ -626,9 +626,31 @@ public class ChatGptStreamMode {
 
                 if (app.getLangue().getNom().equals("Anglais")){
                     errorMsg = app.getParamFromFile("chatBotServerNoResponce_en","TeamChatBuddy.properties");
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else if (app.getLangue().getNom().equals("Français")) {
                     errorMsg =  app.getParamFromFile("chatBotServerNoResponce_fr","TeamChatBuddy.properties");
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else{
                     app.getEnglishLanguageSelectedTranslator().translate(app.getParamFromFile("chatBotServerNoResponce_en","TeamChatBuddy.properties"))
@@ -636,12 +658,34 @@ public class ChatGptStreamMode {
                                 @Override
                                 public void onSuccess(String translatedText) {
                                     errorMsg = translatedText;
+                                    app.setMessageError(true);
+                                    if (!app.isOpenaialreadySwitchEmotion()) {
+                                        try {
+                                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                                        }
+                                        catch (Exception e){
+                                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                                        }
+                                    }
+                                    processPhrasesWithDelay();
+                                    pronouncePhrase(errorMsg);
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     errorMsg = app.getParamFromFile("chatBotServerNoResponce_en","TeamChatBuddy.properties");
+                                    app.setMessageError(true);
+                                    if (!app.isOpenaialreadySwitchEmotion()) {
+                                        try {
+                                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                                        }
+                                        catch (Exception ex){
+                                            Log.e(TAG_STREAM,"BuddySDK Exception  "+ex);
+                                        }
+                                    }
+                                    processPhrasesWithDelay();
+                                    pronouncePhrase(errorMsg);
                                 }
                             });
                 }
@@ -649,15 +693,59 @@ public class ChatGptStreamMode {
             else if(error.equals("FAILURE")){
                 if (app.getLangue().getNom().equals("Anglais")){
                     errorMsg = app.getString(R.string.chatBotNoFound_en);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else if (app.getLangue().getNom().equals("Français")) {
                     errorMsg =  app.getString(R.string.chatBotNoFound_fr);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else if (app.getLangue().getNom().equals("Espagnol")) {
                     errorMsg = app.getString(R.string.chatBotNoFound_es);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else if (app.getLangue().getNom().equals("Allemand")){
                     errorMsg =  app.getString(R.string.chatBotNoFound_de);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else{
                     app.getEnglishLanguageSelectedTranslator().translate(app.getString(R.string.chatBotNoFound_en))
@@ -665,12 +753,34 @@ public class ChatGptStreamMode {
                                 @Override
                                 public void onSuccess(String translatedText) {
                                     errorMsg = translatedText;
+                                    app.setMessageError(true);
+                                    if (!app.isOpenaialreadySwitchEmotion()) {
+                                        try {
+                                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                                        }
+                                        catch (Exception e){
+                                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                                        }
+                                    }
+                                    processPhrasesWithDelay();
+                                    pronouncePhrase(errorMsg);
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     errorMsg = app.getString(R.string.chatBotNoFound_en);
+                                    app.setMessageError(true);
+                                    if (!app.isOpenaialreadySwitchEmotion()) {
+                                        try {
+                                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                                        }
+                                        catch (Exception ex){
+                                            Log.e(TAG_STREAM,"BuddySDK Exception  "+ex);
+                                        }
+                                    }
+                                    processPhrasesWithDelay();
+                                    pronouncePhrase(errorMsg);
                                 }
                             });
                 }
@@ -678,15 +788,59 @@ public class ChatGptStreamMode {
             else{
                 if (app.getLangue().getNom().equals("Anglais")){
                     errorMsg = app.getString(R.string.chatBot_ERROR_en);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else if (app.getLangue().getNom().equals("Français")) {
                     errorMsg =  app.getString(R.string.chatBot_ERROR_fr);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else if (app.getLangue().getNom().equals("Espagnol")) {
                     errorMsg = app.getString(R.string.chatBot_ERROR_es);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else if (app.getLangue().getNom().equals("Allemand")){
                     errorMsg =  app.getString(R.string.chatBot_ERROR_de);
+                    app.setMessageError(true);
+                    if (!app.isOpenaialreadySwitchEmotion()) {
+                        try {
+                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                        }
+                        catch (Exception e){
+                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                        }
+                    }
+                    processPhrasesWithDelay();
+                    pronouncePhrase(errorMsg);
                 }
                 else{
                     app.getEnglishLanguageSelectedTranslator().translate(app.getString(R.string.chatBot_ERROR_en))
@@ -694,28 +848,40 @@ public class ChatGptStreamMode {
                                 @Override
                                 public void onSuccess(String translatedText) {
                                     errorMsg = translatedText;
+                                    app.setMessageError(true);
+                                    if (!app.isOpenaialreadySwitchEmotion()) {
+                                        try {
+                                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                                        }
+                                        catch (Exception e){
+                                            Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
+                                        }
+                                    }
+                                    processPhrasesWithDelay();
+                                    pronouncePhrase(errorMsg);
                                 }
                             })
                             .addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     errorMsg = app.getString(R.string.chatBot_ERROR_en);
+                                    app.setMessageError(true);
+                                    if (!app.isOpenaialreadySwitchEmotion()) {
+                                        try {
+                                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
+                                        }
+                                        catch (Exception ex){
+                                            Log.e(TAG_STREAM,"BuddySDK Exception  "+ex);
+                                        }
+                                    }
+                                    processPhrasesWithDelay();
+                                    pronouncePhrase(errorMsg);
                                 }
                             });
                 }
             }
 
-            app.setMessageError(true);
-            if (!app.isOpenaialreadySwitchEmotion()) {
-                try {
-                    BuddySDK.UI.setFacialExpression(FacialExpression.TIRED, 1);
-                }
-                catch (Exception e){
-                    Log.e(TAG_STREAM,"BuddySDK Exception  "+e);
-                }
-            }
-            processPhrasesWithDelay();
-            pronouncePhrase(errorMsg);
+
         }
     }
 

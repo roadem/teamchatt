@@ -89,6 +89,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private LinearLayout menu_option_tracking_auto_listen_lyt;
     private LinearLayout menu_option_tracking_invitation_lyt;
     private LinearLayout menu_option_tracking_invitation_chatGpt_lyt;
+    private LinearLayout menu_option_tracking_timeout_lyt;
     private LinearLayout menu_option_projectID_lyt;
     private LinearLayout menu_option_stt_lyt;
     private LinearLayout menu_option_chatbot_lyt;
@@ -121,6 +122,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private TextView menu_option_tracking_auto_listen_textView;
     private TextView menu_option_tracking_invitation_textView;
     private TextView menu_option_tracking_invitation_chatGpt_textView;
+    private TextView menu_option_tracking_timeout_textView;
 
 
     private Spinner menu_option_langue_spinner;
@@ -153,6 +155,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private Switch switchTrackingAutoListen;
     private Switch switchTrackingInvitation;
     private Switch switchTrackingInvitationChatGpt;
+    private Switch switchTrackingTimeout;
 
     private String french= "Français";
     private String english = "Anglais";
@@ -259,6 +262,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         menu_option_tracking_body_lyt = findViewById(R.id.menu_option_tracking_body_lyt);
         menu_option_tracking_auto_listen_lyt = findViewById(R.id.menu_option_tracking_auto_listen_lyt);
         menu_option_tracking_invitation_lyt = findViewById(R.id.menu_option_tracking_invitation_lyt);
+        menu_option_tracking_timeout_lyt = findViewById(R.id.menu_option_tracking_timeout_lyt);
         menu_option_tracking_invitation_chatGpt_lyt = findViewById(R.id.menu_option_tracking_invitation_chatGpt_lyt);
         menu_option_tracking_activation_textView = findViewById(R.id.menu_option_tracking_activation_textView);
         menu_option_tracking_camera_display_textView = findViewById(R.id.menu_option_tracking_camera_display_textView);
@@ -267,6 +271,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         menu_option_tracking_auto_listen_textView = findViewById(R.id.menu_option_tracking_auto_listen_textView);
         menu_option_tracking_invitation_textView = findViewById(R.id.menu_option_tracking_invitation_textView);
         menu_option_tracking_invitation_chatGpt_textView = findViewById(R.id.menu_option_tracking_invitation_chatGpt_textView);
+        menu_option_tracking_timeout_textView = findViewById(R.id.menu_option_tracking_timeout_textView);
         switchTrackingActivation = findViewById(R.id.switchTrackingActivation);
         switchTrackingCameraDisplay = findViewById(R.id.switchTrackingCameraDisplay);
         switchTrackingHead = findViewById(R.id.switchTrackingHead);
@@ -274,6 +279,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchTrackingAutoListen = findViewById(R.id.switchTrackingAutoListen);
         switchTrackingInvitation = findViewById(R.id.switchTrackingInvitation);
         switchTrackingInvitationChatGpt = findViewById(R.id.switchTrackingInvitationChatGpt);
+        switchTrackingTimeout = findViewById(R.id.switchTrackingTimeout);
         dollar_icon = findViewById(R.id.dollar_icon);
 
         menuOptionBIlyt = findViewById(R.id.menu_option_BI_lyt);
@@ -758,6 +764,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_activation_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                     menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
                 }
@@ -770,6 +777,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_body_lyt.setVisibility(View.GONE);
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.GONE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.GONE);
+                menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
                 menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.GONE);
                 menu_option_tracking_activation_lyt.setVisibility(View.GONE);
             }
@@ -786,6 +794,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             menu_option_tracking_body_lyt.setVisibility(View.GONE);
             menu_option_tracking_auto_listen_lyt.setVisibility(View.GONE);
             menu_option_tracking_invitation_lyt.setVisibility(View.GONE);
+            menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
             menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.GONE);
         }
         if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
@@ -807,6 +816,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_body_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                     menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
                 }
@@ -820,6 +830,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_body_lyt.setVisibility(View.GONE);
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.GONE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.GONE);
+                menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
                 menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.GONE);
             }
         });
@@ -868,6 +879,12 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchTrackingInvitationChatGpt.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setparam("Tracking_Invitation_ChatGpt",String.valueOf(b));
         });
+        //Tracking Timeout
+        switchTrackingTimeout.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch")));
+        switchTrackingTimeout.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
+            teamChatBuddyApplication.setparam("TRACKING_timeout_Switch",String.valueOf(b));
+        });
+
 
     }
     private void handlerLangue() {
@@ -1376,6 +1393,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             menu_option_tracking_auto_listen_textView.setText(R.string.menu_option_tracking_auto_listen_en);
             menu_option_tracking_invitation_textView.setText(R.string.menu_option_tracking_invitation_en);
             menu_option_tracking_invitation_chatGpt_textView.setText(R.string.menu_option_tracking_invitation_chatGpt_en);
+            menu_option_tracking_timeout_textView.setText(R.string.menu_option_tracking_timeout_en);
 
             menu_option_projectID_editText.setHint(R.string.menu_option_projectID_hint_en);
             if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
@@ -1408,6 +1426,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             menu_option_tracking_auto_listen_textView.setText(R.string.menu_option_tracking_auto_listen_fr);
             menu_option_tracking_invitation_textView.setText(R.string.menu_option_tracking_invitation_fr);
             menu_option_tracking_invitation_chatGpt_textView.setText(R.string.menu_option_tracking_invitation_chatGpt_fr);
+            menu_option_tracking_timeout_textView.setText(R.string.menu_option_tracking_timeout_fr);
 
             if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
                 menu_header_editText.setText(teamChatBuddyApplication.getparam(entete));
@@ -1440,6 +1459,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 translateAndSetTextView(R.string.menu_option_tracking_auto_listen_en,menu_option_tracking_auto_listen_textView,"");
                 translateAndSetTextView(R.string.menu_option_tracking_invitation_en,menu_option_tracking_invitation_textView,"");
                 translateAndSetTextView(R.string.menu_option_tracking_invitation_chatGpt_en,menu_option_tracking_invitation_chatGpt_textView,"");
+                translateAndSetTextView(R.string.menu_option_tracking_timeout_en,menu_option_tracking_timeout_textView,"");
 
                 if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
                     if(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete").equals("")){
@@ -1680,17 +1700,17 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     public void btnRefreshHeader(View view){
         if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
-                teamChatBuddyApplication.setparam(header,teamChatBuddyApplication.getParamFromFile(header,"TeamChatBuddy.properties"));
+                teamChatBuddyApplication.setparam(header,teamChatBuddyApplication.getParamFromFile("Chatgpt_header","TeamChatBuddy.properties"));
                 set.setHeader(teamChatBuddyApplication.getparam(header));
                 menu_header_editText.setText(teamChatBuddyApplication.getparam(header));
             }
             else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-                teamChatBuddyApplication.setparam(entete,teamChatBuddyApplication.getParamFromFile(entete,"TeamChatBuddy.properties"));
+                teamChatBuddyApplication.setparam(entete,teamChatBuddyApplication.getParamFromFile("Chatgpt_entete","TeamChatBuddy.properties"));
                 set.setHeader(teamChatBuddyApplication.getparam(entete));
                 menu_header_editText.setText(teamChatBuddyApplication.getparam(entete));
             }
             else {
-                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile(header,"TeamChatBuddy.properties"))
+                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Chatgpt_header","TeamChatBuddy.properties"))
                         .addOnSuccessListener(new OnSuccessListener<String>() {
                             @Override
                             public void onSuccess(String translatedText) {
