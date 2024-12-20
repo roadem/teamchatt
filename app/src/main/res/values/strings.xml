@@ -2,7 +2,7 @@
     <string name="app_name">TeamChatBuddy</string>
     <string name="path">/storage/emulated/0/</string>
     <string name="pathConfig">/storage/emulated/0/TeamChatBuddy/</string>
-    <string name="copyright">[Ver. 2.2.29] 2024©Teamnet - info@teamnet.fr</string>
+    <string name="copyright">[Ver. 2.2.30] 2024©Teamnet - info@teamnet.fr</string>
     <!-- Menu de paramètres -->
     <!-- Menu de paramètres french-->
     <string name="menu_title_fr">PARAMETRES</string>
@@ -34,6 +34,7 @@
     <string name="menu_option_tracking_auto_listen_fr">Activer l\'écoute automatique</string>
     <string name="menu_option_tracking_invitation_fr">Invitation</string>
     <string name="menu_option_tracking_invitation_chatGpt_fr">Invitation ChatGPT</string>
+    <string name="menu_option_tracking_timeout_fr">Activation du suivi timeout</string>
     <string name="menu_dialog_supported_languages_Android_STT_fr">Langues prises en charge</string>
 
 
@@ -67,6 +68,7 @@
     <string name="menu_option_tracking_auto_listen_en">Enable automatic listening</string>
     <string name="menu_option_tracking_invitation_en">Invitation</string>
     <string name="menu_option_tracking_invitation_chatGpt_en">ChatGPT invitation</string>
+    <string name="menu_option_tracking_timeout_en">Enabling timeout tracking</string>
     <string name="menu_dialog_supported_languages_Android_STT_en">Supported Languages</string>
 
     <!-- Menu de paramètres spanish-->
@@ -96,6 +98,7 @@
     <string name="menu_option_tracking_auto_listen_es">Activar la escucha automática</string>
     <string name="menu_option_tracking_invitation_es">Invitación</string>
     <string name="menu_option_tracking_invitation_chatGpt_es">Invitación ChatGPT</string>
+    <string name="menu_option_tracking_timeout_es">Habilitar el seguimiento del tiempo de espera</string>
     <string name="menu_dialog_supported_languages_Android_STT_es">Idiomas admitidos</string>
 
 
@@ -126,6 +129,7 @@
     <string name="menu_option_tracking_auto_listen_de">Automatisches Mithören aktivieren</string>
     <string name="menu_option_tracking_invitation_de">Einladung</string>
     <string name="menu_option_tracking_invitation_chatGpt_de">ChatGPT-Einladung</string>
+    <string name="menu_option_tracking_timeout_de">Aktivieren der Timeout-Verfolgung</string>
     <string name="menu_dialog_supported_languages_Android_STT_de">Unterstützte Sprachen</string>
 
 

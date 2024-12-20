@@ -168,6 +168,8 @@ public class ConfigurationFile {
             props.addPropertyComment("Options_Access", "");
             props.addPropertyComment("Options_Access","Options Access (Yes/No)");
             setProperty("Options_Access","No");
+            props.addPropertyComment("Number_clicks_options","Number of clicks to open options");
+            setProperty("Number_clicks_options","1");
 
             props.addPropertyComment("Start_Message","");
             props.addPropertyComment("Start_Message","Activates or deactivates the message spoken at the app's startup (Yes/No)");
@@ -185,8 +187,8 @@ public class ConfigurationFile {
             setProperty("Languages_available","Français /Anglais /Espagnol /Allemand /Italien /Japonais/Arabe /Chinois /Danois /Néerlandais /Norvégien");
             setProperty("Language_Code_Used_In_STT_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/cmn-Hans-CN/da-DK/nl-NL/no-NO");
             setProperty("Language_Code_Used_In_TTS_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
-            setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
-            setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/no-NO");
+            setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh/da-DK/nl-NL/nb-NO");
+            setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/nb-NO");
             setProperty("Language_Code_Used_In_Whisper","fr/en/es/de/it/ja/ar/zh/da/nl/no");
             setProperty("Language_Code_Used_In_Mlkit","fr/en/es/de/it/ja/ar/zh/da/nl/no");
 
@@ -212,8 +214,12 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Number_of_words","");
             props.addPropertyComment("Number_of_words","Minimum number of words in the response for activating language detection");
-            setProperty("Number_of_words","3");
+            setProperty("Number_of_words","5");
             setProperty("Detection_confidence_rate","90");
+
+            props.addPropertyComment("Maximum_Dialogs_in_Chat_Window","");
+            props.addPropertyComment("Maximum_Dialogs_in_Chat_Window","maximum number of dialogs displayed in the Chat window");
+            setProperty("Maximum_Dialogs_in_Chat_Window","100");
 
             props.addPropertyComment("Pattern_End_Phrase","");
             props.addPropertyComment("Pattern_End_Phrase","Set characters marking the end of a sentence using a regular expression for streaming TTS");
@@ -613,11 +619,12 @@ public class ConfigurationFile {
             //-------------------------- Tracking ---------------------------
             props.addPropertyComment("TRACKING_Camera","");
             props.addPropertyComment("TRACKING_Camera", "Tracking parameters");
-            props.addPropertyComment("TRACKING_Camera", "Enabling tracking with/without the camera, head, or body.");
+            props.addPropertyComment("TRACKING_Camera", "Enabling tracking with/without the camera, head, body or Tracking timeout.");
             setProperty("TRACKING_Camera","No");
             setProperty("TRACKING_Head","No");
             setProperty("TRACKING_Body","No");
             setProperty("WELCOME_hotword","Yes");
+            setProperty("TRACKING_timeout_Switch","Yes");
 
             props.addPropertyComment("TRACKING_watch","");
             props.addPropertyComment("TRACKING_watch", "Tracking is performed only if the robot detects that the target is looking at it");
