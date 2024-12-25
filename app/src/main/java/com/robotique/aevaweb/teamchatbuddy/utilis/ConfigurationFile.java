@@ -182,8 +182,8 @@ public class ConfigurationFile {
             setProperty("Number_listens","1");
 
             props.addPropertyComment("Language","");
-            props.addPropertyComment("Language","Languages available FR/EN/ES/DE");
-            setProperty("Language","FR");
+            props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand/Italien /Japonais/Arabe /Chinois /Danois /Néerlandais /Norvégien");
+            setProperty("Language","Français");
             setProperty("Languages_available","Français /Anglais /Espagnol /Allemand /Italien /Japonais/Arabe /Chinois /Danois /Néerlandais /Norvégien");
             setProperty("Language_Code_Used_In_STT_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/cmn-Hans-CN/da-DK/nl-NL/no-NO");
             setProperty("Language_Code_Used_In_TTS_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
