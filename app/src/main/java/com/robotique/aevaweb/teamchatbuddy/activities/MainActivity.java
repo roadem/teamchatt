@@ -413,10 +413,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         });
                     }
                     else if (isFirstLaunch && teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties") !=null && !teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties").isEmpty() &&teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                       mlKitIsDownloading=true;
                         playStartMessage(new IStartMessageCallback() {
                             @Override
                             public void onEnd(String s) {
                                 Log.e(TAG,"end of playing Start Message");
+                                mlKitIsDownloading=false;
                                 if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("no")){
                                     teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                                     reGroup.setTranslationY(1000);

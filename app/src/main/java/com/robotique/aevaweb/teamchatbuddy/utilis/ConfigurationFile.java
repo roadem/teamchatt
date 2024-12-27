@@ -217,9 +217,6 @@ public class ConfigurationFile {
             setProperty("Number_of_words","5");
             setProperty("Detection_confidence_rate","90");
 
-            props.addPropertyComment("Maximum_Dialogs_in_Chat_Window","");
-            props.addPropertyComment("Maximum_Dialogs_in_Chat_Window","maximum number of dialogs displayed in the Chat window");
-            setProperty("Maximum_Dialogs_in_Chat_Window","100");
 
             props.addPropertyComment("Pattern_End_Phrase","");
             props.addPropertyComment("Pattern_End_Phrase","Set characters marking the end of a sentence using a regular expression for streaming TTS");
@@ -249,6 +246,10 @@ public class ConfigurationFile {
             props.addPropertyComment("Chat_TextSize", "");
             props.addPropertyComment("Chat_TextSize", "Conversation window font size (between 20 and 50 px)");
             setProperty("Chat_TextSize","25");
+
+            props.addPropertyComment("Maximum_Dialogs_in_Chat_Window","");
+            props.addPropertyComment("Maximum_Dialogs_in_Chat_Window","maximum number of dialogs displayed in the Chat window");
+            setProperty("Maximum_Dialogs_in_Chat_Window","100");
 
             props.addPropertyComment("Mail_Sender", "");
             props.addPropertyComment("Mail_Sender", "Conversation sending email");
@@ -624,7 +625,7 @@ public class ConfigurationFile {
             setProperty("TRACKING_Head","No");
             setProperty("TRACKING_Body","No");
             setProperty("WELCOME_hotword","Yes");
-            setProperty("TRACKING_timeout_Switch","Yes");
+            setProperty("TRACKING_timeout_Switch","No");
 
             props.addPropertyComment("TRACKING_watch","");
             props.addPropertyComment("TRACKING_watch", "Tracking is performed only if the robot detects that the target is looking at it");

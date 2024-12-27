@@ -306,7 +306,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="end|center_vertical"
                                 android:gravity="center_vertical"
-                                android:background="@drawable/button_black_bg">
+                                android:background="@drawable/edit_text">
                                 <EditText
                                     android:id="@+id/header_editText"
                                     android:layout_width="match_parent"

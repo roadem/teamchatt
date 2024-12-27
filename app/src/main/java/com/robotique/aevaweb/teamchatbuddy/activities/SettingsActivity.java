@@ -1293,6 +1293,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                         set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
                     }
                 }
+                menu_header_editText.post(() -> menu_header_editText.requestLayout());
             }
             @Override
             public void afterTextChanged(Editable editable) {

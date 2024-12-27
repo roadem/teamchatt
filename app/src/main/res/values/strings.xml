@@ -34,7 +34,7 @@
     <string name="menu_option_tracking_auto_listen_fr">Activer l\'écoute automatique</string>
     <string name="menu_option_tracking_invitation_fr">Invitation</string>
     <string name="menu_option_tracking_invitation_chatGpt_fr">Invitation ChatGPT</string>
-    <string name="menu_option_tracking_timeout_fr">Activation du suivi timeout</string>
+    <string name="menu_option_tracking_timeout_fr">Activation du délai de suivi</string>
     <string name="menu_dialog_supported_languages_Android_STT_fr">Langues prises en charge</string>
 
 

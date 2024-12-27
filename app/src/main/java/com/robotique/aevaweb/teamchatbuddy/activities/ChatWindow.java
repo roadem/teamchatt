@@ -513,11 +513,12 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      */
     public void onClickClearConversation(View view){
         teamChatBuddyApplication.listSessionClear();
+        listRep.clear();
+        listRepGlobale.clear();
         adapter = new ReplicaListAdapter(teamChatBuddyApplication,initDataset());
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
-        listRep.clear();
-        listRepGlobale.clear();
+
 
 
     }
@@ -1339,9 +1340,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                     teamChatBuddyApplication.getListSession().add(session);
                     listRep.clear();
                     listRepGlobale.add(reponse);
-                    Replica[] mDataset = listRepGlobale.toArray(new Replica[0]);
-                    adapter.setData(mDataset);
-                    scroll();
+                    updateChat();
                 }
                 else{
                     //---> this function is called after finishing pronouncing a phrase from the response : we should add the new phrase to the already existing Replica
@@ -1359,9 +1358,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                         String formattedValue = decimalFormatter.format(Double.parseDouble(teamChatBuddyApplication.getparam("Total_cons")));
                         lastReplica.setPrix(formattedValue+" $");
                     }
-                    Replica[] mDataset = listRepGlobale.toArray(new Replica[0]);
-                    adapter.setData(mDataset);
-                    scroll();
+                    updateChat();
                 }
             }
 
