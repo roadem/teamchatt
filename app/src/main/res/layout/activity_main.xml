@@ -38,6 +38,7 @@
             android:clickable="true"
             android:elevation="0.8dp"
             android:background="@drawable/ellipse_closed"
+            android:visibility="invisible"
             android:onClick="btnOpenSettings">
             <ImageView
                 android:id="@+id/button_open_menu_settings"

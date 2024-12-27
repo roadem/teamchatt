@@ -220,7 +220,8 @@ public class Commande {
     }
 
     private Locale getCurrentLocale(){
-        String language =new Gson().fromJson(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()), Langue.class).getLanguageCode().replace("-","_");
+        List<String> langueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_STT");
+        String language = langueCode.get(teamChatBuddyApplication.getLangue().getId()-1).replace("-","_");
         Locale[] locales = Locale.getAvailableLocales();
         for (Locale locale : locales) {
             if (locale.toString().equals(language)) {
@@ -2006,80 +2007,6 @@ public class Commande {
                     }
                 });
             }
-            else if(teamChatBuddyApplication.getLangue().getNom().equals("Espagnol")){
-                translatePrompt(header, new ITranslationCallback() {
-                    @Override
-                    public void onTranslated(String translatedText) {
-                        teamChatBuddyApplication.setparam("Cabecera",translatedText);
-                        translate("CMD_HEADER", new ITranslationCallback() {
-                            @Override
-                            public void onTranslated(String translatedText) {
-                                String verifyMessage = verifyCmdMessages(translatedText);
-                                if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-
-                                    try {
-                                        // get the historic commandes :
-
-                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
-
-
-                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
-
-                                        JSONObject history1 = new JSONObject();
-                                        history1.put("role", "assistant");
-                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
-
-                                        existingHistoryArray.put(history1);
-                                        // Stocker la nouvelle version de l'historique
-                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-            else if(teamChatBuddyApplication.getLangue().getNom().equals("Allemand")){
-                translatePrompt(header, new ITranslationCallback() {
-                    @Override
-                    public void onTranslated(String translatedText) {
-                        teamChatBuddyApplication.setparam("Kopfzeile",translatedText);
-                        translate("CMD_HEADER", new ITranslationCallback() {
-                            @Override
-                            public void onTranslated(String translatedText) {
-                                String verifyMessage = verifyCmdMessages(translatedText);
-                                if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
-
-                                    try {
-                                        // get the historic commandes :
-
-                                        String jsonArrayString = teamChatBuddyApplication.getparam("messages");
-
-
-                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
-
-                                        JSONObject history1 = new JSONObject();
-                                        history1.put("role", "assistant");
-                                        history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
-
-                                        existingHistoryArray.put(history1);
-                                        // Stocker la nouvelle version de l'historique
-                                        teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
-                                }
-                            }
-                        });
-                    }
-                });
-            }
             else{
                 translatePrompt(header, new ITranslationCallback() {
                     @Override
@@ -2350,12 +2277,6 @@ public class Commande {
         else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr) ) {
             RoleBuddy = teamChatBuddyApplication.getparam("entete");
         }
-        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs) ) {
-            RoleBuddy = teamChatBuddyApplication.getparam("Cabecera");
-        }
-        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe) ){
-            RoleBuddy = teamChatBuddyApplication.getparam("Kopfzeile");
-        }
         else {
             RoleBuddy = teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete");
         }
@@ -2501,9 +2422,8 @@ public class Commande {
     public void CMD_LANGUE(String languageName){
         List<Langue> langues = new ArrayList<>();
         List<String> langueDisponible = teamChatBuddyApplication.getDisponibleLangue();
-        for (int i=1;i<langueDisponible.size();i++){
-            langues.add(new Gson().fromJson(teamChatBuddyApplication.getparam(langueDisponible.get(i-1)), Langue.class));
-            i++;
+        for (int i=0;i<langueDisponible.size();i++){
+            langues.add(new Gson().fromJson(teamChatBuddyApplication.getparam(langueDisponible.get(i)), Langue.class));
         }
         if (langues.isEmpty()){
             langues.add(new Gson().fromJson(teamChatBuddyApplication.getparam("Français"), Langue.class));
