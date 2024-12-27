@@ -369,7 +369,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         }
         if (teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties").isEmpty()
                 && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))!=0){
-            while (listRepGlobale.size() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))) {
+            while (listRepGlobale.size() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))*2) {
                 listRepGlobale.remove(0); // Supprime le premier élément
             }
         }
@@ -388,7 +388,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     private void updateChat(){
         if (teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties").isEmpty()
         && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))!=0){
-            while (listRepGlobale.size() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))) {
+            while (listRepGlobale.size() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))*2) {
                 listRepGlobale.remove(0); // Supprime le premier élément
             }
         }
