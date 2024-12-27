@@ -787,7 +787,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             currentToast.cancel();
         }
         if (SettingsActivity.modelDownloading || mlKitIsDownloading) {
-            setPreviousLanguage();
+            if(teamChatBuddyApplication.getparam("previousLanguage")!=null && !teamChatBuddyApplication.getparam("previousLanguage").trim().equals("")) {
+                setPreviousLanguage();
+            }
             if(timerDownloading!=null){
                 timerDownloading.cancel();
             }
@@ -2184,11 +2186,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             @Override
             public void onFinish() {
-                if(currentToast != null) currentToast.cancel();
-                launch_view.setVisibility(View.GONE);
-                Toast.makeText(getApplicationContext(), R.string.toast_message_error_downloading_en, Toast.LENGTH_LONG).show();
-                teamChatBuddyApplication.setLangue(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class));
-                setPreviousLanguage();
+                if(teamChatBuddyApplication.getparam("previousLanguage")!=null && !teamChatBuddyApplication.getparam("previousLanguage").trim().equals("")) {
+                    if (currentToast != null) currentToast.cancel();
+                    launch_view.setVisibility(View.GONE);
+                    Toast.makeText(getApplicationContext(), R.string.toast_message_error_downloading_en, Toast.LENGTH_LONG).show();
+                    teamChatBuddyApplication.setLangue(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class));
+                    setPreviousLanguage();
+                }
 
             }
         };

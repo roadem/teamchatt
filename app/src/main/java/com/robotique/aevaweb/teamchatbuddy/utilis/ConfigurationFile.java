@@ -182,9 +182,9 @@ public class ConfigurationFile {
             setProperty("Number_listens","1");
 
             props.addPropertyComment("Language","");
-            props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand/Italien /Japonais/Arabe /Chinois /Danois /Néerlandais /Norvégien");
+            props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
             setProperty("Language","Français");
-            setProperty("Languages_available","Français /Anglais /Espagnol /Allemand /Italien /Japonais/Arabe /Chinois /Danois /Néerlandais /Norvégien");
+            setProperty("Languages_available","Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
             setProperty("Language_Code_Used_In_STT_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/cmn-Hans-CN/da-DK/nl-NL/no-NO");
             setProperty("Language_Code_Used_In_TTS_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
             setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh/da-DK/nl-NL/nb-NO");
@@ -330,8 +330,8 @@ public class ConfigurationFile {
             props.addPropertyComment("header", "gpt-3.5-turbo : maximum_tokens = 4096");
             props.addPropertyComment("header", "gpt-4 : maximum_tokens = 8192");
 
-            props.addPropertyComment("header", "");
-            props.addPropertyComment("header","Customization of ChatGPT dialogues");
+            props.addPropertyComment("Chatgpt_header", "");
+            props.addPropertyComment("Chatgpt_header","Customization of ChatGPT dialogues");
             setProperty("Chatgpt_header","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
             setProperty("Chatgpt_entete","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
 
