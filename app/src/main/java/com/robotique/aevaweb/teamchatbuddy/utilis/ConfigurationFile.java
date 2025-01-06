@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 41; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 42; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -167,13 +167,13 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Options_Access", "");
             props.addPropertyComment("Options_Access","Options Access (Yes/No)");
-            setProperty("Options_Access","No");
+            setProperty("Options_Access","Yes");
             props.addPropertyComment("Number_clicks_options","Number of clicks to open options");
             setProperty("Number_clicks_options","1");
 
             props.addPropertyComment("Start_Message","");
             props.addPropertyComment("Start_Message","Activates or deactivates the message spoken at the app's startup (Yes/No)");
-            setProperty("Start_Message","YES");
+            setProperty("Start_Message","No");
             setProperty("Start_Message_fr","Bonjour je suis le robot Buddy de Blue Frog Robotics.");
             setProperty("Start_Message_en","Hello, I am Buddy, the robot from Blue Frog Robotics.");
             props.addPropertyComment("Listening_time","");
@@ -371,7 +371,7 @@ public class ConfigurationFile {
             setProperty("COMMAND_maxdialog","30");
 
 
-            setProperty( "COMMAND_Prompt_fr", "Mappe la demande avec une phrase suivante et répond avec la commande correspondante entre <> sinon rien : ");
+            setProperty( "COMMAND_Prompt_fr", "Tu es un assistant de commandes vocales. À partir de la phrase utilisateur, réponds uniquement par la commande correspondante entre <> si elle existe, sinon ne réponds rien. Ne fais aucun ajout ou explication. ");
 
             setProperty("CMD_fr_1","Qu'est-ce que tu sais faire ? <CMD_NONE>");
             setProperty("CMD_fr_2","Quel est ton niveau de batterie ? <CMD_BATTERIE>");
@@ -624,7 +624,7 @@ public class ConfigurationFile {
             setProperty("TRACKING_Camera","No");
             setProperty("TRACKING_Head","No");
             setProperty("TRACKING_Body","No");
-            setProperty("WELCOME_hotword","Yes");
+            setProperty("WELCOME_hotword","No");
             setProperty("TRACKING_timeout_Switch","No");
 
             props.addPropertyComment("TRACKING_watch","");
@@ -647,7 +647,7 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_Welcome","");
             props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
             props.addPropertyComment("TRACKING_Welcome", "Start Welcome");
-            setProperty("WELCOME_tracking","Yes");
+            setProperty("WELCOME_tracking","No");
             props.addPropertyComment("TRACKING_delay_welcome", "Delay in minuts to welcome after watching no one");
             setProperty("WELCOME_delay","2");
             props.addPropertyComment("TRACKING_duration_welcome", "the person looks at Buddy for 2 seconds to issue an invitation");
