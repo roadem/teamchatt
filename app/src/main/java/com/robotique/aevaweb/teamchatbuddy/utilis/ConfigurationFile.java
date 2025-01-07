@@ -415,7 +415,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
 
 
-            setProperty( "COMMAND_Prompt_en", "Map the request to a following phrase and responds with the corresponding command between <> otherwise nothing: ");
+            setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding command enclosed in <> if it exists; otherwise, do not respond at all. Do not add anything or provide any explanation. ");
 
             setProperty("CMD_en_1", "What can you do? <CMD_NONE>");
             setProperty("CMD_en_2", "What is your battery level? <CMD_BATTERIE>");
