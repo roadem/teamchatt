@@ -93,8 +93,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1429,9 +1431,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 Log.e(TAG,"filter = "+filters[i].replace("[", ""));
                 if (filters[i].contains("/")) {
                     if (outputPhrase.equalsIgnoreCase("")) {
-                        outputPhrase = inputPhrase.replace(filters[i].split("/")[0].replace("[", ""), filters[i].split("/")[1]);
+                        String[] parts = filters[i].split("/");
+                        String before = parts[0].replace("[", "");
+                        String after = parts.length > 1 ? parts[1] : "";
+                        outputPhrase = inputPhrase.replace(before, after);
                     } else {
-                        outputPhrase = outputPhrase.replace(filters[i].split("/")[0].replace("[", ""), filters[i].split("/")[1]);
+                        String[] parts = filters[i].split("/");
+                        String before = parts[0].replace("[", "");
+                        String after = parts.length > 1 ? parts[1] : "";
+                        outputPhrase = outputPhrase.replace(before, after);
                     }
                 }
                 Log.e(TAG,"outPutphrase = "+outputPhrase);
@@ -4328,20 +4336,27 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public String getPromptFromFile(String type,String fileName) {
         File directory = new File(getString(R.string.path), "TeamChatBuddy");
-        CustomProperties props = ConfigurationFile.props;
-        CustomProperties newProps = ConfigurationFile.loadproperties(directory, fileName, props);
+        File fileconfig = new File(directory, fileName);
 
         StringBuilder prompt = new StringBuilder();
 
-        // Iterate through the properties and concatenate commands
-        for (String param : newProps.stringPropertyNames()) {
-            if (param.startsWith(type)) {
-                String command = newProps.getProperty(param);
-                if (prompt.length() > 0) {
-                    prompt.append(" / ");  // Add the separator between commands
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileconfig))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Vérifier si la ligne correspond au type requis
+                if (line.startsWith(type) && line.contains("=")) {
+                    String[] parts = line.split("=", 2);
+                    if (parts.length > 1) {
+                        String command = parts[1].trim();
+                        if (prompt.length() > 0) {
+                            prompt.append(" / "); // Ajouter un séparateur entre les commandes
+                        }
+                        prompt.append(command.replace("\"", "")); // Retirer les guillemets si nécessaire
+                    }
                 }
-                prompt.append(command);
             }
+        } catch (IOException e) {
+            Log.e("MRA_prompt", "Erreur de lecture du fichier : " + e.getMessage());
         }
         Log.e("MRA_prompt","Prompt final : " + prompt.toString());
         return prompt.toString();  // Return the prompt as a single string

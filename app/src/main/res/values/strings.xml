@@ -2,7 +2,7 @@
     <string name="app_name">TeamChatBuddy</string>
     <string name="path">/storage/emulated/0/</string>
     <string name="pathConfig">/storage/emulated/0/TeamChatBuddy/</string>
-    <string name="copyright">[Ver. 2.2.30] 2024©Teamnet - info@teamnet.fr</string>
+    <string name="copyright">[Ver. 2.2.31] 2025©Teamnet - info@teamnet.fr</string>
     <!-- Menu de paramètres -->
     <!-- Menu de paramètres french-->
     <string name="menu_title_fr">PARAMETRES</string>
@@ -159,6 +159,7 @@
     <string name="error_mail_toast_en">Authentication failed: Incorrect authentication data.</string>
     <string name="mlkit_model_is_downloading_en">The language model of ML Kit is currently being downloaded. Please wait.</string>
     <string name="toast_message_error_downloading_en">Download failed, we will put the old language back</string>
+
 
     <!-- chatbot messages spanish-->
     <string name="chatBotNoFound_es">No se puede encontrar el chatbot</string>

@@ -2195,6 +2195,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     teamChatBuddyApplication.setLangue(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class));
                     setPreviousLanguage();
                 }
+                else{
+                    timerDownloading.start();
+                }
 
             }
         };

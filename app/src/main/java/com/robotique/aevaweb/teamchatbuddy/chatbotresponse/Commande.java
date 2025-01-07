@@ -2268,92 +2268,17 @@ public class Commande {
     }
     public void CMD_PROMPT(String prompt,int numberOfQuestion,String question){
         Log.e(TAG,prompt+numberOfQuestion);
-       String RoleBuddy;
-
-        // vérifie si la langue actuelle de l'application est l'anglais.
-        if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn) ){
-            RoleBuddy = teamChatBuddyApplication.getparam("header");
+        if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+            prompt = teamChatBuddyApplication.applyFilters(teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties"),prompt);
         }
-        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr) ) {
-            RoleBuddy = teamChatBuddyApplication.getparam("entete");
-        }
-        else {
-            RoleBuddy = teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete");
-        }
-        try {
-        String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
-        existingHistoryArray = new JSONArray(jsonArrayString);
-
         translatePrompt(prompt, new ITranslationCallback() {
             @Override
             public void onTranslated(String translatedText) {
 
-                try {
-                    Log.e("MRRM","translated prompt "+translatedText);
-                    if (existingHistoryArray.length() == 0){ Log.e("FCH", "existinghistory 0");
-                        JSONObject Role = new JSONObject();
-                        Role.put("role", "system");
-                        Role.put(content, RoleBuddy);
-                        existingHistoryArray.put(Role);
-
-                    }
-                    if (existingHistoryArray.length() != 0){
-                        Log.e("FCH","!!!!!existinghistory 0");
-
-
-                        try {
-                            String systemContent = null;
-                            // Parcourir les éléments du tableau
-                            for (int i = 0; i < existingHistoryArray.length(); i++) {
-                                JSONObject messageObject = existingHistoryArray.getJSONObject(i);
-
-                                // Vérifier si le rôle est "system"
-                                if (messageObject.getString("role").equals("system")) {
-                                    // Récupérer le contenu correspondant
-
-                                    systemContent = messageObject.getString("content");
-                                    Log.e("FCH","systemContent list "+systemContent);
-                                }
-                            }
-                            if (systemContent!=null && !systemContent.equalsIgnoreCase(translatedText)){
-//                                // Recherche de l'objet "system" dans le JSONArray
-//                                for (int i = 0; i < existingHistoryArray.length(); i++) {
-//                                    JSONObject roleObj = existingHistoryArray.getJSONObject(i);
-//                                    if (roleObj.has("role") && roleObj.getString("role").equals("system")) {
-//                                        // Mettre à jour la valeur de 'content' dans l'objet "system"
-//                                        roleObj.put(content, RoleBuddy);
-//                                        // Sortie de la boucle après la mise à jour
-//                                        break;
-//                                    }
-//                                }
-                                JSONObject Role = new JSONObject();
-                                Role.put("role", "system");
-                                Role.put(content, translatedText);
-                                existingHistoryArray.put(Role);
-                                teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
-                            }
-                        } catch (JSONException e) {
-                            Log.e("FCH","exception "+e);
-                            e.printStackTrace();
-                        }
-                        // define the role
-                    }
-
-
-                    teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;"+question+";SPLIT;"+numberOfQuestion);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
+                Log.e("MRRM", "translated prompt " + translatedText);
+                teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + translatedText + ";SPLIT;" + numberOfQuestion);
             }
         });
-
-        }
-        catch (JSONException e) {
-            Log.e("FCH","exception "+e);
-            e.printStackTrace();
-        }
-
 
     }
     public void CMD_DATE(){

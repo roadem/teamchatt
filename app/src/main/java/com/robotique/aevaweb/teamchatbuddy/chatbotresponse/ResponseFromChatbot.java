@@ -1430,6 +1430,9 @@ public class ResponseFromChatbot {
                                         .get(0).getAsJsonObject()
                                         .getAsJsonObject("message")
                                         .get("content").getAsString();
+                                if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
+                                    chatgptResponse = teamChatBuddyApplication.applyFilters(teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties"),chatgptResponse);
+                                }
                                 Log.d("CameraX", "Response: " + chatgptResponse);
                                     try {
 
