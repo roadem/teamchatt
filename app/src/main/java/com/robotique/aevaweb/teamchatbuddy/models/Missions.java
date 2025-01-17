@@ -1,5 +1,8 @@
 package com.robotique.aevaweb.teamchatbuddy.models;
 
+import android.util.Log;
+
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -65,15 +68,34 @@ public class Missions {
 
     public static String[] getTaskForTrigger( String trigger) {
         List<Missions> missions = loadMissionsFromJsonFile();
+        LevenshteinDistance levenshtein = new LevenshteinDistance();
+        Log.e("Commande","missions = "+missions.size());
+        String[] result = null;
+        int minDistance = Integer.MAX_VALUE;
+
         for (Missions mission : missions) {
-            if (mission.getTrigger().equalsIgnoreCase(trigger)) {
-                String [] result = new String[2];
+            int distance = levenshtein.apply(trigger.trim().toLowerCase(), mission.getTrigger().trim().toLowerCase());
+            Log.e("Commande","mission.getTrigger()= "+mission.getTrigger()+"  distance= "+distance);
+
+            // Si on trouve une correspondance exacte
+            if (distance == 0) {
+                result = new String[2];
                 result[0] = mission.getTask().substring("runActivity(".length(), mission.getTask().length() - 1);
                 result[1] = mission.getTrigger();
                 return result;
             }
+
+            // Sinon, on cherche le trigger avec la plus petite distance
+            if (distance < minDistance) {
+                minDistance = distance;
+                result = new String[2];
+                result[0] = mission.getTask().substring("runActivity(".length(), mission.getTask().length() - 1);
+                result[1] = mission.getTrigger();
+            }
         }
-        return null;
+
+        // Retourne le trigger le plus proche ou null si aucun trigger n'est trouvé
+        return result;
     }
 
     public String getName() {

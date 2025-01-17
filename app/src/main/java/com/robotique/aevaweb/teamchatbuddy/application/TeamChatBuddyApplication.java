@@ -259,6 +259,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private String imeiDevice;
     private String tokenHealysa;
     private boolean shouldLaunchListeningAfterGetingHotWord = true;
+    private boolean modeContinuousListeningON= false;
+    private boolean multiCommandsDetected= false;
+    private List<String> listOfCommandmustToHavePlayed;
+    public ArrayList<String> listOfQuestionInContinuousListeningMode = new ArrayList<>();
+    public ArrayList<String> listOfResponseInContinuousListeningMode = new ArrayList<>();
+    public ArrayList<String> listOfDetectedLanguagesOfResponseInContinuousListeningMode = new ArrayList<>();
+    public ArrayList<String> listOfEmotionsForQuestionInContinuousListeningMode = new ArrayList<>();
 
     public boolean isAlreadyChatting() {
         return alreadyChatting;
@@ -844,6 +851,30 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     public void setImeiDevice(String imeiDevice) {
         this.imeiDevice = imeiDevice;
+    }
+
+    public boolean isModeContinuousListeningON() {
+        return modeContinuousListeningON;
+    }
+
+    public void setModeContinuousListeningON(boolean modeContinuousListeningON) {
+        this.modeContinuousListeningON = modeContinuousListeningON;
+    }
+
+    public boolean isMultiCommandsDetected() {
+        return multiCommandsDetected;
+    }
+
+    public void setMultiCommandsDetected(boolean multiCommandsDetected) {
+        this.multiCommandsDetected = multiCommandsDetected;
+    }
+
+    public List<String> getListOfCommandmustToHavePlayed() {
+        return listOfCommandmustToHavePlayed;
+    }
+
+    public void setListOfCommandmustToHavePlayed(List<String> listOfCommandmustToHavePlayed) {
+        this.listOfCommandmustToHavePlayed = listOfCommandmustToHavePlayed;
     }
 
     /**
@@ -1507,17 +1538,18 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         else{
             Log.i(TAG_BLUEMIC_STREAMING,"startStreamingBlueMic(speech)");
             try {
-
-                activity.runOnUiThread( new Runnable() {
-                    @Override
-                    public void run() {
-                        listeningAnimation();
-                    }
-                });
-                alreadyGetAnswer = false;
-                questionNumber++;
-                currentEmotion="";
-                shouldPlayEmotion=false;
+                if (!isModeContinuousListeningON()) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listeningAnimation();
+                        }
+                    });
+                    alreadyGetAnswer = false;
+                    questionNumber++;
+                    currentEmotion = "";
+                    shouldPlayEmotion = false;
+                }
                 stopListening(activity);
 
                 getBlueMic().getmBlueMicService().startStreaming(
@@ -1781,11 +1813,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public STTTask startListeningCerence(Activity activity){
         Log.e("MRRR","startListeningFreeSpeechStt fonction start");
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
+        if (!isModeContinuousListeningON()) {
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+        }
         stopListening(activity);
+
         try {
             if (getParamFromFile("Language_Specification_STT",configurationFilePseudo).trim().equalsIgnoreCase("No")){
                 freeSpeechSttTask=BuddySDK.Speech.createCerenceFreeSpeechTask();
@@ -1892,16 +1927,18 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public void startListeningQuestion(Activity activity,String type) {
         Log.e(TAG,"startListeningFreeSpeechStt fonction start");
-        activity.runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                listeningAnimation();
-            }
-        });
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
+        if (!isModeContinuousListeningON()) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listeningAnimation();
+                }
+            });
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+        }
         stopListening(activity);
 
         if (getCurrentLanguage().equals("en")) {
@@ -1992,11 +2029,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         break;
                                     case SpeechRecognizer.ERROR_NO_MATCH:
                                         Log.d(TAG, "No match");
-                                        if (type.equalsIgnoreCase("startCycle")){
-                                            notifyObservers("SpeechRecognizerAttemptTimeout");
+                                        if (!isModeContinuousListeningON()) {
+                                            if (type.equalsIgnoreCase("startCycle")) {
+                                                notifyObservers("SpeechRecognizerAttemptTimeout");
+                                            } else {
+                                                notifyObservers("SpeechRecognizerTimeout");
+                                            }
                                         }
                                         else{
-                                            notifyObservers("SpeechRecognizerTimeout");
+                                            speechRecognizer.startListening(speechRecognizerIntent);
                                         }
                                         break;
                                     case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
@@ -2020,7 +2061,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         logErrorSTTAndroid(i,"Unknown error","Unknown error");
                                         break;
                                 }
-                               // speechRecognizer.startListening(speechRecognizerIntent);
 
                             }
 
@@ -2099,16 +2139,18 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public void startListeningQuestionWithGoogleApi(Activity activity){
         SttGoogleCallbackCalledOnce = false;
         activityTemp =activity;
-        activity.runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                listeningAnimation();
-            }
-        });
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
+        if (!isModeContinuousListeningON()) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listeningAnimation();
+                }
+            });
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+        }
         stopListening(activity);
         if (isRecording) {
             Log.d(TAG_STREAMING, "Already recording");
@@ -2139,17 +2181,19 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         Log.e("MRA","startWhisperRecording");
         alReadyHadSpoke=false;
         activityTemp =activity;
-        activity.runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                listeningAnimation();
-            }
-        });
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
-        stopListening(activity);
+        if (!isModeContinuousListeningON()) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listeningAnimation();
+                }
+            });
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+            stopListening(activity);
+        }
         if (isRecording) {
             Log.d(TAG_STREAMING, "Already recording");
             return;
@@ -2212,26 +2256,30 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             transcribeTask.execute(audioDataF); // Transcribe the audio
                         } else {
                             Log.d("MIDO", "volume est trop bas : " + Float.parseFloat(reponse.toString()));
-                            if (shouldRestartListening) {
-                            startWhisperRecording(activityTemp);
-                            } else {
-                                Log.e("ARR","stopWhisper restartNewCycle  shouldRestartNewCycle"+shouldRestartListening);
-                                if (shouldRestartNewCycle){
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartNewCycle");
-                                        }
-                                    });
+                            if (!isModeContinuousListeningON()) {
+                                if (shouldRestartListening) {
+                                    startWhisperRecording(activityTemp);
+                                } else {
+                                    Log.e("ARR", "stopWhisper restartNewCycle  shouldRestartNewCycle" + shouldRestartListening);
+                                    if (shouldRestartNewCycle) {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartNewCycle");
+                                            }
+                                        });
+                                    } else {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartListeningHotword");
+                                            }
+                                        });
+                                    }
                                 }
-                                else {
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartListeningHotword");
-                                        }
-                                    });
-                                }
+                            }
+                            else {
+                                startWhisperRecording(activityTemp);
                             }
                         }
                     }
@@ -2808,25 +2856,30 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             }
                         } else {
                             Log.d("MIDO", "volume est trop bas : " + Float.parseFloat(reponse.toString()));
-                            if (shouldRestartListening) {
-                                startListeningQuestionWithGoogleApi(activityTemp);
-                            } else {
-                                if (shouldRestartNewCycle){
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartNewCycle");
-                                        }
-                                    });
-                                }else {
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartListeningHotword");
-                                        }
-                                    });
-                                }
+                            if (!isModeContinuousListeningON()) {
+                                if (shouldRestartListening) {
+                                    startListeningQuestionWithGoogleApi(activityTemp);
+                                } else {
+                                    if (shouldRestartNewCycle) {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartNewCycle");
+                                            }
+                                        });
+                                    } else {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartListeningHotword");
+                                            }
+                                        });
+                                    }
 
+                                }
+                            }
+                            else {
+                                startListeningQuestionWithGoogleApi(activityTemp);
                             }
                         }
                     }

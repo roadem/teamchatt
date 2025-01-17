@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 42; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 43; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -371,7 +371,7 @@ public class ConfigurationFile {
             setProperty("COMMAND_maxdialog","30");
 
 
-            setProperty( "COMMAND_Prompt_fr", "Tu es un assistant de commandes vocales. À partir de la phrase utilisateur, réponds uniquement par la commande correspondante entre <> si elle existe, sinon ne réponds rien. Ne fais aucun ajout ou explication. ");
+            setProperty( "COMMAND_Prompt_fr", "Tu es un assistant de commandes vocales. À partir de la phrase utilisateur, réponds uniquement par les commandes correspondantes entre <> si elles existent, séparées par des espaces. Si aucune commande ne correspond, ne réponds rien. Ne fais aucun ajout ou explication. ");
 
             setProperty("CMD_fr_1","Qu'est-ce que tu sais faire ? <CMD_NONE>");
             setProperty("CMD_fr_2","Quel est ton niveau de batterie ? <CMD_BATTERIE>");
@@ -413,9 +413,11 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_40=arrête le comportement <CMD_STOP_BI>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_41=Lance le scénario aventure <CMD_SCEN aventure>");
 
 
-            setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding command enclosed in <> if it exists; otherwise, do not respond at all. Do not add anything or provide any explanation. ");
+            setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding commands enclosed in <> if they exist, separated by spaces. If no command matches, do not respond. Do not add any explanations or additional text. ");
 
             setProperty("CMD_en_1", "What can you do? <CMD_NONE>");
             setProperty("CMD_en_2", "What is your battery level? <CMD_BATTERIE>");
@@ -457,6 +459,8 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_37=Change the header <CMD_HEADER %HEADER%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_38=Stop the radio <CMD_STOP_RADIO>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_39=Stop the music <CMD_STOP_MUSIC>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_40=stop the behaviour <CMD_STOP_BI>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_41=Starts the adventure scenario <CMD_SCEN aventure>");
 
 
 
@@ -501,6 +505,9 @@ public class ConfigurationFile {
 
             setProperty( "CMD_RUN_fr", "D'accord, je vais lancer l'application [1] // L'application [1] n'existe pas " );
             setProperty( "CMD_RUN_en", "Ok I'll run the app [1] // Application [1] does not exist" );
+
+            setProperty( "CMD_SCEN_fr", "D'accord, je vais lancer le scénario [1] //" );
+            setProperty( "CMD_SCEN_en", "Ok I'll run the scenario [1] //" );
 
             setProperty( "CMD_DANCE_fr", "Ok je vais danser  // T'as vu comment je danse bien" );
             setProperty( "CMD_DANCE_en", "Ok I'm going to dance // Have you seen how well I dance" );
@@ -559,6 +566,9 @@ public class ConfigurationFile {
 
             setProperty( "CMD_HEADER_fr", "// L'en-tête est modifié" );
             setProperty( "CMD_HEADER_en", "// The header is changed" );
+
+            setProperty("CMD_STOP_BI_fr","Ok j’arrête le comportement// " );
+            setProperty("CMD_STOP_BI_en","Ok I'll stop the behaviour // ");
 
 
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
