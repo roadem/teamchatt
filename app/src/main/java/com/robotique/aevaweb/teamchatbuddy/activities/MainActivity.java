@@ -263,10 +263,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     boolean isConnected = true;
     private Toast currentToast;
     private IStartMessageCallback iStartMessageCallback;
+    private IMouthMessageCallback iMouthMessageCallback;
     public interface IStartMessageCallback {
         void onEnd(String s);
     }
-
+    public interface IMouthMessageCallback {
+        void onEnd(String s);
+    }
     private IMLKitDownloadCallback imlKitDownloadCallback = new IMLKitDownloadCallback() {
         @Override
         public void onDownloadEnd(boolean success,String english_or_french) {
@@ -975,6 +978,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     @Override
                     public void run() {
                         Log.d(TAG, "Mouth touched");
+                        String mouth_messages = teamChatBuddyApplication.getParamFromFile("Mouth_messages", "TeamChatBuddy.properties");
                         isSpeaking =false;
                         if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
                         if(handler!=null && runnable!=null){
@@ -1000,9 +1004,19 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             teamChatBuddyApplication.setSpeaking(true);
                             teamChatBuddyApplication.setModeContinuousListeningON(false);
                             if(!isListeningFreeSpeech ) {
-                                isListeningFreeSpeech=true;
-                                teamChatBuddyApplication.setActivityClosed(false);
-                                startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                if(mouth_messages!=null && mouth_messages.equalsIgnoreCase("Yes")){
+                                    speakMouthMessages("listen", new IMouthMessageCallback() {
+                                        @Override
+                                        public void onEnd(String s) {
+                                            teamChatBuddyApplication.setSpeaking(true);
+                                        }
+                                    });
+                                }
+                                else{
+                                    isListeningFreeSpeech=true;
+                                    teamChatBuddyApplication.setActivityClosed(false);
+                                    startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
+                                }
                             }
                         }
                         else if (teamChatBuddyApplication.getSpeaking() && !mlKitIsDownloading) {
@@ -1060,6 +1074,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
                                 teamChatBuddyApplication.traitementAudio(false);
                             }
+                            if(mouth_messages!=null && mouth_messages.equalsIgnoreCase("Yes")){
+                                speakMouthMessages("stop", new IMouthMessageCallback() {
+                                    @Override
+                                    public void onEnd(String s) {
+                                    }
+                                });
+                            }
                         }
                     }
                 });
@@ -1069,7 +1090,118 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         public void onRelease(FaceTouchData faceTouchData) throws RemoteException {}
     };
 
+    public void speakMouthMessages(String type, IMouthMessageCallback iMouthMessageCallback){
+        this.iMouthMessageCallback = iMouthMessageCallback;
+        if(type.equals("listen")){
+            String mouth_listen_fr = teamChatBuddyApplication.getParamFromFile("Mouth_listen_fr", "TeamChatBuddy.properties");
+            String mouth_listen_en =  teamChatBuddyApplication.getParamFromFile("Mouth_listen_en", "TeamChatBuddy.properties");
 
+            if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")) {
+                if(mouth_listen_en != null && !mouth_listen_en.isEmpty()){
+                    String[] englishMessages = mouth_listen_en.substring(1, mouth_listen_en.length() - 1).split("/");
+                    String randomMessageEN = englishMessages[random.nextInt(englishMessages.length)];
+                    Log.d(TAG_TRACKING, "Random English Message: " + randomMessageEN);
+                    teamChatBuddyApplication.setActivityClosed(false);
+                    speak(randomMessageEN, "INVITATION");
+                }
+                else {
+                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("ConfigFile do not contain English Invitation");
+                }
+            }
+            else if (teamChatBuddyApplication.getLangue().getNom().equals("Français")) {
+                if(mouth_listen_fr != null && !mouth_listen_fr.isEmpty()){
+                    String[] frenchMessages = mouth_listen_fr.substring(1, mouth_listen_fr.length() - 1).split("/");
+                    String randomMessagesFR = frenchMessages[random.nextInt(frenchMessages.length)];
+                    Log.d(TAG_TRACKING, "Random French Invitation: " + randomMessagesFR);
+                    teamChatBuddyApplication.setActivityClosed(false);
+                    speak(randomMessagesFR, "INVITATION");
+                }
+                else {
+                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("ConfigFile do not contain French Invitation");
+                }
+            }
+            else {
+                if(mouth_listen_en != null && !mouth_listen_en.isEmpty()){
+                    String[] englishMessages = mouth_listen_en.substring(1, mouth_listen_en.length() - 1).split("/");
+                    String randomMessagesEN = englishMessages[random.nextInt(englishMessages.length)];
+                    teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(randomMessagesEN)
+                            .addOnSuccessListener(new OnSuccessListener<String>() {
+                                @Override
+                                public void onSuccess(String translatedText) {
+                                    Log.d(TAG_TRACKING, "Translated Invitation: " + translatedText);
+                                    teamChatBuddyApplication.setActivityClosed(false);
+                                    speak(translatedText, "INVITATION");
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.d(TAG_TRACKING, "Translation failed, using English message : " + randomMessagesEN);
+                                    teamChatBuddyApplication.setActivityClosed(false);
+                                    speak(randomMessagesEN, "INVITATION");
+                                }
+                            });
+                }
+                else {
+                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("ConfigFile do not contain English Invitation");
+                }
+            }
+        }
+        else if( type.equals("stop")){
+            String Mouth_messages_fr = teamChatBuddyApplication.getParamFromFile("Mouth_messages_fr", "TeamChatBuddy.properties");
+            String Mouth_messages_en =  teamChatBuddyApplication.getParamFromFile("Mouth_messages_en", "TeamChatBuddy.properties");
+
+            if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")) {
+                if(Mouth_messages_en != null && !Mouth_messages_en.isEmpty()){
+                    String[] englishMessages = Mouth_messages_en.substring(1, Mouth_messages_en.length() - 1).split("/");
+                    String randomMessagesEN = englishMessages[random.nextInt(englishMessages.length)];
+                    Log.d(TAG_TRACKING, "Random English Invitation: " + randomMessagesEN);
+                    teamChatBuddyApplication.setActivityClosed(false);
+                    speak(randomMessagesEN, "INVITATION");
+                }
+                else {
+                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("ConfigFile do not contain English Invitation");
+                }
+            }
+            else if (teamChatBuddyApplication.getLangue().getNom().equals("Français")) {
+                if(Mouth_messages_fr != null && !Mouth_messages_fr.isEmpty()){
+                    String[] frenchMessages = Mouth_messages_fr.substring(1, Mouth_messages_fr.length() - 1).split("/");
+                    String randomMessagesFR = frenchMessages[random.nextInt(frenchMessages.length)];
+                    teamChatBuddyApplication.setActivityClosed(false);
+                    speak(randomMessagesFR, "INVITATION");
+                }
+                else {
+                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("ConfigFile do not contain French Invitation");
+                }
+            }
+            else {
+                if(Mouth_messages_en != null && !Mouth_messages_en.isEmpty()){
+                    String[] englishMessages = Mouth_messages_en.substring(1, Mouth_messages_en.length() - 1).split("/");
+                    String randomMessagesEN = englishMessages[random.nextInt(englishMessages.length)];
+                    teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(randomMessagesEN)
+                            .addOnSuccessListener(new OnSuccessListener<String>() {
+                                @Override
+                                public void onSuccess(String translatedText) {
+                                    Log.d(TAG_TRACKING, "Translated Invitation: " + translatedText);
+                                    teamChatBuddyApplication.setActivityClosed(false);
+                                    speak(translatedText, "INVITATION");
+                                }
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.d(TAG_TRACKING, "Translation failed, using English Invitation: " + randomMessagesEN);
+                                    teamChatBuddyApplication.setActivityClosed(false);
+                                    speak(randomMessagesEN, "INVITATION");
+                                }
+                            });
+                }
+                else {
+                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("ConfigFile do not contain English Invitation");
+                }
+            }
+        }
+    }
     /**
      * ----------------- Gestion de notifications ---------------------------
      */
@@ -1213,6 +1345,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 teamChatBuddyApplication.setQuestionNumber(teamChatBuddyApplication.getQuestionNumber() + 1);
                                 teamChatBuddyApplication.setQuestionTime(System.currentTimeMillis());
                                 BuddySDK.UI.setFacialExpression(FacialExpression.THINKING, 1);
+                                teamChatBuddyApplication.setLed("thinking");
                                 if (settingClass.getSwitchVisibility().equals("true")) {
                                     if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
                                         buddy_texte_qst.setText(String.format("I heard :  %s ", detectedSTTMessage));
@@ -1359,6 +1492,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     isSpeaking =false;
                     if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
                     if(iStartMessageCallback != null) iStartMessageCallback.onEnd("STARTMESSAGE_END");
+                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("MOUTHMESSAGE_END");
                 });
                 if(handler!=null && runnable!=null){
                     handler.removeCallbacks(runnable);
@@ -1441,6 +1575,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             isSpeaking =false;
                                             if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
                                             if(iStartMessageCallback != null) iStartMessageCallback.onEnd("STARTMESSAGE_END");
+                                            if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("MOUTHMESSAGE_END");
                                             if(handler!=null && runnable!=null){
                                                 handler.removeCallbacks(runnable);
                                                 handler.removeCallbacksAndMessages(null);
@@ -1518,6 +1653,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                     isSpeaking =false;
                                                     if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
                                                     if(iStartMessageCallback != null) iStartMessageCallback.onEnd("STARTMESSAGE_END");
+                                                    if(iMouthMessageCallback != null) iMouthMessageCallback.onEnd("MOUTHMESSAGE_END");
                                                     if(handler!=null && runnable!=null){
                                                         handler.removeCallbacks(runnable);
                                                         handler.removeCallbacksAndMessages(null);
@@ -1869,7 +2005,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             else if (message.contains( "showImage" )){
                 Log.i( TAG, "J'affiche une image" );
-                afficherPopupAvecBitmap( "/storage/emulated/0/TeamChatBuddy/"+message.split( ";SPLIT;" )[1] );
+                afficherPopupAvecBitmap( "/storage/emulated/0/"+message.split( ";SPLIT;" )[1]);
             }
 
             else if (message.equals( "closeImage" )){
@@ -2844,6 +2980,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         }
         else if (teamChatBuddyApplication.separator(teamChatBuddyApplication.getParamFromFile("BuddyFace_Thinking", "TeamChatBuddy.properties").trim().toLowerCase()).contains(emotion)){
             BuddySDK.UI.setFacialExpression(FacialExpression.THINKING,1);
+            teamChatBuddyApplication.setLed("thinking");
         }
         else if (teamChatBuddyApplication.separator(teamChatBuddyApplication.getParamFromFile("BuddyFace_Sick", "TeamChatBuddy.properties").trim().toLowerCase()).contains(emotion)){
             BuddySDK.UI.setFacialExpression(FacialExpression.SICK,1);
@@ -2856,6 +2993,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         }
         else if (teamChatBuddyApplication.separator(teamChatBuddyApplication.getParamFromFile("BuddyFace_Listening", "TeamChatBuddy.properties").trim().toLowerCase()).contains(emotion)){
             BuddySDK.UI.setFacialExpression(FacialExpression.LISTENING,1);
+            teamChatBuddyApplication.setLed("listening");
         }
         else if (teamChatBuddyApplication.separator(teamChatBuddyApplication.getParamFromFile("BuddyFace_Surprised", "TeamChatBuddy.properties").trim().toLowerCase()).contains(emotion)){
             BuddySDK.UI.setFacialExpression(FacialExpression.SURPRISED,1);
@@ -3607,7 +3745,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             TRACKING_WELCOME_PROMPT_EN = teamChatBuddyApplication.getParamFromFile("WELCOME_prompt_EN", "TeamChatBuddy.properties");
             TRACKING_WELCOME_MAX_TOKEN = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("WELCOME_maxtoken", "TeamChatBuddy.properties"));
             try {
-                TRACKING_TIMEOUT=Integer.parseInt(teamChatBuddyApplication.getParamFromFile("TRACKING_timeout","TeamChatBuddy.properties"));
+                TRACKING_TIMEOUT=Integer.parseInt(teamChatBuddyApplication.getparam("trackingTimeout"));
             }
             catch (Exception e){
                 TRACKING_TIMEOUT=0;

@@ -1354,6 +1354,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             setparam("Tracking_Activation", getParamFromFile("Tracking",configurationFilePseudo).toLowerCase());
         }
 
+
+        //Tracking Timeout
+        if (getparam("trackingTimeout").equals("")) {
+            setparam("trackingTimeout", getParamFromFile("TRACKING_timeout",configurationFilePseudo).toLowerCase());
+        }
+
         //Tracking camera display
         if (getparam("Tracking_Camera_Display").equals("")) {
             if (getParamFromFile("TRACKING_Camera",configurationFilePseudo).trim().equalsIgnoreCase("No")){
@@ -3343,6 +3349,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         public void onStart(String utteranceId) {
                             try {
                                 BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                setLed("speaking");
                             }
                             catch (Exception e){
                                 Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3415,6 +3422,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             else if (type.equals("storedResponse")){
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                    setLed("speaking");
                                 }
                                 catch (Exception e){
                                     Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3428,6 +3436,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             else {
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                    setLed("speaking");
                                 }
                                 catch (Exception e){
                                     Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3784,6 +3793,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         public void onStart() {
                             try {
                                 BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                setLed("speaking");
                             }
                             catch (Exception e){
                                 Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3891,6 +3901,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     else if (type.equals("storedResponse")){
                         try {
                             BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                            setLed("speaking");
                         }
                         catch (Exception ej){
                             Log.e(TAG,"BuddySDK Exception  "+ej);
@@ -3904,6 +3915,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     else {
                         try {
                             BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                            setLed("speaking");
                         }
                         catch (Exception ej){
                             Log.e(TAG,"BuddySDK Exception  "+ej);
@@ -4191,11 +4203,21 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      *                "off"       : pour la couleur BLACK #000000
      */
     public void setLed(String state)  {
+        Log.i(TAG, "setLed --- ["+state+"]");
         SystemClock.sleep(200);
         try {
             switch (state) {
                 case "listening":
-                    BuddySDK.USB.updateAllLed("#53B300", iUsbLedCommandRsp);
+                    String listen_color = getParamFromFile("Listen_color","TeamChatBuddy.properties");
+                    if(!listen_color.equals("")){
+                        String listenColorHex = getHexColorFromName(listen_color);
+                        if(listenColorHex!=null){
+                            BuddySDK.USB.updateAllLed(listenColorHex, iUsbLedCommandRsp);
+                        }
+                        else {
+                            BuddySDK.USB.updateAllLed("#008000", iUsbLedCommandRsp);
+                        }
+                    }
                     break;
                 case "neutral":
                     BuddySDK.USB.updateAllLed("#00D4D0", iUsbLedCommandRsp);
@@ -4203,10 +4225,55 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 case "off":
                     BuddySDK.USB.updateAllLed("#000000", iUsbLedCommandRsp);
                     break;
+                case "speaking":
+                    String speak_color = getParamFromFile("Listen_color","TeamChatBuddy.properties");
+                    if(!speak_color.equals("")){
+                        String speakColorHex = getHexColorFromName(speak_color);
+                        if(speakColorHex!=null){
+                            BuddySDK.USB.updateAllLed(speakColorHex, iUsbLedCommandRsp);
+                        }
+                        else {
+                            BuddySDK.USB.updateAllLed("#00D4D0", iUsbLedCommandRsp);
+                        }
+                    }
+                    break;
+                case "thinking":
+                    String think_color = getParamFromFile("Listen_color","TeamChatBuddy.properties");
+                    if(!think_color.equals("")){
+                        String thinkColorHex = getHexColorFromName(think_color);
+                        if(thinkColorHex!=null){
+                            BuddySDK.USB.updateAllLed(thinkColorHex, iUsbLedCommandRsp);
+                        }
+                        else {
+                            BuddySDK.USB.updateAllLed("#FFFF00", iUsbLedCommandRsp);
+                        }
+                    }
+                    break;
             }
             Log.i(TAG, "Changement de couleurs des LEDs ["+state+"]");
         } catch (Exception e) {
             Log.e(TAG, "Erreur pendant le changement de couleurs des LEDs ["+state+"]: "+e);
+        }
+    }
+
+    private String getHexColorFromName(String colorName) {
+        switch (colorName.toLowerCase()) {
+            case "blue":
+                return "#00D4D0";
+            case "green":
+                return "#008000";
+            case "yellow":
+                return "#FFFF00";
+            case "orange":
+                return "#FFA500";
+            case "red":
+                return "#FF0000";
+            case "purple":
+                return "#800080";
+            case "white":
+                return "#FFFFFF";
+            default:
+                return null; // Couleur inconnue
         }
     }
 

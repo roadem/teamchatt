@@ -1405,7 +1405,7 @@ public class ResponseFromChatbot {
                         public void run() {
                             saveBitmapToFile(bitmap,"capturedImage.png");
                             try {
-                                File capturedImage = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Images/capturedImage.png");
+                                File capturedImage = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/capturedImage.png");
                                 if(capturedImage!=null){
                                     url.put("url", capturedImage.getPath());
                                     imageDescription.put("image_url", url);
@@ -2114,7 +2114,7 @@ public class ResponseFromChatbot {
         FileOutputStream outputStream = null;
 
         try {
-            File fileImages = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Images/sent");
+            File fileImages = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy");
             if (!fileImages.exists() ) {
                 fileImages.mkdirs();
             }

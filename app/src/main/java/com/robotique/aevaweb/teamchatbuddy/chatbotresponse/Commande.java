@@ -33,6 +33,7 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
 import com.robotique.aevaweb.teamchatbuddy.utilis.BIPlayer;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IBehaviourCallBack;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ImageGenerator;
+import com.robotique.aevaweb.teamchatbuddy.utilis.MailSender;
 import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 import com.google.gson.GsonBuilder;
 
@@ -41,6 +42,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -92,6 +94,7 @@ public class Commande {
     SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
     SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm");
 
+    String subject="";
 
 
     public Commande(Activity activity){
@@ -336,7 +339,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_DATE();
+                                    CMD_DATE(getDescription(action));
                                 }
                             },2000);
 
@@ -346,7 +349,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_DATE();
+                                    CMD_DATE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -357,7 +360,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_DATE();
+                                    CMD_DATE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -378,7 +381,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_HEURE();
+                                    CMD_HEURE(getDescription(action));
                                 }
                             },2000);
 
@@ -388,7 +391,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_HEURE();
+                                    CMD_HEURE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -399,7 +402,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_HEURE();
+                                    CMD_HEURE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -1761,6 +1764,173 @@ public class Commande {
                     }
                 });
                 break;
+            case "CMD_SAVE_IMAGE":
+                is_command = true;
+                Log.i(TAG, action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_SAVE_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SAVE_IMAGE(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SAVE_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SAVE_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_SHOW_IMAGE":
+                is_command = true;
+                Log.i(TAG, action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_SHOW_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SHOW_IMAGE(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SHOW_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SHOW_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_DEL_IMAGE":
+                is_command = true;
+                Log.i(TAG, action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_DEL_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_DEL_IMAGE(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_DEL_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_DEL_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_MAIL":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_MAIL", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_MAIL(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_MAIL(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.setStartRecording(false);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_MAIL(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
             default:
                 is_command = false;
                 Log.i(TAG,"DEFAULT : "+ action);
@@ -1768,6 +1938,353 @@ public class Commande {
         return is_command;
     }
 
+    public void CMD_MAIL(String description) {
+        Log.i("HHO","CMD_MAIL  "+description);
+        String regex = "\\[([^\\]]+)\\]"; // Capture tout ce qui est entre [ ]
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(description);
+
+        String recipient = null;
+        String message = null;
+
+        // Extraire les deux valeurs entre crochets
+        if (matcher.find()) {
+            recipient = matcher.group(1);// Premier groupe capturé : nom du destinataire
+            if(recipient!=null){
+                recipient = recipient.toLowerCase();
+            }
+        }
+        if (matcher.find()) {
+            message = matcher.group(1); // Deuxième groupe capturé : message
+        }
+        // Afficher les résultats
+        if (recipient != null && message != null) {
+            Log.i("HHO","CMD_MAIL destinataire "+recipient);
+            Log.i("HHO","CMD_MAIL message  "+message);
+            String keyBase = "mail_";
+
+            // Chercher dans le fichier de configuration en gérant les inversions
+            String[] recipientParts = recipient.split(" |-"); // Découper le nom et prénom
+            List<String> possibleKeys = generatePossibleKeys(keyBase, recipientParts);
+
+            for (String key : possibleKeys) {
+
+                String email = teamChatBuddyApplication.getParamFromFile(key, configFile);
+                Log.i("HHO","CMD_MAIL email  "+email);
+                if (email != null) {
+                    if(teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
+                        subject = teamChatBuddyApplication.getParamFromFile("CMD_MAIL_subject_en",configFile);
+                    }
+                    else if(teamChatBuddyApplication.getLangue().getNom().equals(langueFr)){
+                        subject = teamChatBuddyApplication.getParamFromFile("CMD_MAIL_subject_fr",configFile);
+                    }
+                    else{
+                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("CMD_MAIL_subject_en",configFile)).addOnSuccessListener(new OnSuccessListener<String>() {
+                            @Override
+                            public void onSuccess(String translatedText) {
+                                subject = translatedText;
+                            }
+
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG,"translatedText exception  "+e);
+                            }
+                        });
+                    }
+                    // return email; // Retourner l'email si une clé correspondante est trouvée
+                    MailSender smtpService;
+                    smtpService = new MailSender(activity,message, email, subject);
+                    smtpService.execute();
+                    translate("CMD_MAIL", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                try {
+                                    // get the historic commandes :
+
+                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                                    JSONObject history1 = new JSONObject();
+                                    history1.put("role", "assistant");
+                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                    existingHistoryArray.put(history1);
+                                    // Stocker la nouvelle version de l'historique
+                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                            }
+                        }
+                    });
+                    break;
+                }
+            }
+        } else {
+            Log.i("HHO","CMD_MAIL Format invalide. Veuillez utiliser : CMD_MAIL [destinataire] [message]");
+        }
+    }
+
+    private static List<String> generatePossibleKeys(String keyBase, String[] parts) {
+        Log.i("HHO","generatePossibleKeys "+new Gson().toJson(parts));
+        List<String> keys = new ArrayList<>();
+        if (parts.length == 0) {
+            return keys; // Aucun élément, pas de clé à générer
+        }
+
+        // Générer toutes les permutations possibles pour n'importe quel ordre des parties du nom
+        generatePermutations(parts, 0, keys, keyBase);
+
+        Log.i("HHO", "Possible keys: " + new Gson().toJson(keys));
+        return keys;
+    }
+
+    /**
+     * Génère toutes les permutations d'un tableau `parts` et les ajoute à la liste `keys`.
+     */
+    private static void generatePermutations(String[] parts, int index, List<String> keys, String keyBase) {
+        if (index == parts.length - 1) {
+            // Ajouter une clé formée avec la permutation actuelle
+            keys.add(keyBase + String.join("-", parts).toLowerCase());
+            return;
+        }
+
+        for (int i = index; i < parts.length; i++) {
+            swap(parts, i, index);
+            generatePermutations(parts, index + 1, keys, keyBase);
+            swap(parts, i, index); // Revenir à l'état original
+        }
+    }
+
+    private static void swap(String[] array, int i, int j) {
+        String temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    public void CMD_DEL_IMAGE(String description) {
+        String directoryPath = "/storage/emulated/0/TeamChatBuddy/images/sent"; // Update with your directory path
+        boolean isDeleted = searchAndDeleteImage(directoryPath, description+".png");
+        if(!isDeleted){
+            isDeleted = searchAndDeleteImage("/storage/emulated/0/TeamChatBuddy/images/recv", description+".png");
+            if(!isDeleted){
+                translate("CMD_DEL_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMessage = verifyCmdMessages(translatedText);
+                        if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                            try {
+                                // get the historic commandes :
+
+                                String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                                JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                                JSONObject history1 = new JSONObject();
+                                history1.put("role", "assistant");
+                                history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                existingHistoryArray.put(history1);
+                                // Stocker la nouvelle version de l'historique
+                                teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+
+    public boolean searchAndDeleteImage(String directoryPath, String fileName) {
+        File directory = new File(directoryPath);
+        // Check if the directory exists and is a directory
+        if (!directory.exists() || !directory.isDirectory()) {
+            Log.e(TAG, "Invalid directory: " + directoryPath);
+            return false;
+        }
+        // Get a list of files in the directory
+        File[] files = directory.listFiles();
+
+        if (files == null || files.length == 0) {
+            Log.i(TAG, "No files found in the directory: " + directoryPath);
+            return false;
+        }
+
+        // Search for the file by name
+        for (File file : files) {
+            if (file.isFile() && file.getName().equals(fileName)) {
+                // Attempt to delete the file
+                if (file.delete()) {
+                    Log.i(TAG, "File deleted successfully: " + file.getAbsolutePath());
+                    return true;
+                } else {
+                    Log.e(TAG, "Failed to delete file: " + file.getAbsolutePath());
+                    return false;
+                }
+            }
+        }
+        Log.i(TAG, "File not found: " + fileName);
+        return false;
+    }
+
+    public void CMD_SHOW_IMAGE(String description) {
+        Log.e("HHO", "CMD_SHOW: description "+description);
+
+        // Define the two directories to search
+        String sentDirectoryPath = Environment.getExternalStorageDirectory() + "/TeamChatBuddy/images/sent";
+        String recvDirectoryPath = Environment.getExternalStorageDirectory() + "/TeamChatBuddy/images/recv";
+        boolean found = false;
+        // Check in "sent" directory
+        File sentDirectory = new File(sentDirectoryPath);
+        File foundImage = findImageInDirectory(sentDirectory, description+".png");
+        if (foundImage != null) {
+            found = true;
+            Log.e("HHO", "CMD_SHOW: foundImage "+foundImage);
+            teamChatBuddyApplication.notifyObservers("showImage;SPLIT;TeamChatBuddy/images/sent/"+foundImage.getName());
+        }
+
+        // Check in "recv" directory
+        if(!found){
+            File recvDirectory = new File(recvDirectoryPath);
+            foundImage = findImageInDirectory(recvDirectory, description+".png");
+            if (foundImage != null) {
+                Log.e("HHO", "CMD_SHOW: foundImage 1 "+foundImage);
+                found = true;
+                teamChatBuddyApplication.notifyObservers("showImage;SPLIT;TeamChatBuddy/images/recv/"+foundImage.getName());
+            }
+        }
+
+        if(!found){
+            translate("CMD_SHOW_IMAGE", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        try {
+                            // get the historic commandes :
+
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                    }
+                }
+            });
+        }
+
+    }
+
+    public File findImageInDirectory(File directory, String imageName) {
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile() && file.getName().equals(imageName)) {
+                    return file;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    public void CMD_SAVE_IMAGE(String description) {
+        Log.e("HHO", "CMD_SAVE: description "+description);
+        // Source file: the captured image
+        File sourceFile = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/capturedImage.png");
+
+        // Ensure the source file exists
+        if (!sourceFile.exists()) {
+            Log.e("HHO", "CMD_SAVE: No captured image found to save.");
+            translate("CMD_SAVE_IMAGE", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                    }
+                }
+            });
+            return;
+        }
+
+        // Target directory: TeamChatBuddy/images/sent/
+        File targetDir = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/images/sent");
+        if (!targetDir.exists()) {
+            boolean dirCreated = targetDir.mkdirs();
+            if (!dirCreated) {
+                Log.e("HHO", "CMD_SAVE: Failed to create target directory.");
+                return;
+            }
+        }
+
+        // Target file: Target directory + given file name
+        File targetFile = new File(targetDir, description + ".png");
+
+        // Perform the file copy
+        try (FileInputStream inputStream = new FileInputStream(sourceFile);
+             FileOutputStream outputStream = new FileOutputStream(targetFile)) {
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            Log.i("HHO", "CMD_SAVE: Successfully saved the captured image as " + targetFile.getAbsolutePath());
+            translate("CMD_SAVE_IMAGE", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        try {
+                            // get the historic commandes :
+
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                    }
+                }
+            });
+
+        } catch (IOException e) {
+            Log.e("HHO", "CMD_SAVE: Failed to save the image.", e);
+        }
+    }
 
     public void CMD_STOP_RADIO(){
         if (radioPlayer != null) {
@@ -2408,8 +2925,13 @@ public class Commande {
         });
 
     }
-    public void CMD_DATE(){
-        String date = new SimpleDateFormat("EEEE d MMMM yyyy", getCurrentLocale()).format(new Date());
+    public void CMD_DATE(String descritpion){
+        Log.i(TAG," cmd_date "+descritpion);
+        String format = "EEEE d MMMM yyyy";
+        if(!descritpion.equals("")){
+            format = descritpion;
+        }
+        String date = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
         Log.i(TAG, date);
         translate("CMD_DATE", new ITranslationCallback() {
             @Override
@@ -2439,8 +2961,13 @@ public class Commande {
             }
         });
     }
-    public void CMD_HEURE(){
-        String heure = new SimpleDateFormat("h:mm", getCurrentLocale()).format(new Date());
+    public void CMD_HEURE(String descritpion){
+        Log.i("HHO"," cmd_heure "+descritpion);
+        String format = "h:mm";
+        if(!descritpion.equals("")){
+            format = descritpion;
+        }
+        String heure = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
         Log.i(TAG, heure);
         translate("CMD_HOUR", new ITranslationCallback() {
             @Override
@@ -4899,8 +5426,17 @@ public class Commande {
                             String urlImage = imageObject.getString("url");
 
                             Log.i( TAG, "CMD IMAGE "+ description + " URL : " + urlImage  );
-                            String filename = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(new Date())+".png";
-                            @SuppressLint("StaticFieldLeak") ImageGenerator imageDownloader = new ImageGenerator(teamChatBuddyApplication, filename ) {
+                            String filename = description+".png";
+                            @SuppressLint("StaticFieldLeak") ImageGenerator imageDownloader = new ImageGenerator(teamChatBuddyApplication, filename,
+                                    new ImageGenerator.ImageSaveCallback() {
+                                        @Override
+                                        public void onImageSaved(String savedFileName) {
+                                            if (savedFileName != null) {
+                                                Log.i( "HHO", "onImageSaved "+ savedFileName);
+                                                teamChatBuddyApplication.notifyObservers("showImage;SPLIT;TeamChatBuddy/images/recv/"+savedFileName);
+                                            }
+                                        }
+                                    }) {
                                 @Override
                                 protected void onPostExecute(Bitmap bitmap) {
                                     super.onPostExecute(bitmap);
@@ -4933,7 +5469,6 @@ public class Commande {
 
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                 }
-                                                teamChatBuddyApplication.notifyObservers( "showImage;SPLIT;"+filename);
                                             }
                                         });
                                     }
