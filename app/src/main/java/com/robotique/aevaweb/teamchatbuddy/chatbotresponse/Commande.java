@@ -2019,6 +2019,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2097,6 +2098,7 @@ public class Commande {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }
@@ -2189,6 +2191,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                     }
                 }
@@ -2222,6 +2225,7 @@ public class Commande {
                 public void onTranslated(String translatedText) {
                     String verifyMessage = verifyCmdMessages(translatedText);
                     if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                     }
                 }
@@ -2276,6 +2280,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                     }
                 }
@@ -2335,7 +2340,6 @@ public class Commande {
                             String jokeResponse = jsonObject.get("reponse").getAsString();
                             String points = new String(new char[x_points]).replace("\0", ".");
                             Log.i("HOO","joke "+ joke+" "+points+"  response "+jokeResponse);
-
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;"+joke+""+points+""+jokeResponse);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -2363,6 +2367,7 @@ public class Commande {
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
@@ -2399,6 +2404,7 @@ public class Commande {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
+                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                     }
                                 }
@@ -2433,6 +2439,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                             }
                         }
@@ -2504,6 +2511,7 @@ public class Commande {
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
+                                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                         }
                                     }
@@ -2538,6 +2546,7 @@ public class Commande {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
+                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                     }
                                 }
@@ -2572,6 +2581,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                             }
                         }
@@ -2611,7 +2621,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -2645,7 +2655,7 @@ public class Commande {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }
@@ -2680,7 +2690,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -2775,6 +2785,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2804,6 +2815,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                 }
                             }
@@ -2955,7 +2967,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",date));
                 }
             }
@@ -2993,6 +3005,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heure));
                 }
             }
@@ -3031,6 +3044,7 @@ public class Commande {
                     teamChatBuddyApplication.setparam(langue.getNom(),new Gson().toJson(langue));
                 }
                 if (langue.getNom().equalsIgnoreCase(languageName)) {
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CHANGE_LANGUE");
                 }
             }
@@ -3065,7 +3079,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -3099,6 +3113,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",batLevel+""));
                 }
             }
@@ -3133,7 +3148,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -3189,7 +3204,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -3255,7 +3270,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -3320,7 +3335,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -3368,6 +3383,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -3415,6 +3431,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", result[1].substring("TeamChatLaunch".length())));
                             }
                         }
@@ -3427,6 +3444,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMessage = verifyCmdMessages(translatedText);
                         if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                         }
                     }
@@ -3440,6 +3458,7 @@ public class Commande {
                 public void onTranslated(String translatedText) {
                     String verifyMessage = verifyCmdMessages(translatedText);
                     if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                     }
                 }
@@ -3480,6 +3499,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                     }
                 }
@@ -3555,6 +3575,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -3620,6 +3641,7 @@ public class Commande {
                                                                     } catch (JSONException e) {
                                                                         e.printStackTrace();
                                                                     }
+                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",descriptionTraduite).replace( "[3]", Integer.toString( temperature )));
                                                             }
                                                         }
@@ -3635,6 +3657,7 @@ public class Commande {
                                                         public void onTranslated(String translatedText) {
                                                             String verifyMessage = verifyCmdMessages(translatedText);
                                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
                                                             }
                                                         }
@@ -3667,7 +3690,7 @@ public class Commande {
                                                      } catch (JSONException e) {
                                                          e.printStackTrace();
                                                      }
-
+                                                 teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                  teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
                                              }
                                          }
@@ -3894,7 +3917,7 @@ public class Commande {
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
-
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
@@ -3906,6 +3929,7 @@ public class Commande {
                                         public void onTranslated(String translatedText) {
                                             String verifyMessage = verifyCmdMessages(translatedText);
                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[1]", biName[0]));
                                             }
                                         }
@@ -4068,7 +4092,7 @@ public class Commande {
                                                                 } catch (JSONException e) {
                                                                     e.printStackTrace();
                                                                 }
-
+                                                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                         }
                                                     }
@@ -4191,7 +4215,7 @@ public class Commande {
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
-
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]", hour));
                                                 }
                                             }
@@ -4203,6 +4227,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -4341,6 +4366,7 @@ public class Commande {
                                                                         } catch (JSONException e) {
                                                                             e.printStackTrace();
                                                                         }
+                                                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", tensionS).replace("[2]", tensionD).replace("[3]", hour));
                                                                     }
                                                                 }
@@ -4351,6 +4377,7 @@ public class Commande {
                                                                 public void onTranslated(String translatedText) {
                                                                     String verifyMessage = verifyCmdMessages(translatedText);
                                                                     if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                     }
                                                                 }
@@ -4382,6 +4409,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -4501,6 +4529,7 @@ public class Commande {
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", spo2).replace("[2]", hour));
                                                 }
                                             }
@@ -4512,6 +4541,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -4667,7 +4697,7 @@ public class Commande {
                                                                                                     } catch (JSONException e) {
                                                                                                         e.printStackTrace();
                                                                                                     }
-
+                                                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionS).replace("[3]",tensionD).replace("[4]",spo2));
                                                                                                 }
                                                                                             }
@@ -4681,6 +4711,7 @@ public class Commande {
                                                                                             public void onTranslated(String translatedText) {
                                                                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                                                 }
                                                                                             }
@@ -4706,6 +4737,7 @@ public class Commande {
                                                                             public void onTranslated(String translatedText) {
                                                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                                 }
                                                                             }
@@ -4731,6 +4763,7 @@ public class Commande {
                                                             public void onTranslated(String translatedText) {
                                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                 }
                                                             }
@@ -4757,6 +4790,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -4888,7 +4922,7 @@ public class Commande {
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
-
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
@@ -5022,7 +5056,7 @@ public class Commande {
                                                                                     } catch (JSONException e) {
                                                                                         e.printStackTrace();
                                                                                     }
-
+                                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",description));
                                                                             }
                                                                         }
@@ -5208,6 +5242,7 @@ public class Commande {
                                                                     } catch (JSONException e) {
                                                                         e.printStackTrace();
                                                                     }
+                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                             }
                                                         }
@@ -5344,7 +5379,7 @@ public class Commande {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
-
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -5466,7 +5501,7 @@ public class Commande {
                                                         } catch (JSONException e) {
                                                             e.printStackTrace();
                                                         }
-
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                 }
                                             }
@@ -5536,7 +5571,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -5554,6 +5589,7 @@ public class Commande {
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -5603,7 +5639,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }
@@ -5669,7 +5705,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }

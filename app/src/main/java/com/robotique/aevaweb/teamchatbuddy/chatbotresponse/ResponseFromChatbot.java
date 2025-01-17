@@ -965,6 +965,7 @@ public class ResponseFromChatbot {
                                                             Log.e("Commande","commande= "+c);
                                                         }
                                                         teamChatBuddyApplication.setListOfCommandmustToHavePlayed(commandes);
+                                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(false);
                                                         String firstCommandToExecute =commandes.get(0);
                                                         if (commandes.size()>1){
                                                             teamChatBuddyApplication.setMultiCommandsDetected(true);

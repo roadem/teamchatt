@@ -1519,7 +1519,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     }
                                 }
                                 else {
-                                    responseFromChatbot.executeCommand();
+
+                                    if (teamChatBuddyApplication.isTimeToExecuteNextCommande()){
+                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(false);
+                                        Log.e("MRA_TEST","executeCommand TTS_SUCCESS");
+                                        responseFromChatbot.executeCommand();
+                                    }
+
                                 }
                             }
                             else {
@@ -1592,9 +1598,21 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                         });
                                                     }
                                                     else {
-                                                        if (teamChatBuddyApplication.getStartRecording()) {
-                                                            teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt()-1);
-                                                            startCycle();
+                                                        if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
+                                                            if (teamChatBuddyApplication.getStartRecording()) {
+                                                                Log.e(TAG, "startCycle TTS_success 2");
+                                                                teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
+                                                                startCycle();
+                                                            }
+                                                        }
+                                                        else {
+
+                                                            if (teamChatBuddyApplication.isTimeToExecuteNextCommande()){
+                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(false);
+                                                                Log.e("MRA_TEST","executeCommand TTS_SUCCESS");
+                                                                responseFromChatbot.executeCommand();
+                                                            }
+
                                                         }
                                                     }
                                                 }
@@ -1670,9 +1688,21 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                                 });
                                                             }
                                                             else {
-                                                                if (teamChatBuddyApplication.getStartRecording()) {
-                                                                    teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt()-1);
-                                                                    startCycle();
+                                                                if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
+                                                                    if (teamChatBuddyApplication.getStartRecording()) {
+                                                                        Log.e(TAG, "startCycle TTS_success 2");
+                                                                        teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
+                                                                        startCycle();
+                                                                    }
+                                                                }
+                                                                else {
+
+                                                                    if (teamChatBuddyApplication.isTimeToExecuteNextCommande()){
+                                                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(false);
+                                                                        Log.e("MRA_TEST","executeCommand TTS_SUCCESS");
+                                                                        responseFromChatbot.executeCommand();
+                                                                    }
+
                                                                 }
                                                             }
                                                         }
@@ -1972,6 +2002,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             teamChatBuddyApplication.notifyObservers("TTS_success");
                         }
                         else {
+                            Log.e("MRA_TEST","executeCommand commandResponse");
                             responseFromChatbot.executeCommand();
                         }
                     }

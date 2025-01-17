@@ -261,6 +261,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private boolean shouldLaunchListeningAfterGetingHotWord = true;
     private boolean modeContinuousListeningON= false;
     private boolean multiCommandsDetected= false;
+    private boolean timeToExecuteNextCommande = false;
     private List<String> listOfCommandmustToHavePlayed;
     public ArrayList<String> listOfQuestionInContinuousListeningMode = new ArrayList<>();
     public ArrayList<String> listOfResponseInContinuousListeningMode = new ArrayList<>();
@@ -867,6 +868,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     public void setMultiCommandsDetected(boolean multiCommandsDetected) {
         this.multiCommandsDetected = multiCommandsDetected;
+    }
+
+    public boolean isTimeToExecuteNextCommande() {
+        return timeToExecuteNextCommande;
+    }
+
+    public void setTimeToExecuteNextCommande(boolean timeToExecuteNextCommande) {
+        this.timeToExecuteNextCommande = timeToExecuteNextCommande;
     }
 
     public List<String> getListOfCommandmustToHavePlayed() {
