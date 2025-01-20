@@ -4412,7 +4412,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             return;
         }
         isFirstLaunch = true;
-        init();
+       // init();
     }
 
 
