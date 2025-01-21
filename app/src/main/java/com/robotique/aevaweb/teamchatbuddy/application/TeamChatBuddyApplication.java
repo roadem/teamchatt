@@ -3099,7 +3099,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 if(currentIndexText < texteToSpeakSplitted.length ){
 
                     Log.e("FCH_DEBUG", "call startSpeaking");
-
+                    setLed("speaking");
                     BuddySDK.Speech.startSpeaking(
                             texteToSpeakSplitted[currentIndexText],
                             expression,
@@ -4235,7 +4235,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     BuddySDK.USB.updateAllLed("#000000", iUsbLedCommandRsp);
                     break;
                 case "speaking":
-                    String speak_color = getParamFromFile("Listen_color","TeamChatBuddy.properties");
+                    String speak_color = getParamFromFile("Speak_color","TeamChatBuddy.properties");
                     if(!speak_color.equals("")){
                         String speakColorHex = getHexColorFromName(speak_color);
                         if(speakColorHex!=null){
@@ -4247,7 +4247,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     }
                     break;
                 case "thinking":
-                    String think_color = getParamFromFile("Listen_color","TeamChatBuddy.properties");
+                    String think_color = getParamFromFile("Think_color","TeamChatBuddy.properties");
                     if(!think_color.equals("")){
                         String thinkColorHex = getHexColorFromName(think_color);
                         if(thinkColorHex!=null){
