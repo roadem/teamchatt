@@ -1148,8 +1148,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
         }
         else if( type.equals("stop")){
-            String Mouth_messages_fr = teamChatBuddyApplication.getParamFromFile("Mouth_messages_fr", "TeamChatBuddy.properties");
-            String Mouth_messages_en =  teamChatBuddyApplication.getParamFromFile("Mouth_messages_en", "TeamChatBuddy.properties");
+            String Mouth_messages_fr = teamChatBuddyApplication.getParamFromFile("Mouth_speak_fr", "TeamChatBuddy.properties");
+            String Mouth_messages_en =  teamChatBuddyApplication.getParamFromFile("Mouth_speak_en", "TeamChatBuddy.properties");
 
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")) {
                 if(Mouth_messages_en != null && !Mouth_messages_en.isEmpty()){

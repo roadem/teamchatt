@@ -307,6 +307,7 @@ public class ConfigurationFile {
             setProperty("use_companion_when_stimulis_disabled","No");
 
             props.addPropertyComment("Listen_color","");
+            props.addPropertyComment("Listen_color","Colors");
             setProperty("Listen_color","green");
             setProperty("Think_color","yellow");
             setProperty("Speak_color","blue");
@@ -315,14 +316,14 @@ public class ConfigurationFile {
             setProperty("Mouth_messages","No");
 
             String[] Mouth_listen_fr = {"Comment puis-je vous aider ?/Que puis-je faire pour vous ?/Comment puis-je vous assister ?/Y a-t-il quelque chose avec laquelle je peux vous aider ?/Y a-t-il quelque chose que je peux faire pour vous ?/Comment puis-je vous soutenir ? Y a-t-il quelque chose avec laquelle je peux vous être utile ?"};
-            String[] Mouth_messages_fr = {"D'accord, j'arrête d'écouter/Très bien, je me tais/Pas de problème, je fais une pause/Compris, je n'écoute plus/Bien sûr, je suis en attente/Écoute désactivée"};
+            String[] Mouth_speak_fr = {"D'accord, j'arrête d'écouter/Très bien, je me tais/Pas de problème, je fais une pause/Compris, je n'écoute plus/Bien sûr, je suis en attente/Écoute désactivée"};
             setProperty("Mouth_listen_fr",Arrays.toString(Mouth_listen_fr));
-            setProperty("Mouth_messages_fr",Arrays.toString(Mouth_messages_fr));
+            setProperty("Mouth_speak_fr",Arrays.toString(Mouth_speak_fr));
 
             String[] Mouth_listen_en = {"How can I help you ?/What can I do for you ?/How may I assist you?/Is there anything you need help with?/Is there something I can do for you?/How can I support you? Is there anything I can help you with?"};
-            String[] Mouth_messages_en = {"Alright, I'll stop listening/Okay, I’ll go silent/No problem, I'm pausing/Got it, I'm not listening anymore/Sure thing, I'm on hold/Listening disabled"};
+            String[] Mouth_speak_en = {"Alright, I'll stop listening/Okay, I’ll go silent/No problem, I'm pausing/Got it, I'm not listening anymore/Sure thing, I'm on hold/Listening disabled"};
             setProperty("Mouth_listen_en",Arrays.toString(Mouth_listen_en));
-            setProperty("Mouth_messages_en",Arrays.toString(Mouth_messages_en));
+            setProperty("Mouth_speak_en",Arrays.toString(Mouth_speak_en));
 
             props.addPropertyComment("show_openAI_prices","");
             props.addPropertyComment("show_openAI_prices","Consumption Parameters");
@@ -616,8 +617,8 @@ public class ConfigurationFile {
             props.addPropertyComment("DATE_format", "");
             setProperty("DATE_format","");
             setProperty("HOUR_format","");
-            props.addPropertyComment("DATE_format", "EEEE d MMMM yyyy");
-            props.addPropertyComment("HOUR_format", "h:mm");
+            props.addPropertyComment("DATE_format", "Si le champ DATE_format est vide, il prend par défaut la valeur EEEE d MMMM yyyy");
+            props.addPropertyComment("HOUR_format", "Si le champ HOUR_format est vide, il prend par défaut la valeur h:mm");
 
             props.addPropertyComment("Image_URL","");
             setProperty( "Image_URL", "https://api.openai.com/" );

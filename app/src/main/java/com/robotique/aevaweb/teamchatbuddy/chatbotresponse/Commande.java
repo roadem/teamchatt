@@ -1600,7 +1600,6 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1611,7 +1610,6 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1621,7 +1619,6 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
@@ -1644,7 +1641,6 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1655,7 +1651,6 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1665,7 +1660,6 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
@@ -1688,7 +1682,6 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1699,7 +1692,6 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1709,7 +1701,6 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
@@ -1896,7 +1887,6 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1907,7 +1897,6 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1917,7 +1906,6 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
