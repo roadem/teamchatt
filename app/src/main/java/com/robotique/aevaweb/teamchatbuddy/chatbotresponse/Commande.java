@@ -90,6 +90,8 @@ public class Commande {
     private String langueEs = "Espagnol";
     private String langueDe = "Allemand";
     private JSONArray existingHistoryArray=new JSONArray();
+    String date="";
+    String heure="";
 
     SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
     SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm");
@@ -2059,6 +2061,7 @@ public class Commande {
 
     public void CMD_DEL_IMAGE(String description) {
         String directoryPath = "/storage/emulated/0/TeamChatBuddy/images/sent"; // Update with your directory path
+        description = description.replaceAll(" ","_");
         boolean isDeleted = searchAndDeleteImage(directoryPath, description+".png");
         if(!isDeleted){
             isDeleted = searchAndDeleteImage("/storage/emulated/0/TeamChatBuddy/images/recv", description+".png");
@@ -2130,7 +2133,7 @@ public class Commande {
 
     public void CMD_SHOW_IMAGE(String description) {
         Log.e("HHO", "CMD_SHOW: description "+description);
-
+        description = description.replaceAll(" ","_");
         // Define the two directories to search
         String sentDirectoryPath = Environment.getExternalStorageDirectory() + "/TeamChatBuddy/images/sent";
         String recvDirectoryPath = Environment.getExternalStorageDirectory() + "/TeamChatBuddy/images/recv";
@@ -2202,6 +2205,7 @@ public class Commande {
 
     public void CMD_SAVE_IMAGE(String description) {
         Log.e("HHO", "CMD_SAVE: description "+description);
+        description = description.replaceAll(" ","_");
         // Source file: the captured image
         File sourceFile = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/capturedImage.png");
 
@@ -2931,8 +2935,15 @@ public class Commande {
         if(!descritpion.equals("")){
             format = descritpion;
         }
-        String date = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
-        Log.i(TAG, date);
+
+        try{
+            date = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
+            Log.i(TAG, date);
+        }catch(Exception e){
+            Log.i(TAG, "Format de date invalide "+e);
+            date = new SimpleDateFormat("EEEE d MMMM yyyy", getCurrentLocale()).format(new Date());
+        }
+
         translate("CMD_DATE", new ITranslationCallback() {
             @Override
             public void onTranslated(String translatedText) {
@@ -2967,7 +2978,13 @@ public class Commande {
         if(!descritpion.equals("")){
             format = descritpion;
         }
-        String heure = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
+        try{
+            heure = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
+            Log.i(TAG, heure);
+        }catch(Exception e){
+            Log.i(TAG, "Format d'heure invalide "+e);
+            heure = new SimpleDateFormat("h:mm", getCurrentLocale()).format(new Date());
+        }
         Log.i(TAG, heure);
         translate("CMD_HOUR", new ITranslationCallback() {
             @Override
@@ -5449,7 +5466,7 @@ public class Commande {
                             String urlImage = imageObject.getString("url");
 
                             Log.i( TAG, "CMD IMAGE "+ description + " URL : " + urlImage  );
-                            String filename = description+".png";
+                            String filename = description.replaceAll(" ","_")+".png";
                             @SuppressLint("StaticFieldLeak") ImageGenerator imageDownloader = new ImageGenerator(teamChatBuddyApplication, filename,
                                     new ImageGenerator.ImageSaveCallback() {
                                         @Override

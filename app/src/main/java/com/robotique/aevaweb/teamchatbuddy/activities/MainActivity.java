@@ -1061,7 +1061,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 teamChatBuddyApplication.notifyObservers("end of timer");
                             }
                             else{
-                                teamChatBuddyApplication.setLed("Neutral");
                                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
                                 try {
                                     BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
@@ -1839,7 +1838,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     public void run() {
                         BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
                         BuddySDK.UI.stopListenAnimation();
-                        teamChatBuddyApplication.setLed("neutral");
                     }
                 });
             }
@@ -1860,7 +1858,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 Log.e(TAG,"Obtain audio transcription after the listening time has elapsed "+shouldRestartNewCycle);
                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
                 BuddySDK.UI.stopListenAnimation();
-                teamChatBuddyApplication.setLed("neutral");
                 teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
                 if (shouldRestartNewCycle.equals("true")) {
                     teamChatBuddyApplication.traitementAudio(true);
@@ -2167,7 +2164,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         public void run() {
                             BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
                             BuddySDK.UI.stopListenAnimation();
-                            teamChatBuddyApplication.setLed("neutral");
                         }
                     });
                     runnablePauseTime =new Runnable() {
@@ -2188,6 +2184,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 teamChatBuddyApplication.setQuestionNumber(teamChatBuddyApplication.getQuestionNumber() + 1);
                 teamChatBuddyApplication.setQuestionTime(System.currentTimeMillis());
                 BuddySDK.UI.setFacialExpression(FacialExpression.THINKING, 1);
+                teamChatBuddyApplication.setLed("thinking");
                 if (settingClass.getSwitchVisibility().equals("true")) {
                     if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
                         buddy_texte_qst.setText(String.format("I heard :  %s ", teamChatBuddyApplication.listOfQuestionInContinuousListeningMode.get(0)));
@@ -3024,7 +3021,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         }
         else if (teamChatBuddyApplication.separator(teamChatBuddyApplication.getParamFromFile("BuddyFace_Listening", "TeamChatBuddy.properties").trim().toLowerCase()).contains(emotion)){
             BuddySDK.UI.setFacialExpression(FacialExpression.LISTENING,1);
-            teamChatBuddyApplication.setLed("listening");
+            //teamChatBuddyApplication.setLed("listening");
         }
         else if (teamChatBuddyApplication.separator(teamChatBuddyApplication.getParamFromFile("BuddyFace_Surprised", "TeamChatBuddy.properties").trim().toLowerCase()).contains(emotion)){
             BuddySDK.UI.setFacialExpression(FacialExpression.SURPRISED,1);
@@ -4245,7 +4242,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             teamChatBuddyApplication.notifyObservers("end of timer");
                         }
                         else{
-                            teamChatBuddyApplication.setLed("Neutral");
                             BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
                             try {
                                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);

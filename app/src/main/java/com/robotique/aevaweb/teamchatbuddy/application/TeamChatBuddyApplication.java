@@ -1590,7 +1590,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         public void run() {
                                             notifyObservers("STTQuestion_success;"+text);
                                             BuddySDK.UI.stopListenAnimation();
-                                            setLed("neutral");
                                         }
                                     });
                                 }
@@ -1685,6 +1684,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             else{
 
                         try {
+                            setLed("listening");
                             speechRecognizer.startListening(speechRecognizerIntent2);
                             if(!isAppInstalled(getApplicationContext(),"com.google.android.googlequicksearchbox")) {
                                 showToast(toast_stt_android_indispo);
@@ -1762,6 +1762,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                             logErrorSTTAndroid(i,"Unknown error","Unknown error");
                                             break;
                                     }
+                                    setLed("listening");
                                     speechRecognizer.startListening(speechRecognizerIntent2);
                                 }
 
@@ -1774,6 +1775,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                     }
                                     else {
                                         Log.e(TAG, "Hotword result  size = 0 : " );
+                                        setLed("listening");
                                         speechRecognizer.startListening(speechRecognizerIntent2);
                                     }
                                 }
@@ -1877,7 +1879,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 "\nUtterance: " + result.getUtterance() +  //actual phrase pronounced by the user and recognised by free speech (google/cerence)
                                 "\nRule: " + result.getRule()); //the respective tag of the Uterrance, as described in the grammar
                         notifyObservers("STTQuestion_success;"+result.getUtterance());
-                        setLed("neutral");
 
                     }
                 }
@@ -1986,6 +1987,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         activity.runOnUiThread(() -> {
                     try {
+                        setLed("listening");
                         speechRecognizer.startListening(speechRecognizerIntent);
                         if(!isAppInstalled(getApplicationContext(),"com.google.android.googlequicksearchbox")) {
                             showToast(toast_stt_android_indispo);
@@ -2052,6 +2054,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                             }
                                         }
                                         else{
+                                            setLed("listening");
                                             speechRecognizer.startListening(speechRecognizerIntent);
                                         }
                                         break;
@@ -2087,13 +2090,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         Log.e(TAG, "question result onResults  : " + data.get(0));
                                         notifyObservers("STTQuestion_success;" + data.get(0));
                                         BuddySDK.UI.stopListenAnimation();
-                                        setLed("neutral");
                                     }else{
                                         Log.e(TAG, "question result onResults  : vide " + data.get(0));
                                     }
                                 }
                                 else {
                                     Log.e(TAG, "question result onResults size = 0 : " );
+                                    //setLed("listening");
                                     //speechRecognizer.startListening(speechRecognizerIntent);
                                 }
                             }
@@ -2108,7 +2111,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         Log.e(TAG, "question result onPartialResults  : " + data.get(0));
                                         notifyObservers("STTQuestion_success;" + data.get(0));
                                         BuddySDK.UI.stopListenAnimation();
-                                        setLed("neutral");
                                     }else{
                                         Log.e(TAG, "question result onPartialResults  : vide " + data.get(0));
                                     }
@@ -2183,6 +2185,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         String outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audioF.pcm";
 
         if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+            setLed("listening");
             audioRecord.startRecording();
             isRecording = true;
             currentState="";
@@ -2225,6 +2228,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         String outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audioF.pcm";
 
         if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+            setLed("listening");
             audioRecord.startRecording();
             isRecording = true;
             currentState="";
@@ -2502,7 +2506,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         Log.e("MRA","envoie traitement de la question");
                                         notifyObservers("STTQuestion_success;"+question);
                                         BuddySDK.UI.stopListenAnimation();
-                                        setLed("neutral");
                                     }
                                 });
                             }
@@ -2805,7 +2808,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     if (text != null && !text.isEmpty()) {
                         notifyObservers("STTQuestion_success;"+text);
                         BuddySDK.UI.stopListenAnimation();
-                        setLed("neutral");
                     }
                     else {
                         startListeningQuestionWithGoogleApi(activityTemp);
@@ -2988,7 +2990,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
         }
         if (!rightHottwordDetected){
-            if (speechRecognizer!=null && speechRecognizerIntent2 !=null) speechRecognizer.startListening(speechRecognizerIntent2);
+            if (speechRecognizer!=null && speechRecognizerIntent2 !=null) {
+                setLed("listening");
+                speechRecognizer.startListening(speechRecognizerIntent2);
+            }
 
         }
     }
@@ -3037,7 +3042,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         });
 
-        setLed("Neutral");
 
 
     }
@@ -3050,7 +3054,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         Log.i(TAG, "startVoiceRecorder");
         BuddySDK.UI.setFacialExpression(FacialExpression.LISTENING,1);
         BuddySDK.UI.startListenAnimation();
-        setLed("listening");
+        //setLed("listening");
 
     }
 
@@ -3058,7 +3062,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
         BuddySDK.UI.stopListenAnimation();
-        setLed("neutral");
 
     }
 
@@ -3099,7 +3102,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 if(currentIndexText < texteToSpeakSplitted.length ){
 
                     Log.e("FCH_DEBUG", "call startSpeaking");
-                    setLed("speaking");
+                    //setLed("speaking");
                     BuddySDK.Speech.startSpeaking(
                             texteToSpeakSplitted[currentIndexText],
                             expression,
@@ -3233,6 +3236,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @param expression : jouer un mouvement spécial de la bouche [SPEAK_ANGRY / NO_FACE / SPEAK_HAPPY / SPEAK_NEUTRAL]
      */
     public void speakTTS(final String texteToSpeak , LabialExpression expression, String type){
+        setLed("speaking");
         setAlreadyChatting(true);
         Log.e("MEHDI","texteToSpeak "+texteToSpeak);
         currentIndexText = 0;
@@ -3358,7 +3362,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         public void onStart(String utteranceId) {
                             try {
                                 BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                setLed("speaking");
                             }
                             catch (Exception e){
                                 Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3431,7 +3434,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             else if (type.equals("storedResponse")){
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                    setLed("speaking");
                                 }
                                 catch (Exception e){
                                     Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3445,7 +3447,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             else {
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                    setLed("speaking");
                                 }
                                 catch (Exception e){
                                     Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3802,7 +3803,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         public void onStart() {
                             try {
                                 BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                setLed("speaking");
                             }
                             catch (Exception e){
                                 Log.e(TAG,"BuddySDK Exception  "+e);
@@ -3910,7 +3910,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     else if (type.equals("storedResponse")){
                         try {
                             BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                            setLed("speaking");
                         }
                         catch (Exception ej){
                             Log.e(TAG,"BuddySDK Exception  "+ej);
@@ -3924,7 +3923,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     else {
                         try {
                             BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                            setLed("speaking");
                         }
                         catch (Exception ej){
                             Log.e(TAG,"BuddySDK Exception  "+ej);
@@ -4227,9 +4225,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             BuddySDK.USB.updateAllLed("#008000", iUsbLedCommandRsp);
                         }
                     }
-                    break;
-                case "neutral":
-                    BuddySDK.USB.updateAllLed("#00D4D0", iUsbLedCommandRsp);
                     break;
                 case "off":
                     BuddySDK.USB.updateAllLed("#000000", iUsbLedCommandRsp);
