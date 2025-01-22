@@ -459,7 +459,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 stopListeningFreeSpeech();
             }
             else {
-                teamChatBuddyApplication.setLed("neutral");
                 micro_btn.setImageResource(R.drawable.micro_off);
                 teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
                 Log.e("MEHDII","teamChatBuddyApplication.traitementAudio---------------------------------------");
@@ -694,6 +693,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                         listRep.add(question);
                         listRepGlobale.add(question);
                         updateChat();
+                        teamChatBuddyApplication.setLed("thinking");
                         teamChatBuddyApplication.setActivityClosed(false);
                         if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
                             if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
@@ -1080,7 +1080,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        teamChatBuddyApplication.setLed("neutral");
                         micro_btn.setImageResource(R.drawable.micro_off);
                     }
                 });
@@ -1102,7 +1101,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 String shouldRestartNewCycle = message.split(";SPLIT;")[1];
                 Log.e("ARR","Obtain audio transcription after the listening time has elapsed "+shouldRestartNewCycle);
                 micro_btn.setImageResource(R.drawable.micro_off);
-                teamChatBuddyApplication.setLed("neutral");
                 teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
                 if (shouldRestartNewCycle.equals("true")) {
                     teamChatBuddyApplication.traitementAudio(true);
@@ -1119,7 +1117,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        teamChatBuddyApplication.setLed("neutral");
                         micro_btn.setImageResource(R.drawable.micro_off);
                     }
                 });
@@ -1282,7 +1279,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
         if (timerEcoute!=null) timerEcoute.cancel();
         teamChatBuddyApplication.stopListening(this);
-        teamChatBuddyApplication.setLed("neutral");
         micro_btn.setImageResource(R.drawable.micro_off);
     }
 

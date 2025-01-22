@@ -259,6 +259,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private String imeiDevice;
     private String tokenHealysa;
     private boolean shouldLaunchListeningAfterGetingHotWord = true;
+    private boolean modeContinuousListeningON= false;
+    private boolean multiCommandsDetected= false;
+    private boolean timeToExecuteNextCommande = false;
+    private List<String> listOfCommandmustToHavePlayed;
+    public ArrayList<String> listOfQuestionInContinuousListeningMode = new ArrayList<>();
+    public ArrayList<String> listOfResponseInContinuousListeningMode = new ArrayList<>();
+    public ArrayList<String> listOfDetectedLanguagesOfResponseInContinuousListeningMode = new ArrayList<>();
+    public ArrayList<String> listOfEmotionsForQuestionInContinuousListeningMode = new ArrayList<>();
 
     public boolean isAlreadyChatting() {
         return alreadyChatting;
@@ -846,6 +854,38 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         this.imeiDevice = imeiDevice;
     }
 
+    public boolean isModeContinuousListeningON() {
+        return modeContinuousListeningON;
+    }
+
+    public void setModeContinuousListeningON(boolean modeContinuousListeningON) {
+        this.modeContinuousListeningON = modeContinuousListeningON;
+    }
+
+    public boolean isMultiCommandsDetected() {
+        return multiCommandsDetected;
+    }
+
+    public void setMultiCommandsDetected(boolean multiCommandsDetected) {
+        this.multiCommandsDetected = multiCommandsDetected;
+    }
+
+    public boolean isTimeToExecuteNextCommande() {
+        return timeToExecuteNextCommande;
+    }
+
+    public void setTimeToExecuteNextCommande(boolean timeToExecuteNextCommande) {
+        this.timeToExecuteNextCommande = timeToExecuteNextCommande;
+    }
+
+    public List<String> getListOfCommandmustToHavePlayed() {
+        return listOfCommandmustToHavePlayed;
+    }
+
+    public void setListOfCommandmustToHavePlayed(List<String> listOfCommandmustToHavePlayed) {
+        this.listOfCommandmustToHavePlayed = listOfCommandmustToHavePlayed;
+    }
+
     /**
      * initialisations
      */
@@ -1323,6 +1363,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             setparam("Tracking_Activation", getParamFromFile("Tracking",configurationFilePseudo).toLowerCase());
         }
 
+
+        //Tracking Timeout
+        if (getparam("trackingTimeout").equals("")) {
+            setparam("trackingTimeout", getParamFromFile("TRACKING_timeout",configurationFilePseudo).toLowerCase());
+        }
+
         //Tracking camera display
         if (getparam("Tracking_Camera_Display").equals("")) {
             if (getParamFromFile("TRACKING_Camera",configurationFilePseudo).trim().equalsIgnoreCase("No")){
@@ -1507,17 +1553,18 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         else{
             Log.i(TAG_BLUEMIC_STREAMING,"startStreamingBlueMic(speech)");
             try {
-
-                activity.runOnUiThread( new Runnable() {
-                    @Override
-                    public void run() {
-                        listeningAnimation();
-                    }
-                });
-                alreadyGetAnswer = false;
-                questionNumber++;
-                currentEmotion="";
-                shouldPlayEmotion=false;
+                if (!isModeContinuousListeningON()) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listeningAnimation();
+                        }
+                    });
+                    alreadyGetAnswer = false;
+                    questionNumber++;
+                    currentEmotion = "";
+                    shouldPlayEmotion = false;
+                }
                 stopListening(activity);
 
                 getBlueMic().getmBlueMicService().startStreaming(
@@ -1543,7 +1590,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         public void run() {
                                             notifyObservers("STTQuestion_success;"+text);
                                             BuddySDK.UI.stopListenAnimation();
-                                            setLed("neutral");
                                         }
                                     });
                                 }
@@ -1638,6 +1684,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             else{
 
                         try {
+                            setLed("listening");
                             speechRecognizer.startListening(speechRecognizerIntent2);
                             if(!isAppInstalled(getApplicationContext(),"com.google.android.googlequicksearchbox")) {
                                 showToast(toast_stt_android_indispo);
@@ -1715,6 +1762,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                             logErrorSTTAndroid(i,"Unknown error","Unknown error");
                                             break;
                                     }
+                                    setLed("listening");
                                     speechRecognizer.startListening(speechRecognizerIntent2);
                                 }
 
@@ -1727,6 +1775,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                     }
                                     else {
                                         Log.e(TAG, "Hotword result  size = 0 : " );
+                                        setLed("listening");
                                         speechRecognizer.startListening(speechRecognizerIntent2);
                                     }
                                 }
@@ -1781,11 +1830,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public STTTask startListeningCerence(Activity activity){
         Log.e("MRRR","startListeningFreeSpeechStt fonction start");
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
+        if (!isModeContinuousListeningON()) {
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+        }
         stopListening(activity);
+
         try {
             if (getParamFromFile("Language_Specification_STT",configurationFilePseudo).trim().equalsIgnoreCase("No")){
                 freeSpeechSttTask=BuddySDK.Speech.createCerenceFreeSpeechTask();
@@ -1827,7 +1879,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 "\nUtterance: " + result.getUtterance() +  //actual phrase pronounced by the user and recognised by free speech (google/cerence)
                                 "\nRule: " + result.getRule()); //the respective tag of the Uterrance, as described in the grammar
                         notifyObservers("STTQuestion_success;"+result.getUtterance());
-                        setLed("neutral");
 
                     }
                 }
@@ -1892,16 +1943,18 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public void startListeningQuestion(Activity activity,String type) {
         Log.e(TAG,"startListeningFreeSpeechStt fonction start");
-        activity.runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                listeningAnimation();
-            }
-        });
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
+        if (!isModeContinuousListeningON()) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listeningAnimation();
+                }
+            });
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+        }
         stopListening(activity);
 
         if (getCurrentLanguage().equals("en")) {
@@ -1934,6 +1987,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         activity.runOnUiThread(() -> {
                     try {
+                        setLed("listening");
                         speechRecognizer.startListening(speechRecognizerIntent);
                         if(!isAppInstalled(getApplicationContext(),"com.google.android.googlequicksearchbox")) {
                             showToast(toast_stt_android_indispo);
@@ -1992,11 +2046,16 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         break;
                                     case SpeechRecognizer.ERROR_NO_MATCH:
                                         Log.d(TAG, "No match");
-                                        if (type.equalsIgnoreCase("startCycle")){
-                                            notifyObservers("SpeechRecognizerAttemptTimeout");
+                                        if (!isModeContinuousListeningON()) {
+                                            if (type.equalsIgnoreCase("startCycle")) {
+                                                notifyObservers("SpeechRecognizerAttemptTimeout");
+                                            } else {
+                                                notifyObservers("SpeechRecognizerTimeout");
+                                            }
                                         }
                                         else{
-                                            notifyObservers("SpeechRecognizerTimeout");
+                                            setLed("listening");
+                                            speechRecognizer.startListening(speechRecognizerIntent);
                                         }
                                         break;
                                     case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
@@ -2020,7 +2079,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         logErrorSTTAndroid(i,"Unknown error","Unknown error");
                                         break;
                                 }
-                               // speechRecognizer.startListening(speechRecognizerIntent);
 
                             }
 
@@ -2032,13 +2090,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         Log.e(TAG, "question result onResults  : " + data.get(0));
                                         notifyObservers("STTQuestion_success;" + data.get(0));
                                         BuddySDK.UI.stopListenAnimation();
-                                        setLed("neutral");
                                     }else{
                                         Log.e(TAG, "question result onResults  : vide " + data.get(0));
                                     }
                                 }
                                 else {
                                     Log.e(TAG, "question result onResults size = 0 : " );
+                                    //setLed("listening");
                                     //speechRecognizer.startListening(speechRecognizerIntent);
                                 }
                             }
@@ -2053,7 +2111,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         Log.e(TAG, "question result onPartialResults  : " + data.get(0));
                                         notifyObservers("STTQuestion_success;" + data.get(0));
                                         BuddySDK.UI.stopListenAnimation();
-                                        setLed("neutral");
                                     }else{
                                         Log.e(TAG, "question result onPartialResults  : vide " + data.get(0));
                                     }
@@ -2099,16 +2156,18 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public void startListeningQuestionWithGoogleApi(Activity activity){
         SttGoogleCallbackCalledOnce = false;
         activityTemp =activity;
-        activity.runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                listeningAnimation();
-            }
-        });
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
+        if (!isModeContinuousListeningON()) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listeningAnimation();
+                }
+            });
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+        }
         stopListening(activity);
         if (isRecording) {
             Log.d(TAG_STREAMING, "Already recording");
@@ -2126,6 +2185,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         String outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audioF.pcm";
 
         if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+            setLed("listening");
             audioRecord.startRecording();
             isRecording = true;
             currentState="";
@@ -2139,17 +2199,19 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         Log.e("MRA","startWhisperRecording");
         alReadyHadSpoke=false;
         activityTemp =activity;
-        activity.runOnUiThread( new Runnable() {
-            @Override
-            public void run() {
-                listeningAnimation();
-            }
-        });
-        alreadyGetAnswer = false;
-        questionNumber++;
-        currentEmotion="";
-        shouldPlayEmotion=false;
-        stopListening(activity);
+        if (!isModeContinuousListeningON()) {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listeningAnimation();
+                }
+            });
+            alreadyGetAnswer = false;
+            questionNumber++;
+            currentEmotion = "";
+            shouldPlayEmotion = false;
+            stopListening(activity);
+        }
         if (isRecording) {
             Log.d(TAG_STREAMING, "Already recording");
             return;
@@ -2166,6 +2228,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         String outputFile = Environment.getExternalStorageDirectory().getAbsolutePath() + "/audioF.pcm";
 
         if (audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+            setLed("listening");
             audioRecord.startRecording();
             isRecording = true;
             currentState="";
@@ -2212,26 +2275,30 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             transcribeTask.execute(audioDataF); // Transcribe the audio
                         } else {
                             Log.d("MIDO", "volume est trop bas : " + Float.parseFloat(reponse.toString()));
-                            if (shouldRestartListening) {
-                            startWhisperRecording(activityTemp);
-                            } else {
-                                Log.e("ARR","stopWhisper restartNewCycle  shouldRestartNewCycle"+shouldRestartListening);
-                                if (shouldRestartNewCycle){
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartNewCycle");
-                                        }
-                                    });
+                            if (!isModeContinuousListeningON()) {
+                                if (shouldRestartListening) {
+                                    startWhisperRecording(activityTemp);
+                                } else {
+                                    Log.e("ARR", "stopWhisper restartNewCycle  shouldRestartNewCycle" + shouldRestartListening);
+                                    if (shouldRestartNewCycle) {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartNewCycle");
+                                            }
+                                        });
+                                    } else {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartListeningHotword");
+                                            }
+                                        });
+                                    }
                                 }
-                                else {
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartListeningHotword");
-                                        }
-                                    });
-                                }
+                            }
+                            else {
+                                startWhisperRecording(activityTemp);
                             }
                         }
                     }
@@ -2439,7 +2506,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         Log.e("MRA","envoie traitement de la question");
                                         notifyObservers("STTQuestion_success;"+question);
                                         BuddySDK.UI.stopListenAnimation();
-                                        setLed("neutral");
                                     }
                                 });
                             }
@@ -2742,7 +2808,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     if (text != null && !text.isEmpty()) {
                         notifyObservers("STTQuestion_success;"+text);
                         BuddySDK.UI.stopListenAnimation();
-                        setLed("neutral");
                     }
                     else {
                         startListeningQuestionWithGoogleApi(activityTemp);
@@ -2808,25 +2873,30 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             }
                         } else {
                             Log.d("MIDO", "volume est trop bas : " + Float.parseFloat(reponse.toString()));
-                            if (shouldRestartListening) {
-                                startListeningQuestionWithGoogleApi(activityTemp);
-                            } else {
-                                if (shouldRestartNewCycle){
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartNewCycle");
-                                        }
-                                    });
-                                }else {
-                                    activityTemp.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            notifyObservers("restartListeningHotword");
-                                        }
-                                    });
-                                }
+                            if (!isModeContinuousListeningON()) {
+                                if (shouldRestartListening) {
+                                    startListeningQuestionWithGoogleApi(activityTemp);
+                                } else {
+                                    if (shouldRestartNewCycle) {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartNewCycle");
+                                            }
+                                        });
+                                    } else {
+                                        activityTemp.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                notifyObservers("restartListeningHotword");
+                                            }
+                                        });
+                                    }
 
+                                }
+                            }
+                            else {
+                                startListeningQuestionWithGoogleApi(activityTemp);
                             }
                         }
                     }
@@ -2920,7 +2990,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
         }
         if (!rightHottwordDetected){
-            if (speechRecognizer!=null && speechRecognizerIntent2 !=null) speechRecognizer.startListening(speechRecognizerIntent2);
+            if (speechRecognizer!=null && speechRecognizerIntent2 !=null) {
+                setLed("listening");
+                speechRecognizer.startListening(speechRecognizerIntent2);
+            }
 
         }
     }
@@ -2969,7 +3042,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         });
 
-        setLed("Neutral");
 
 
     }
@@ -2982,7 +3054,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         Log.i(TAG, "startVoiceRecorder");
         BuddySDK.UI.setFacialExpression(FacialExpression.LISTENING,1);
         BuddySDK.UI.startListenAnimation();
-        setLed("listening");
+        //setLed("listening");
 
     }
 
@@ -2990,7 +3062,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
         BuddySDK.UI.stopListenAnimation();
-        setLed("neutral");
 
     }
 
@@ -3031,7 +3102,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 if(currentIndexText < texteToSpeakSplitted.length ){
 
                     Log.e("FCH_DEBUG", "call startSpeaking");
-
+                    //setLed("speaking");
                     BuddySDK.Speech.startSpeaking(
                             texteToSpeakSplitted[currentIndexText],
                             expression,
@@ -3165,6 +3236,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @param expression : jouer un mouvement spécial de la bouche [SPEAK_ANGRY / NO_FACE / SPEAK_HAPPY / SPEAK_NEUTRAL]
      */
     public void speakTTS(final String texteToSpeak , LabialExpression expression, String type){
+        setLed("speaking");
         setAlreadyChatting(true);
         Log.e("MEHDI","texteToSpeak "+texteToSpeak);
         currentIndexText = 0;
@@ -4138,22 +4210,74 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      *                "off"       : pour la couleur BLACK #000000
      */
     public void setLed(String state)  {
+        Log.i(TAG, "setLed --- ["+state+"]");
         SystemClock.sleep(200);
         try {
             switch (state) {
                 case "listening":
-                    BuddySDK.USB.updateAllLed("#53B300", iUsbLedCommandRsp);
-                    break;
-                case "neutral":
-                    BuddySDK.USB.updateAllLed("#00D4D0", iUsbLedCommandRsp);
+                    String listen_color = getParamFromFile("Listen_color","TeamChatBuddy.properties");
+                    if(!listen_color.equals("")){
+                        String listenColorHex = getHexColorFromName(listen_color);
+                        if(listenColorHex!=null){
+                            BuddySDK.USB.updateAllLed(listenColorHex, iUsbLedCommandRsp);
+                        }
+                        else {
+                            BuddySDK.USB.updateAllLed("#008000", iUsbLedCommandRsp);
+                        }
+                    }
                     break;
                 case "off":
                     BuddySDK.USB.updateAllLed("#000000", iUsbLedCommandRsp);
+                    break;
+                case "speaking":
+                    String speak_color = getParamFromFile("Speak_color","TeamChatBuddy.properties");
+                    if(!speak_color.equals("")){
+                        String speakColorHex = getHexColorFromName(speak_color);
+                        if(speakColorHex!=null){
+                            BuddySDK.USB.updateAllLed(speakColorHex, iUsbLedCommandRsp);
+                        }
+                        else {
+                            BuddySDK.USB.updateAllLed("#00D4D0", iUsbLedCommandRsp);
+                        }
+                    }
+                    break;
+                case "thinking":
+                    String think_color = getParamFromFile("Think_color","TeamChatBuddy.properties");
+                    if(!think_color.equals("")){
+                        String thinkColorHex = getHexColorFromName(think_color);
+                        if(thinkColorHex!=null){
+                            BuddySDK.USB.updateAllLed(thinkColorHex, iUsbLedCommandRsp);
+                        }
+                        else {
+                            BuddySDK.USB.updateAllLed("#FFFF00", iUsbLedCommandRsp);
+                        }
+                    }
                     break;
             }
             Log.i(TAG, "Changement de couleurs des LEDs ["+state+"]");
         } catch (Exception e) {
             Log.e(TAG, "Erreur pendant le changement de couleurs des LEDs ["+state+"]: "+e);
+        }
+    }
+
+    private String getHexColorFromName(String colorName) {
+        switch (colorName.toLowerCase()) {
+            case "blue":
+                return "#00D4D0";
+            case "green":
+                return "#008000";
+            case "yellow":
+                return "#FFFF00";
+            case "orange":
+                return "#FFA500";
+            case "red":
+                return "#FF0000";
+            case "purple":
+                return "#800080";
+            case "white":
+                return "#FFFFFF";
+            default:
+                return null; // Couleur inconnue
         }
     }
 

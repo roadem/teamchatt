@@ -33,6 +33,7 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
 import com.robotique.aevaweb.teamchatbuddy.utilis.BIPlayer;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IBehaviourCallBack;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ImageGenerator;
+import com.robotique.aevaweb.teamchatbuddy.utilis.MailSender;
 import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 import com.google.gson.GsonBuilder;
 
@@ -41,6 +42,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -49,8 +51,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -86,10 +90,13 @@ public class Commande {
     private String langueEs = "Espagnol";
     private String langueDe = "Allemand";
     private JSONArray existingHistoryArray=new JSONArray();
+    String date="";
+    String heure="";
 
     SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
     SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm");
 
+    String subject="";
 
 
     public Commande(Activity activity){
@@ -99,20 +106,52 @@ public class Commande {
     }
 
 
-    public String regex(String text){
-        Matcher matcher = Pattern.compile("<(CMD_.*?)>|<(HEALYSA_.*?)>|<(SWITCHBOT_.*?)>").matcher(text);
+    public List<String> regex(String text) {
+        Log.e("Commande","regex================================================================ "+text);
+        String commande = extracCommandtBetweenPercent(text);
+        if (commande!=null){
+            if (teamChatBuddyApplication.getParamFromFile(commande,"TeamChatBuddy.properties")!=null) {
+                text = teamChatBuddyApplication.getParamFromFile(commande, "TeamChatBuddy.properties");
+                Log.e("Commande", "text= " + text);
+            }
+        }
+        List<String> matches = new ArrayList<>();
+        Pattern pattern = Pattern.compile("<(CMD_.*?)>|<(HEALYSA_.*?)>|<(SWITCHBOT_.*?)>");
+        Matcher matcher = pattern.matcher(text);
+
         Log.i("text", text);
-        if(matcher.find()){
+        while (matcher.find()) {
             String match = matcher.group(1) != null ? matcher.group(1) :
                     matcher.group(2) != null ? matcher.group(2) :
                             matcher.group(3);
 
-            Log.e("Commande", "match ="+match);
-            return match;
+            if (match != null) {
+                Log.e("Commande", "match = " + match);
+                matches.add(match);
+            }
         }
-        return "INCONNUE";
-    }
 
+        if (matches.isEmpty()) {
+            Log.e("Commande", "Aucune commande trouvée");
+            matches.add("INCONNUE");
+        }
+
+        return matches;
+    }
+    public String extracCommandtBetweenPercent(String text) {
+        // Définir le motif pour matcher la chaîne sous la forme <%.*?%>
+        Pattern pattern = Pattern.compile("<%(.*?)%>");
+        Matcher matcher = pattern.matcher(text);
+
+        // Vérifier si la chaîne correspond au motif
+        if (matcher.matches()) {
+            // Retourner le texte entre les %
+            return matcher.group(1);
+        }
+
+        // Retourner null si la chaîne ne correspond pas au motif
+        return null;
+    }
     public String getDescription(String text, Boolean isHealysa){
         int index;
         if(isHealysa) index = text.indexOf("HEALYSA_");
@@ -244,7 +283,7 @@ public class Commande {
         void onTranslated(String translatedText);
     }
 
-    public boolean start_action(@NonNull String action, int numberOfQuestion,String question){
+    public boolean start_action(@NonNull String action, int numberOfQuestion){
         boolean is_command;
         switch (action.split( " " )[0]){
             case "CMD_MUSIC":
@@ -302,7 +341,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_DATE();
+                                    CMD_DATE(getDescription(action));
                                 }
                             },2000);
 
@@ -312,7 +351,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_DATE();
+                                    CMD_DATE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -323,7 +362,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_DATE();
+                                    CMD_DATE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -344,7 +383,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_HEURE();
+                                    CMD_HEURE(getDescription(action));
                                 }
                             },2000);
 
@@ -354,7 +393,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_HEURE();
+                                    CMD_HEURE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -365,7 +404,7 @@ public class Commande {
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
-                                    CMD_HEURE();
+                                    CMD_HEURE(getDescription(action));
                                 }
                             },2000);
                         }
@@ -1468,7 +1507,7 @@ public class Commande {
                 is_command = true;
                 Log.i(TAG,action);
                 teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-                CMD_PROMPT(getDescription(action),numberOfQuestion,question);
+                CMD_PROMPT(getDescription(action),numberOfQuestion);
                 break;
             case "CMD_NONE":
                 is_command = false;
@@ -1563,7 +1602,6 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1574,7 +1612,6 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1584,7 +1621,6 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
@@ -1607,7 +1643,6 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1618,7 +1653,6 @@ public class Commande {
 
                         }
                         else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1628,7 +1662,6 @@ public class Commande {
                             },2000);
                         }
                         else if(verifyMusicMessage.equals("EMPTY")){
-                            teamChatBuddyApplication.setStartRecording(false);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         }
                         else {
@@ -1642,6 +1675,252 @@ public class Commande {
                     }
                 });
                 break;
+            case "CMD_STOP_BI":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_STOP_BI", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_BI();
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_BI();
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_STOP_BI();
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_SCEN":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_SCEN", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0].replace("[1]",getDescription(action)));
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SCEN(getDescription(action));
+                                }
+                            },5000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SCEN(getDescription(action));
+                                }
+                            },5000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SCEN(getDescription(action));
+                                }
+                            },5000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_SAVE_IMAGE":
+                is_command = true;
+                Log.i(TAG, action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_SAVE_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SAVE_IMAGE(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SAVE_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SAVE_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_SHOW_IMAGE":
+                is_command = true;
+                Log.i(TAG, action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_SHOW_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SHOW_IMAGE(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SHOW_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_SHOW_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_DEL_IMAGE":
+                is_command = true;
+                Log.i(TAG, action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_DEL_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_DEL_IMAGE(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_DEL_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_DEL_IMAGE(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
+            case "CMD_MAIL":
+                is_command = true;
+                Log.i(TAG,action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                translate("CMD_MAIL", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMusicMessage = verifyCmdMessages(translatedText);
+                        if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_MAIL(getDescription(action));
+                                }
+                            },2000);
+
+                        }
+                        else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_MAIL(getDescription(action));
+                                }
+                            },2000);
+                        }
+                        else if(verifyMusicMessage.equals("EMPTY")){
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
+                        }
+                        else {
+                            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CMD_MAIL(getDescription(action));
+                                }
+                            },2000);
+                        }
+                    }
+                });
+                break;
             default:
                 is_command = false;
                 Log.i(TAG,"DEFAULT : "+ action);
@@ -1649,6 +1928,360 @@ public class Commande {
         return is_command;
     }
 
+    public void CMD_MAIL(String description) {
+        Log.i("HHO","CMD_MAIL  "+description);
+        String regex = "\\[([^\\]]+)\\]"; // Capture tout ce qui est entre [ ]
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(description);
+
+        String recipient = null;
+        String message = null;
+
+        // Extraire les deux valeurs entre crochets
+        if (matcher.find()) {
+            recipient = matcher.group(1);// Premier groupe capturé : nom du destinataire
+            if(recipient!=null){
+                recipient = recipient.toLowerCase();
+            }
+        }
+        if (matcher.find()) {
+            message = matcher.group(1); // Deuxième groupe capturé : message
+        }
+        // Afficher les résultats
+        if (recipient != null && message != null) {
+            Log.i("HHO","CMD_MAIL destinataire "+recipient);
+            Log.i("HHO","CMD_MAIL message  "+message);
+            String keyBase = "mail_";
+
+            // Chercher dans le fichier de configuration en gérant les inversions
+            String[] recipientParts = recipient.split(" |-"); // Découper le nom et prénom
+            List<String> possibleKeys = generatePossibleKeys(keyBase, recipientParts);
+
+            for (String key : possibleKeys) {
+
+                String email = teamChatBuddyApplication.getParamFromFile(key, configFile);
+                Log.i("HHO","CMD_MAIL email  "+email);
+                if (email != null) {
+                    if(teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
+                        subject = teamChatBuddyApplication.getParamFromFile("CMD_MAIL_subject_en",configFile);
+                    }
+                    else if(teamChatBuddyApplication.getLangue().getNom().equals(langueFr)){
+                        subject = teamChatBuddyApplication.getParamFromFile("CMD_MAIL_subject_fr",configFile);
+                    }
+                    else{
+                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("CMD_MAIL_subject_en",configFile)).addOnSuccessListener(new OnSuccessListener<String>() {
+                            @Override
+                            public void onSuccess(String translatedText) {
+                                subject = translatedText;
+                            }
+
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG,"translatedText exception  "+e);
+                            }
+                        });
+                    }
+                    // return email; // Retourner l'email si une clé correspondante est trouvée
+                    MailSender smtpService;
+                    smtpService = new MailSender(activity,message, email, subject);
+                    smtpService.execute();
+                    translate("CMD_MAIL", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                try {
+                                    // get the historic commandes :
+
+                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                                    JSONObject history1 = new JSONObject();
+                                    history1.put("role", "assistant");
+                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                    existingHistoryArray.put(history1);
+                                    // Stocker la nouvelle version de l'historique
+                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                            }
+                        }
+                    });
+                    break;
+                }
+            }
+        } else {
+            Log.i("HHO","CMD_MAIL Format invalide. Veuillez utiliser : CMD_MAIL [destinataire] [message]");
+        }
+    }
+
+    private static List<String> generatePossibleKeys(String keyBase, String[] parts) {
+        Log.i("HHO","generatePossibleKeys "+new Gson().toJson(parts));
+        List<String> keys = new ArrayList<>();
+        if (parts.length == 0) {
+            return keys; // Aucun élément, pas de clé à générer
+        }
+
+        // Générer toutes les permutations possibles pour n'importe quel ordre des parties du nom
+        generatePermutations(parts, 0, keys, keyBase);
+
+        Log.i("HHO", "Possible keys: " + new Gson().toJson(keys));
+        return keys;
+    }
+
+    /**
+     * Génère toutes les permutations d'un tableau `parts` et les ajoute à la liste `keys`.
+     */
+    private static void generatePermutations(String[] parts, int index, List<String> keys, String keyBase) {
+        if (index == parts.length - 1) {
+            // Ajouter une clé formée avec la permutation actuelle
+            keys.add(keyBase + String.join("-", parts).toLowerCase());
+            return;
+        }
+
+        for (int i = index; i < parts.length; i++) {
+            swap(parts, i, index);
+            generatePermutations(parts, index + 1, keys, keyBase);
+            swap(parts, i, index); // Revenir à l'état original
+        }
+    }
+
+    private static void swap(String[] array, int i, int j) {
+        String temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    public void CMD_DEL_IMAGE(String description) {
+        String directoryPath = "/storage/emulated/0/TeamChatBuddy/images/sent"; // Update with your directory path
+        description = description.replaceAll(" ","_");
+        boolean isDeleted = searchAndDeleteImage(directoryPath, description+".png");
+        if(!isDeleted){
+            isDeleted = searchAndDeleteImage("/storage/emulated/0/TeamChatBuddy/images/recv", description+".png");
+            if(!isDeleted){
+                translate("CMD_DEL_IMAGE", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMessage = verifyCmdMessages(translatedText);
+                        if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                            try {
+                                // get the historic commandes :
+
+                                String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                                JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                                JSONObject history1 = new JSONObject();
+                                history1.put("role", "assistant");
+                                history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                                existingHistoryArray.put(history1);
+                                // Stocker la nouvelle version de l'historique
+                                teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+
+    public boolean searchAndDeleteImage(String directoryPath, String fileName) {
+        File directory = new File(directoryPath);
+        // Check if the directory exists and is a directory
+        if (!directory.exists() || !directory.isDirectory()) {
+            Log.e(TAG, "Invalid directory: " + directoryPath);
+            return false;
+        }
+        // Get a list of files in the directory
+        File[] files = directory.listFiles();
+
+        if (files == null || files.length == 0) {
+            Log.i(TAG, "No files found in the directory: " + directoryPath);
+            return false;
+        }
+
+        // Search for the file by name
+        for (File file : files) {
+            if (file.isFile() && file.getName().equals(fileName)) {
+                // Attempt to delete the file
+                if (file.delete()) {
+                    Log.i(TAG, "File deleted successfully: " + file.getAbsolutePath());
+                    return true;
+                } else {
+                    Log.e(TAG, "Failed to delete file: " + file.getAbsolutePath());
+                    return false;
+                }
+            }
+        }
+        Log.i(TAG, "File not found: " + fileName);
+        return false;
+    }
+
+    public void CMD_SHOW_IMAGE(String description) {
+        Log.e("HHO", "CMD_SHOW: description "+description);
+        description = description.replaceAll(" ","_");
+        // Define the two directories to search
+        String sentDirectoryPath = Environment.getExternalStorageDirectory() + "/TeamChatBuddy/images/sent";
+        String recvDirectoryPath = Environment.getExternalStorageDirectory() + "/TeamChatBuddy/images/recv";
+        boolean found = false;
+        // Check in "sent" directory
+        File sentDirectory = new File(sentDirectoryPath);
+        File foundImage = findImageInDirectory(sentDirectory, description+".png");
+        if (foundImage != null) {
+            found = true;
+            Log.e("HHO", "CMD_SHOW: foundImage "+foundImage);
+            teamChatBuddyApplication.notifyObservers("showImage;SPLIT;TeamChatBuddy/images/sent/"+foundImage.getName());
+        }
+
+        // Check in "recv" directory
+        if(!found){
+            File recvDirectory = new File(recvDirectoryPath);
+            foundImage = findImageInDirectory(recvDirectory, description+".png");
+            if (foundImage != null) {
+                Log.e("HHO", "CMD_SHOW: foundImage 1 "+foundImage);
+                found = true;
+                teamChatBuddyApplication.notifyObservers("showImage;SPLIT;TeamChatBuddy/images/recv/"+foundImage.getName());
+            }
+        }
+
+        if(!found){
+            translate("CMD_SHOW_IMAGE", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        try {
+                            // get the historic commandes :
+
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                    }
+                }
+            });
+        }
+
+    }
+
+    public File findImageInDirectory(File directory, String imageName) {
+        if (directory.exists() && directory.isDirectory()) {
+            for (File file : directory.listFiles()) {
+                if (file.isFile() && file.getName().equals(imageName)) {
+                    return file;
+                }
+            }
+        }
+        return null;
+    }
+
+
+    public void CMD_SAVE_IMAGE(String description) {
+        Log.e("HHO", "CMD_SAVE: description "+description);
+        description = description.replaceAll(" ","_");
+        // Source file: the captured image
+        File sourceFile = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/capturedImage.png");
+
+        // Ensure the source file exists
+        if (!sourceFile.exists()) {
+            Log.e("HHO", "CMD_SAVE: No captured image found to save.");
+            translate("CMD_SAVE_IMAGE", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
+                    }
+                }
+            });
+            return;
+        }
+
+        // Target directory: TeamChatBuddy/images/sent/
+        File targetDir = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/images/sent");
+        if (!targetDir.exists()) {
+            boolean dirCreated = targetDir.mkdirs();
+            if (!dirCreated) {
+                Log.e("HHO", "CMD_SAVE: Failed to create target directory.");
+                return;
+            }
+        }
+
+        // Target file: Target directory + given file name
+        File targetFile = new File(targetDir, description + ".png");
+
+        // Perform the file copy
+        try (FileInputStream inputStream = new FileInputStream(sourceFile);
+             FileOutputStream outputStream = new FileOutputStream(targetFile)) {
+
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            Log.i("HHO", "CMD_SAVE: Successfully saved the captured image as " + targetFile.getAbsolutePath());
+            translate("CMD_SAVE_IMAGE", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        try {
+                            // get the historic commandes :
+
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                    }
+                }
+            });
+
+        } catch (IOException e) {
+            Log.e("HHO", "CMD_SAVE: Failed to save the image.", e);
+        }
+    }
 
     public void CMD_STOP_RADIO(){
         if (radioPlayer != null) {
@@ -1666,6 +2299,14 @@ public class Commande {
             musicPlayer.release();
             musicPlayer = null;
         }
+    }
+    public void CMD_STOP_BI(){
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                BIPlayer.getInstance().stopBehaviour();
+            }
+        });
     }
 
 
@@ -1691,7 +2332,6 @@ public class Commande {
                             String jokeResponse = jsonObject.get("reponse").getAsString();
                             String points = new String(new char[x_points]).replace("\0", ".");
                             Log.i("HOO","joke "+ joke+" "+points+"  response "+jokeResponse);
-
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;"+joke+""+points+""+jokeResponse);
                             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                 @Override
@@ -1719,6 +2359,7 @@ public class Commande {
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
@@ -1755,6 +2396,7 @@ public class Commande {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
+                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                     }
                                 }
@@ -1789,6 +2431,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                             }
                         }
@@ -1860,6 +2503,7 @@ public class Commande {
                                             } catch (JSONException e) {
                                                 e.printStackTrace();
                                             }
+                                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                         }
                                     }
@@ -1894,6 +2538,7 @@ public class Commande {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
+                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                     }
                                 }
@@ -1928,6 +2573,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                             }
                         }
@@ -1967,7 +2613,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -2001,7 +2647,7 @@ public class Commande {
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }
@@ -2036,7 +2682,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -2131,6 +2777,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2160,6 +2807,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                 }
                             }
@@ -2266,7 +2914,7 @@ public class Commande {
 
 
     }
-    public void CMD_PROMPT(String prompt,int numberOfQuestion,String question){
+    public void CMD_PROMPT(String prompt,int numberOfQuestion){
         Log.e(TAG,prompt+numberOfQuestion);
         if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
             prompt = teamChatBuddyApplication.applyFilters(teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties"),prompt);
@@ -2281,9 +2929,21 @@ public class Commande {
         });
 
     }
-    public void CMD_DATE(){
-        String date = new SimpleDateFormat("EEEE d MMMM yyyy", getCurrentLocale()).format(new Date());
-        Log.i(TAG, date);
+    public void CMD_DATE(String descritpion){
+        Log.i(TAG," cmd_date "+descritpion);
+        String format = "EEEE d MMMM yyyy";
+        if(!descritpion.equals("")){
+            format = descritpion;
+        }
+
+        try{
+            date = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
+            Log.i(TAG, date);
+        }catch(Exception e){
+            Log.i(TAG, "Format de date invalide "+e);
+            date = new SimpleDateFormat("EEEE d MMMM yyyy", getCurrentLocale()).format(new Date());
+        }
+
         translate("CMD_DATE", new ITranslationCallback() {
             @Override
             public void onTranslated(String translatedText) {
@@ -2306,14 +2966,25 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",date));
                 }
             }
         });
     }
-    public void CMD_HEURE(){
-        String heure = new SimpleDateFormat("h:mm", getCurrentLocale()).format(new Date());
+    public void CMD_HEURE(String descritpion){
+        Log.i("HHO"," cmd_heure "+descritpion);
+        String format = "h:mm";
+        if(!descritpion.equals("")){
+            format = descritpion;
+        }
+        try{
+            heure = new SimpleDateFormat(format, getCurrentLocale()).format(new Date());
+            Log.i(TAG, heure);
+        }catch(Exception e){
+            Log.i(TAG, "Format d'heure invalide "+e);
+            heure = new SimpleDateFormat("h:mm", getCurrentLocale()).format(new Date());
+        }
         Log.i(TAG, heure);
         translate("CMD_HOUR", new ITranslationCallback() {
             @Override
@@ -2339,6 +3010,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heure));
                 }
             }
@@ -2377,6 +3049,7 @@ public class Commande {
                     teamChatBuddyApplication.setparam(langue.getNom(),new Gson().toJson(langue));
                 }
                 if (langue.getNom().equalsIgnoreCase(languageName)) {
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CHANGE_LANGUE");
                 }
             }
@@ -2411,7 +3084,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -2445,6 +3118,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",batLevel+""));
                 }
             }
@@ -2479,7 +3153,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -2535,7 +3209,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2601,7 +3275,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2666,7 +3340,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
-
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2714,6 +3388,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -2753,7 +3428,7 @@ public class Commande {
 
                                     JSONObject history1 = new JSONObject();
                                     history1.put("role", "assistant");
-                                    history1.put("content",translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
+                                    history1.put("content",translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", result[1].substring("TeamChatLaunch".length())));
 
                                     existingHistoryArray.put(history1);
                                     // Stocker la nouvelle version de l'historique
@@ -2761,7 +3436,8 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", result[1].substring("TeamChatLaunch".length())));
                             }
                         }
                     });
@@ -2773,6 +3449,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMessage = verifyCmdMessages(translatedText);
                         if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                         }
                     }
@@ -2786,12 +3463,53 @@ public class Commande {
                 public void onTranslated(String translatedText) {
                     String verifyMessage = verifyCmdMessages(translatedText);
                     if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", application));
                     }
                 }
             });
         }
 
+    }
+    public void CMD_SCEN(String scenario){
+        if (scenario!=null) {
+            Map<String, String> extra = new HashMap<>();
+            extra.put("fileName", scenario + ".json"); //(VALUE DOIT ETRE NON NULL)
+            BuddySDK.Companion.raiseEvent("LaunchPlayer", extra);
+            Log.w(TAG, "raiseEvent(LaunchPlayer," + extra.toString() + ") is called");
+
+        }
+        else {
+            Log.e(TAG, " scenario null ");
+            translate("CMD_SCEN", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                        try {
+                            // get the historic commandes :
+
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+
+
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content",translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                    }
+                }
+            });
+        }
     }
     public void CMD_DANCE(){
 
@@ -2862,6 +3580,7 @@ public class Commande {
                                     } catch (JSONException e) {
                                         e.printStackTrace();
                                     }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                             }
                         }
@@ -2927,6 +3646,7 @@ public class Commande {
                                                                     } catch (JSONException e) {
                                                                         e.printStackTrace();
                                                                     }
+                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",descriptionTraduite).replace( "[3]", Integer.toString( temperature )));
                                                             }
                                                         }
@@ -2942,6 +3662,7 @@ public class Commande {
                                                         public void onTranslated(String translatedText) {
                                                             String verifyMessage = verifyCmdMessages(translatedText);
                                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
                                                             }
                                                         }
@@ -2974,7 +3695,7 @@ public class Commande {
                                                      } catch (JSONException e) {
                                                          e.printStackTrace();
                                                      }
-
+                                                 teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                  teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",city).replace("[2]",description).replace( "[3]", Integer.toString( temperature )));
                                              }
                                          }
@@ -3201,7 +3922,7 @@ public class Commande {
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
-
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
@@ -3213,6 +3934,7 @@ public class Commande {
                                         public void onTranslated(String translatedText) {
                                             String verifyMessage = verifyCmdMessages(translatedText);
                                             if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[1]", biName[0]));
                                             }
                                         }
@@ -3375,7 +4097,7 @@ public class Commande {
                                                                 } catch (JSONException e) {
                                                                     e.printStackTrace();
                                                                 }
-
+                                                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                         }
                                                     }
@@ -3498,7 +4220,7 @@ public class Commande {
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
-
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]", hour));
                                                 }
                                             }
@@ -3510,6 +4232,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -3648,6 +4371,7 @@ public class Commande {
                                                                         } catch (JSONException e) {
                                                                             e.printStackTrace();
                                                                         }
+                                                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", tensionS).replace("[2]", tensionD).replace("[3]", hour));
                                                                     }
                                                                 }
@@ -3658,6 +4382,7 @@ public class Commande {
                                                                 public void onTranslated(String translatedText) {
                                                                     String verifyMessage = verifyCmdMessages(translatedText);
                                                                     if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                     }
                                                                 }
@@ -3689,6 +4414,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -3808,6 +4534,7 @@ public class Commande {
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]", spo2).replace("[2]", hour));
                                                 }
                                             }
@@ -3819,6 +4546,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -3974,7 +4702,7 @@ public class Commande {
                                                                                                     } catch (JSONException e) {
                                                                                                         e.printStackTrace();
                                                                                                     }
-
+                                                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",heart_rate).replace("[2]",tensionS).replace("[3]",tensionD).replace("[4]",spo2));
                                                                                                 }
                                                                                             }
@@ -3988,6 +4716,7 @@ public class Commande {
                                                                                             public void onTranslated(String translatedText) {
                                                                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                                                 }
                                                                                             }
@@ -4013,6 +4742,7 @@ public class Commande {
                                                                             public void onTranslated(String translatedText) {
                                                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                                 }
                                                                             }
@@ -4038,6 +4768,7 @@ public class Commande {
                                                             public void onTranslated(String translatedText) {
                                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                                 if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                                 }
                                                             }
@@ -4064,6 +4795,7 @@ public class Commande {
                                             public void onTranslated(String translatedText) {
                                                 String verifyMessage = verifyCmdMessages(translatedText);
                                                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]);
                                                 }
                                             }
@@ -4195,7 +4927,7 @@ public class Commande {
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
-
+                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                             }
                                         }
@@ -4329,7 +5061,7 @@ public class Commande {
                                                                                     } catch (JSONException e) {
                                                                                         e.printStackTrace();
                                                                                     }
-
+                                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[1]",description));
                                                                             }
                                                                         }
@@ -4515,6 +5247,7 @@ public class Commande {
                                                                     } catch (JSONException e) {
                                                                         e.printStackTrace();
                                                                     }
+                                                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                             }
                                                         }
@@ -4651,7 +5384,7 @@ public class Commande {
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
-
+                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                 }
                             }
@@ -4733,8 +5466,17 @@ public class Commande {
                             String urlImage = imageObject.getString("url");
 
                             Log.i( TAG, "CMD IMAGE "+ description + " URL : " + urlImage  );
-                            String filename = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(new Date())+".png";
-                            @SuppressLint("StaticFieldLeak") ImageGenerator imageDownloader = new ImageGenerator(teamChatBuddyApplication, filename ) {
+                            String filename = description.replaceAll(" ","_")+".png";
+                            @SuppressLint("StaticFieldLeak") ImageGenerator imageDownloader = new ImageGenerator(teamChatBuddyApplication, filename,
+                                    new ImageGenerator.ImageSaveCallback() {
+                                        @Override
+                                        public void onImageSaved(String savedFileName) {
+                                            if (savedFileName != null) {
+                                                Log.i( "HHO", "onImageSaved "+ savedFileName);
+                                                teamChatBuddyApplication.notifyObservers("showImage;SPLIT;TeamChatBuddy/images/recv/"+savedFileName);
+                                            }
+                                        }
+                                    }) {
                                 @Override
                                 protected void onPostExecute(Bitmap bitmap) {
                                     super.onPostExecute(bitmap);
@@ -4764,10 +5506,9 @@ public class Commande {
                                                         } catch (JSONException e) {
                                                             e.printStackTrace();
                                                         }
-
+                                                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                                                 }
-                                                teamChatBuddyApplication.notifyObservers( "showImage;SPLIT;"+filename);
                                             }
                                         });
                                     }
@@ -4835,7 +5576,7 @@ public class Commande {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -4853,6 +5594,7 @@ public class Commande {
             public void onTranslated(String translatedText) {
                 String verifyMessage = verifyCmdMessages(translatedText);
                 if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                    teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                 }
             }
@@ -4902,7 +5644,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }
@@ -4968,7 +5710,7 @@ public class Commande {
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
-
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
                         }
                     }

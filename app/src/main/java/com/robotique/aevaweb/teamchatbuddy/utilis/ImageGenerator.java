@@ -16,18 +16,22 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+
 
 public class ImageGenerator extends AsyncTask<String, Void, Bitmap> {
 
+    public interface ImageSaveCallback {
+        void onImageSaved(String savedFileName);
+    }
+
     private WeakReference<Context> contextRef;
     private String filename;
+    private final ImageSaveCallback callback;
 
-    public ImageGenerator(Context context, String filename) {
+    public ImageGenerator(Context context, String filename, ImageSaveCallback callback) {
         contextRef = new WeakReference<>(context);
         this.filename = filename;
+        this.callback = callback;
     }
 
     @Override
@@ -52,27 +56,41 @@ public class ImageGenerator extends AsyncTask<String, Void, Bitmap> {
     @Override
     protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
-        Log.e("IMG", "Downloaded");
         if (bitmap != null) {
-            saveImageToInternalStorage(bitmap, filename);
+            String storedFileName = saveImageToInternalStorage(bitmap, filename);
+            if (storedFileName != null) {
+                if (callback != null) {
+                    Log.i( "HHO", "callback ImageSaved "+ storedFileName);
+                    callback.onImageSaved(storedFileName); // Notify the caller with the final filename
+                }
+            } else {
+                Log.e("HHO", "Failed to save image.");
+            }
         }
     }
 
-    private void saveImageToInternalStorage(Bitmap bitmap, String fileName) {
+    private String saveImageToInternalStorage(Bitmap bitmap, String fileName) {
         Context context = contextRef.get();
-
         if (context != null) {
-            File directory = new File( context.getString(R.string.path), "TeamChatBuddy");
+            File directory = new File( context.getString(R.string.path), "TeamChatBuddy/images/recv");
 
             // Vérifiez si le répertoire existe, sinon, créez-le
             if (!directory.exists()) {
                 if (!directory.mkdirs()) {
                     Log.e("saveImageToCustomDirectory", "Erreur: Impossible de créer le répertoire");
-                    return;
+                    return null;
                 }
             }
 
             File file = new File(directory, fileName);
+            String baseName = fileName.substring(0, fileName.lastIndexOf('.'));
+            String extension = fileName.substring(fileName.lastIndexOf('.'));
+            int counter = 1;
+
+            while (file.exists()) {
+                file = new File(directory, baseName + "_" + counter + extension);
+                counter++;
+            }
 
             try {
                 FileOutputStream outputStream = new FileOutputStream(file);
@@ -81,10 +99,13 @@ public class ImageGenerator extends AsyncTask<String, Void, Bitmap> {
                 outputStream.close();
                 // Mettre à jour la galerie pour que l'image soit visible
                 MediaScannerConnection.scanFile(context, new String[]{file.getAbsolutePath()}, null, null);
+                return file.getName();
             } catch (IOException e) {
                 e.printStackTrace();
+                return null;
             }
         }
+        return null;
     }
 }
 

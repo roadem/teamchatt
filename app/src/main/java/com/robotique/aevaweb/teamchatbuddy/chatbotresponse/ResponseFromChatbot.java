@@ -216,7 +216,9 @@ public class ResponseFromChatbot {
 
             if (teamChatBuddyApplication.getparam("Mode_Stream").contains("yes")){
                 if(teamChatBuddyApplication.getChatGptStreamMode() != null){
-                    teamChatBuddyApplication.getChatGptStreamMode().reset();
+                    if (!teamChatBuddyApplication.isModeContinuousListeningON()) {
+                        teamChatBuddyApplication.getChatGptStreamMode().reset();
+                    }
                 }
                 teamChatBuddyApplication.setChatGptStreamMode(new ChatGptStreamMode(activity,existingHistoryArray));
                 teamChatBuddyApplication.getChatGptStreamMode().sendRequest(api,requestBody);
@@ -424,14 +426,14 @@ public class ResponseFromChatbot {
                                                                         if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")&& !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("0")) {
                                                                             if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
                                                                                 teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion)+ ";SPLIT;" +languageCode.trim());
                                                                             } else {
-                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion)+ ";SPLIT;" +"NotDetected");
                                                                             }
                                                                         }
                                                                         else {
                                                                             teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion)+ ";SPLIT;" +languageCode.trim());
                                                                         }
                                                                     }
                                                                 }
@@ -955,65 +957,83 @@ public class ResponseFromChatbot {
                                                     }
                                                     // Play la suite de la réponse.
                                                     else {
-                                                        if(!commande.start_action( commande.regex( result ),numberOfQuestion,texte)) {
+                                                        if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed()!=null){
+                                                            teamChatBuddyApplication.getListOfCommandmustToHavePlayed().clear();
+                                                        }
+                                                        List<String> commandes = commande.regex( result );
+                                                        for (String c:commandes){
+                                                            Log.e("Commande","commande= "+c);
+                                                        }
+                                                        teamChatBuddyApplication.setListOfCommandmustToHavePlayed(commandes);
+                                                        teamChatBuddyApplication.setTimeToExecuteNextCommande(false);
+                                                        String firstCommandToExecute =commandes.get(0);
+                                                        if (commandes.size()>1){
+                                                            teamChatBuddyApplication.setMultiCommandsDetected(true);
+                                                        }
+                                                        else {
+                                                            teamChatBuddyApplication.setMultiCommandsDetected(false);
+                                                        }
+                                                        teamChatBuddyApplication.getListOfCommandmustToHavePlayed().remove(0);
+                                                            if(!commande.start_action( firstCommandToExecute,numberOfQuestion)) {
 //                                                            returnCommand = false;
-                                                            Log.e(tag, "COMMANDE NON RECONNUE : Start Emotion + ReponseFromChatGPT");
-                                                            activity.runOnUiThread(new Runnable() {
-                                                                @Override
-                                                                public void run() {
-                                                                    getEmotionResponseFromChatGTP(texte, numberOfQuestion);
-                                                                    if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                                            getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties"),numberOfQuestion);
+                                                                Log.e(tag, "COMMANDE NON RECONNUE : Start Emotion + ReponseFromChatGPT");
+                                                                activity.runOnUiThread(new Runnable() {
+                                                                    @Override
+                                                                    public void run() {
+                                                                        getEmotionResponseFromChatGTP(texte, numberOfQuestion);
+                                                                        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
+                                                                            if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
+                                                                                getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties"),numberOfQuestion);
+                                                                            }
+                                                                            else {
+                                                                                getResponseFromChatGPT(texte, numberOfQuestion);
+                                                                            }
+                                                                        }
+                                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
+                                                                            if (teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties").trim())){
+                                                                                getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties"),numberOfQuestion);
+                                                                            }
+                                                                            else {
+                                                                                getResponseFromChatGPT(texte, numberOfQuestion);
+                                                                            }
                                                                         }
                                                                         else {
-                                                                            getResponseFromChatGPT(texte, numberOfQuestion);
+                                                                            if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
+                                                                                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
+                                                                                    @Override
+                                                                                    public void onSuccess(String translatedText) {
+
+                                                                                        getResponseFromChatGPT(texte+" "+translatedText,numberOfQuestion);
+                                                                                    }
+                                                                                }).addOnFailureListener(new OnFailureListener() {
+                                                                                    @Override
+                                                                                    public void onFailure(@NonNull Exception e) {
+                                                                                        Log.e(tag,"translatedText exception  "+e);
+                                                                                    }
+                                                                                });
+
+                                                                            }
+                                                                            else {
+                                                                                getResponseFromChatGPT(texte, numberOfQuestion);
+                                                                            }
                                                                         }
                                                                     }
-                                                                    else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties").trim())){
-                                                                            getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties"),numberOfQuestion);
-                                                                        }
-                                                                        else {
-                                                                            getResponseFromChatGPT(texte, numberOfQuestion);
-                                                                        }
-                                                                    }
-                                                                    else {
-                                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
-                                                                                @Override
-                                                                                public void onSuccess(String translatedText) {
+                                                                });
+                                                            }
+                                                            else if(!firstCommandToExecute.split( " " )[0].equals("CMD_PROMPT")) {
+                                                                // get the historic commandes :
 
-                                                                                    getResponseFromChatGPT(texte+" "+translatedText,numberOfQuestion);
-                                                                                }
-                                                                            }).addOnFailureListener(new OnFailureListener() {
-                                                                                @Override
-                                                                                public void onFailure(@NonNull Exception e) {
-                                                                                    Log.e(tag,"translatedText exception  "+e);
-                                                                                }
-                                                                            });
+                                                                String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
 
-                                                                        }
-                                                                        else {
-                                                                            getResponseFromChatGPT(texte, numberOfQuestion);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            });
-                                                        }
-                                                        else if(!commande.regex(result).split( " " )[0].equals("CMD_PROMPT")) {
-                                                            // get the historic commandes :
+                                                                JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
 
-                                                            String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
+                                                                JSONObject Question = new JSONObject();
+                                                                Question.put( "role", "user" );
+                                                                Question.put( content, texte );
+                                                                existingHistoryArray.put( Question );
+                                                                teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
+                                                            }
 
-                                                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
-
-                                                            JSONObject Question = new JSONObject();
-                                                            Question.put( "role", "user" );
-                                                            Question.put( content, texte );
-                                                            existingHistoryArray.put( Question );
-                                                            teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
-                                                        }
                                                     }
 
 
@@ -1268,7 +1288,22 @@ public class ResponseFromChatbot {
             });
         }
     }
+    public void executeCommand(){
+        if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed()!=null){
+            String cmd = teamChatBuddyApplication.getListOfCommandmustToHavePlayed().get(0);
+            if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed().size()==1){
+                teamChatBuddyApplication.setMultiCommandsDetected(false);
+                teamChatBuddyApplication.getListOfCommandmustToHavePlayed().remove(0);
+                commande.start_action(cmd, teamChatBuddyApplication.getQuestionNumber());
+            }
+            else{
+                teamChatBuddyApplication.getListOfCommandmustToHavePlayed().remove(0);
+                commande.start_action(cmd, teamChatBuddyApplication.getQuestionNumber());
+            }
+        }
 
+
+    }
     public void getQuestionToDescribePicture(Bitmap bitmap,String prompt){
         Bitmap bitmapReszeResolution = imageResolution(bitmap);
          if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
@@ -1371,7 +1406,7 @@ public class ResponseFromChatbot {
                         public void run() {
                             saveBitmapToFile(bitmap,"capturedImage.png");
                             try {
-                                File capturedImage = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Images/capturedImage.png");
+                                File capturedImage = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/capturedImage.png");
                                 if(capturedImage!=null){
                                     url.put("url", capturedImage.getPath());
                                     imageDescription.put("image_url", url);
@@ -2080,7 +2115,7 @@ public class ResponseFromChatbot {
         FileOutputStream outputStream = null;
 
         try {
-            File fileImages = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Images/sent");
+            File fileImages = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy");
             if (!fileImages.exists() ) {
                 fileImages.mkdirs();
             }

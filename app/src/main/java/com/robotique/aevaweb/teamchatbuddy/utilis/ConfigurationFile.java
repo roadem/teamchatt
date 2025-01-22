@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 42; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 43; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -306,6 +306,25 @@ public class ConfigurationFile {
             props.addPropertyComment("use_companion_when_stimulis_disabled","Parameter to configure whether to keep the Companion enabled when Stimulis are disabled (Yes/No).");
             setProperty("use_companion_when_stimulis_disabled","No");
 
+            props.addPropertyComment("Listen_color","");
+            props.addPropertyComment("Listen_color","Colors");
+            setProperty("Listen_color","green");
+            setProperty("Think_color","yellow");
+            setProperty("Speak_color","blue");
+
+            props.addPropertyComment("Mouth_messages","");
+            setProperty("Mouth_messages","No");
+
+            String[] Mouth_listen_fr = {"Comment puis-je vous aider ?/Que puis-je faire pour vous ?/Comment puis-je vous assister ?/Y a-t-il quelque chose avec laquelle je peux vous aider ?/Y a-t-il quelque chose que je peux faire pour vous ?/Comment puis-je vous soutenir ? Y a-t-il quelque chose avec laquelle je peux vous être utile ?"};
+            String[] Mouth_speak_fr = {"D'accord, j'arrête d'écouter/Très bien, je me tais/Pas de problème, je fais une pause/Compris, je n'écoute plus/Bien sûr, je suis en attente/Écoute désactivée"};
+            setProperty("Mouth_listen_fr",Arrays.toString(Mouth_listen_fr));
+            setProperty("Mouth_speak_fr",Arrays.toString(Mouth_speak_fr));
+
+            String[] Mouth_listen_en = {"How can I help you ?/What can I do for you ?/How may I assist you?/Is there anything you need help with?/Is there something I can do for you?/How can I support you? Is there anything I can help you with?"};
+            String[] Mouth_speak_en = {"Alright, I'll stop listening/Okay, I’ll go silent/No problem, I'm pausing/Got it, I'm not listening anymore/Sure thing, I'm on hold/Listening disabled"};
+            setProperty("Mouth_listen_en",Arrays.toString(Mouth_listen_en));
+            setProperty("Mouth_speak_en",Arrays.toString(Mouth_speak_en));
+
             props.addPropertyComment("show_openAI_prices","");
             props.addPropertyComment("show_openAI_prices","Consumption Parameters");
             props.addPropertyComment("show_openAI_prices","Ability to display/manage openAI prices (Yes/No)");
@@ -371,13 +390,13 @@ public class ConfigurationFile {
             setProperty("COMMAND_maxdialog","30");
 
 
-            setProperty( "COMMAND_Prompt_fr", "Tu es un assistant de commandes vocales. À partir de la phrase utilisateur, réponds uniquement par la commande correspondante entre <> si elle existe, sinon ne réponds rien. Ne fais aucun ajout ou explication. ");
+            setProperty( "COMMAND_Prompt_fr", "Tu es un assistant de commandes vocales. À partir de la phrase utilisateur, réponds uniquement par les commandes correspondantes entre <> si elles existent, séparées par des espaces. Si aucune commande ne correspond, ne réponds rien. Ne fais aucun ajout ou explication. ");
 
             setProperty("CMD_fr_1","Qu'est-ce que tu sais faire ? <CMD_NONE>");
             setProperty("CMD_fr_2","Quel est ton niveau de batterie ? <CMD_BATTERIE>");
             setProperty("CMD_fr_3","Change le volume du son à 50 (entre 0 et 100) <CMD_SOUND 50> ");
-            setProperty("CMD_fr_4","Quel jour sommes-nous ? <CMD_DATE>");
-            setProperty("CMD_fr_5","Quelle heure est-il ? <CMD_HOUR>");
+            setProperty("CMD_fr_4","Quel jour sommes-nous ? <CMD_DATE %DATE_FORMAT%>");
+            setProperty("CMD_fr_5","Quelle heure est-il ? <CMD_HOUR %HOUR_FORMAT%>");
             setProperty("CMD_fr_6","Arrête d’écouter <CMD_STOP>");
             setProperty("CMD_fr_7","Quitte l’application <CMD_QUIT>");
             setProperty("CMD_fr_8","Lance-moi l’application « BuddyLab » (Buddylab/Spark) <CMD_RUN Buddylab>");
@@ -413,15 +432,21 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_40=arrête le comportement <CMD_STOP_BI>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_41=Lance le scénario aventure <CMD_SCEN aventure>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_42=Sauve l’image comme « oiseau bleu » <CMD_SAVE_IMAGE oiseau_bleu>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_43=Affiche l’image « oiseau bleu » <CMD_SHOW_IMAGE oiseau_bleu>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_44=Supprime l’image « oiseau bleu » <CMD_DEL_IMAGE oiseau_bleu>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_45=Envoie à « Pierre paul » le mail « voici mon message » <CMD_MAIL [Pierre-paul] [voici mon message]>");
 
 
-            setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding command enclosed in <> if it exists; otherwise, do not respond at all. Do not add anything or provide any explanation. ");
+            setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding commands enclosed in <> if they exist, separated by spaces. If no command matches, do not respond. Do not add any explanations or additional text. ");
 
             setProperty("CMD_en_1", "What can you do? <CMD_NONE>");
             setProperty("CMD_en_2", "What is your battery level? <CMD_BATTERIE>");
             setProperty("CMD_en_3", "Change the sound volume to 50 (between 0 and 100) <CMD_SOUND 50>");
-            setProperty("CMD_en_4", "What day is it? <CMD_DATE>");
-            setProperty("CMD_en_5", "What time is it? <CMD_HOUR>");
+            setProperty("CMD_en_4", "What day is it? <CMD_DATE %DATE_FORMAT%>");
+            setProperty("CMD_en_5", "What time is it? <CMD_HOUR %HOUR_FORMAT%>");
             setProperty("CMD_en_6", "Stop listening <CMD_STOP>");
             setProperty("CMD_en_7", "Exit the application <CMD_QUIT>");
             setProperty("CMD_en_8", "Launch the application « BuddyLab » (Buddylab/Spark)  <CMD_RUN Buddylab>");
@@ -457,6 +482,12 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_37=Change the header <CMD_HEADER %HEADER%>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_38=Stop the radio <CMD_STOP_RADIO>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_39=Stop the music <CMD_STOP_MUSIC>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_40=stop the behaviour <CMD_STOP_BI>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_41=Starts the adventure scenario <CMD_SCEN aventure>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_42=Save the image as « blue bird » <CMD_SAVE_IMAGE blue_bird>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_43=Displays the « blue bird » image <CMD_SHOW_IMAGE blue_bird>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_44=Delete the « blue bird » image < CMD_DEL_IMAGE blue_bird>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_45=Send to « Pierre paul » the email « here is my message »  <CMD_MAIL [Pierre-Paul] [here is my message]>");
 
 
 
@@ -501,6 +532,9 @@ public class ConfigurationFile {
 
             setProperty( "CMD_RUN_fr", "D'accord, je vais lancer l'application [1] // L'application [1] n'existe pas " );
             setProperty( "CMD_RUN_en", "Ok I'll run the app [1] // Application [1] does not exist" );
+
+            setProperty( "CMD_SCEN_fr", "D'accord, je vais lancer le scénario [1] //" );
+            setProperty( "CMD_SCEN_en", "Ok I'll run the scenario [1] //" );
 
             setProperty( "CMD_DANCE_fr", "Ok je vais danser  // T'as vu comment je danse bien" );
             setProperty( "CMD_DANCE_en", "Ok I'm going to dance // Have you seen how well I dance" );
@@ -548,6 +582,15 @@ public class ConfigurationFile {
             setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image" );
             setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image" );
 
+            setProperty( "CMD_SAVE_IMAGE_fr", "Ok, je vais sauvegarder l'image // l'image est sauvegardée // aucune image existe pour la sauvegarde");
+            setProperty( "CMD_SAVE_IMAGE_en", "Ok, I will save the image // the image is saved // no image exists for saving");
+
+            setProperty( "CMD_SHOW_IMAGE_fr", "Ok, j'affiche l'image // aucune image correspondante n’existe");
+            setProperty( "CMD_SHOW_IMAGE_en", "Ok, I will display the image // No matching image exists");
+
+            setProperty( "CMD_DEL_IMAGE_fr", "Ok, je vais supprimer l'image // aucune image correspondante n’existe");
+            setProperty( "CMD_DEL_IMAGE_en", "Ok, I will delete the image // No matching image exists");
+
             setProperty("CMD_PHOTO_fr","Je vais prendre une photo");
             setProperty("CMD_PHOTO_en","I will take a picture");
 
@@ -560,11 +603,22 @@ public class ConfigurationFile {
             setProperty( "CMD_HEADER_fr", "// L'en-tête est modifié" );
             setProperty( "CMD_HEADER_en", "// The header is changed" );
 
+            setProperty( "CMD_MAIL_fr", "Ok, je vais envoyer le mail // le mail est envoyé");
+            setProperty( "CMD_MAIL_en", "Ok, I will send the mail // The email has been sent" );
+
+            setProperty("CMD_STOP_BI_fr","Ok j’arrête le comportement// " );
+            setProperty("CMD_STOP_BI_en","Ok I'll stop the behaviour // ");
+
 
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
             setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");
             setProperty("HEADER","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
 
+            props.addPropertyComment("DATE_format", "");
+            setProperty("DATE_format","");
+            setProperty("HOUR_format","");
+            props.addPropertyComment("DATE_format", "Si le champ DATE_format est vide, il prend par défaut la valeur EEEE d MMMM yyyy");
+            props.addPropertyComment("HOUR_format", "Si le champ HOUR_format est vide, il prend par défaut la valeur h:mm");
 
             props.addPropertyComment("Image_URL","");
             setProperty( "Image_URL", "https://api.openai.com/" );
@@ -615,6 +669,11 @@ public class ConfigurationFile {
             setProperty("JOKE_PROMPT_en", "If the joke has two parts, put joke_x_points dots between them, and tell the joke in your own way");
             setProperty("JOKE_Model", "gpt-3.5-turbo");
             setProperty("JOKE_X_points","20");
+
+            props.addPropertyComment("mail_pierre-paul", "");
+            setProperty("mail_pierre-paul","b.fache@teamnet.fr");
+            setProperty("CMD_MAIL_subject_en","Email from TeamChatBuddy");
+            setProperty("CMD_MAIL_subject_fr","Mail de TeamChatBuddy");
 
 
             //-------------------------- Tracking ---------------------------
