@@ -18,6 +18,9 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.Manifest;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
@@ -156,6 +159,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private TextView buddy_texte_qst;
     private TextView buddy_texte_resp;
     private ImageView noNetwork;
+    private ImageView imageArrow;
+    private ImageView imageQRCode;
+    private RelativeLayout layoutTexteQR;
+    private RelativeLayout layoutQRCode;
     private ProgressBar downloadingBar;
     private ImageView photo_timer_imgview;
     private ImageView bi_imageView;
@@ -235,6 +242,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private CountDownTimer timerDownloading;
     private CountDownTimer timerPhoto;
     private CountDownTimer timerToApplyBI;
+    private CountDownTimer timerDisplayQRCode;
+    private CountDownTimer timerPeriodToDisplayQRCode;
     private static final Random random = new Random();
     private WifiBroadcastReceiver wifiBroadCastReceiver = new WifiBroadcastReceiver();
     private ArrayList<Replica> listRep=new ArrayList();
@@ -425,29 +434,87 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 Log.e(TAG,"end of playing Start Message");
                                 mlKitIsDownloading=false;
                                 if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("no")){
-                                    teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+
                                     reGroup.setTranslationY(1000);
+                                    if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                                        Log.e("TEST_QR","playStartMessage fonction Display---------------");
+                                        displayQRCode(new IDisplayQrCodeCallback() {
+                                            @Override
+                                            public void onEnd() {
+                                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                        if (timerPeriodToDisplayQRCode!=null) timerPeriodToDisplayQRCode.start();
+                                    }
                                 }
                                 else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
+                                    if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                                        Log.e("TEST_QR","playStartMessage 2 fonction Display---------------");
+                                        displayQRCode(new IDisplayQrCodeCallback() {
+                                            @Override
+                                            public void onEnd() {
+//                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+//                        }
+                                                isReTrack = false;
+                                                initTracking();
+                                            }
+                                        });
+                                    }
+                                    else{
+//                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                                        teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                        if (timerPeriodToDisplayQRCode!=null) timerPeriodToDisplayQRCode.start();
+//                        }
+                                        isReTrack = false;
+                                        initTracking();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("no")){
+
+                        reGroup.setTranslationY(1000);
+                        if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                            Log.e("TEST_QR","loading model fonction Display---------------");
+                            displayQRCode(new IDisplayQrCodeCallback() {
+                                @Override
+                                public void onEnd() {
+                                    teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                }
+                            });
+                        }
+                        else {
+                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                            if (timerPeriodToDisplayQRCode!=null) timerPeriodToDisplayQRCode.start();
+                        }
+                    }
+                    else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
+                        if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                            Log.e("TEST_QR","loading model 2 fonction Display---------------");
+                            displayQRCode(new IDisplayQrCodeCallback() {
+                                @Override
+                                public void onEnd() {
 //                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
                                     teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
 //                        }
                                     isReTrack = false;
                                     initTracking();
                                 }
-                            }
-                        });
-                    }
-                    else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("no")){
-                        teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
-                        reGroup.setTranslationY(1000);
-                    }
-                    else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
-//                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                            });
+                        }
+                        else{
+ //                        if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
                             teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                            if (timerPeriodToDisplayQRCode!=null) timerPeriodToDisplayQRCode.start();
 //                        }
-                        isReTrack = false;
-                        initTracking();
+                            isReTrack = false;
+                            initTracking();
+                        }
                     }
                     teamChatBuddyApplication.setparam("previousLanguage",new Gson().toJson(teamChatBuddyApplication.getLangue()));
                 }
@@ -500,6 +567,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     };
     private Boolean isFirstResponse = true;
     private Boolean isQuestionAlreadyDetected = false;
+    private ObjectAnimator animator;
 
     /**
      * ------------------ App LifeCycle ---------------------
@@ -546,6 +614,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         photo_timer_rlyt = findViewById(R.id.photo_timer_rlyt);
         photo_timer_imgview = findViewById(R.id.photo_timer_imgview);
         photo_timer_txtView = findViewById(R.id.photo_timer_txtView);
+        imageArrow = findViewById(R.id.imageArrow);
+        imageQRCode = findViewById(R.id.imageQRCode);
+        layoutTexteQR = findViewById(R.id.layout_Texte);
+        layoutQRCode = findViewById(R.id.layout_QRCode);
 
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         amanager.setStreamMute(AudioManager.STREAM_NOTIFICATION, true);
@@ -554,6 +626,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         isFirstLaunch = true;
         if (myIntent != null) {
             if (myIntent.hasExtra("fromSettings")) {
+                teamChatBuddyApplication.setShouldDisplayQRCode(false);
                 String fromString = myIntent.getStringExtra("fromSettings");
                 if (fromString != null && fromString.equals("true")) {
                     isFirstLaunch= false;
@@ -561,6 +634,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 }
             }
             else if(myIntent.hasExtra("fromChatWindow")){
+                teamChatBuddyApplication.setShouldDisplayQRCode(false);
                 String fromChatWindow = myIntent.getStringExtra("fromChatWindow");
                 if (fromChatWindow != null && fromChatWindow.equals("true")) {
                     isFirstLaunch= false;
@@ -568,6 +642,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 }
             }
             else {
+                teamChatBuddyApplication.setShouldDisplayQRCode(true);
                 teamChatBuddyApplication.setSpeaking(false);
                 teamChatBuddyApplication.setNotYet(true);
                 teamChatBuddyApplication.setActivityClosed(false);
@@ -610,6 +685,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
         }
         else {
+            teamChatBuddyApplication.setShouldDisplayQRCode(true);
             teamChatBuddyApplication.setSpeaking(false);
             teamChatBuddyApplication.setNotYet(true);
            teamChatBuddyApplication.setActivityClosed(false);
@@ -815,6 +891,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             if(timerDownloading!=null){
                 timerDownloading.cancel();
             }
+        }
+        if (timerDisplayQRCode!=null){
+            timerDisplayQRCode.cancel();
+        }
+        if (timerPeriodToDisplayQRCode!=null){
+            timerPeriodToDisplayQRCode.cancel();
         }
     }
 
@@ -1823,11 +1905,33 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 stopListeningFreeSpeech();
                 SystemClock.sleep(200);
                 if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("no")){
-                    teamChatBuddyApplication.startListeningHotwor(this);
+                    if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                        Log.e("TEST_QR","end of timer fonction Display---------------");
+                        displayQRCode(new IDisplayQrCodeCallback() {
+                            @Override
+                            public void onEnd() {
+                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                            }
+                        });
+                    }
+                    else{
+                        teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                    }
                 }
                 else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
 //                    if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
+                    if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                        Log.e("TEST_QR","end of timer 2fonction Display---------------");
+                        displayQRCode(new IDisplayQrCodeCallback() {
+                            @Override
+                            public void onEnd() {
+                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                            }
+                        });
+                    }
+                    else {
                         teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                    }
 //                    }
                 }
             }
@@ -1868,6 +1972,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
 
             else if (message.contains("restartListeningHotword")){
+                Log.e("TEST_QR","restartListeningHotword notif ");
                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
                 teamChatBuddyApplication.setAppIsCurrentlyDealingWithTheQuestion(false);
                 teamChatBuddyApplication.setStartRecording(false);
@@ -2143,12 +2248,34 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     stopListeningFreeSpeech();
                     SystemClock.sleep(200);
                     if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("no")){
-                        teamChatBuddyApplication.startListeningHotwor(this);
+                        if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                            Log.e("TEST_QR","SpeechRecognizerTimeout fonction Display---------------");
+                            displayQRCode(new IDisplayQrCodeCallback() {
+                                @Override
+                                public void onEnd() {
+                                    teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                }
+                            });
+                        }
+                        else {
+                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                        }
                     }
                     else if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
+                        if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                            Log.e("TEST_QR","SpeechRecognizerTimeout 2 fonction Display---------------");
+                            displayQRCode(new IDisplayQrCodeCallback() {
+                                @Override
+                                public void onEnd() {
 //                    if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
-                        teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                    teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
 //                    }
+                                }
+                            });
+                        }
+                        else {
+                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                        }
                     }
                 }
             }
@@ -2544,6 +2671,33 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             }
         };
+        if (teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties")!=null
+            && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim())!=0) {
+            timerPeriodToDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period", "TeamChatBuddy.properties").trim())*1000, 1000) {
+                @Override
+                public void onTick(long l) {
+
+                }
+
+                @Override
+                public void onFinish() {
+                    if (!teamChatBuddyApplication.getSpeaking()){
+                        Log.e("TEST_QR","timer onFinish fonction Display---------------");
+                        displayQRCode(new IDisplayQrCodeCallback() {
+                            @Override
+                            public void onEnd() {
+                                teamChatBuddyApplication.setShouldDisplayQRCode(false);
+                                teamChatBuddyApplication.notifyObservers("end of timer");
+                            }
+                        });
+                    }
+                    else {
+                        Log.e("TEST_QR","timer onFinish fonction Display isSpeaking is True ---------------");
+                        teamChatBuddyApplication.setShouldDisplayQRCode(true);
+                    }
+                }
+            };
+        }
 
         teamChatBuddyApplication.setActivityClosed(false);
 
@@ -3677,8 +3831,20 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                 startListeningQuestion();
                                             }
                                             else{
-                                                teamChatBuddyApplication.setAlreadyChatting(false);
-                                                teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+
+                                                if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                                                    displayQRCode(new IDisplayQrCodeCallback() {
+                                                        @Override
+                                                        public void onEnd() {
+                                                            teamChatBuddyApplication.setAlreadyChatting(false);
+                                                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                                        }
+                                                    });
+                                                }
+                                                else{
+                                                    teamChatBuddyApplication.setAlreadyChatting(false);
+                                                    teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
+                                                }
                                             }
 
                                         }
@@ -4366,7 +4532,165 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         });
     }
 
+    /**
+     * ----------------------------------------- Display QRCode ---------------------------------------
+     */
+    private IDisplayQrCodeCallback iDisplayQrCodeCallback;
+    public interface IDisplayQrCodeCallback {
+        void onEnd();
+    }
 
+    private void displayQRCode(IDisplayQrCodeCallback iDisplayQrCodeCallback){
+        Log.e("TEST_QR","fonction Display---------------");
+        stopListeningFreeSpeech();
+        if (teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties")!=null
+                && teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties")!=null
+                && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim())!=0
+                && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties").trim())!=0
+                && qRCodeExist()){
+
+            mlKitIsDownloading=true;
+            // Vérifier si une image correspondante (insensible à la casse) existe
+            File fichierImage = findFileIgnoreCase();
+
+            if (fichierImage != null) {
+                Bitmap bitmap = BitmapFactory.decodeFile(fichierImage.getAbsolutePath());
+                imageQRCode.setImageBitmap(bitmap);
+            } else {
+                // Image par défaut si le fichier n'existe pas
+                imageQRCode.setImageResource(R.drawable.qrcode_bg);
+            }
+            int largeurEcran = getResources().getDisplayMetrics().widthPixels;
+
+            // Déplacer les layouts hors écran avant le début de l'animation
+            layoutTexteQR.setTranslationX(-largeurEcran);
+            layoutQRCode.setTranslationX(largeurEcran/4);
+            lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+            lyt_open_menu_chat.setVisibility(View.INVISIBLE);
+            BuddySDK.UI.setCloseWidgetVisibility(FloatingWidgetVisibility.NEVER);
+            BuddySDK.UI.setMenuWidgetVisibility(FloatingWidgetVisibility.NEVER); //visible qu'après une touche
+
+            // Animation de la flèche
+            //animateArrow(imageArrow);
+
+
+            // Rendre les layouts visibles juste avant le début de l'animation
+            layoutTexteQR.setVisibility(View.VISIBLE);
+            layoutQRCode.setVisibility(View.VISIBLE);
+
+            teamChatBuddyApplication.setLed("displayQRCode");
+            // Animation pour les faire entrer au centre
+            ObjectAnimator animTexte = ObjectAnimator.ofFloat(layoutTexteQR, "translationX", 0);
+            ObjectAnimator animQRCode = ObjectAnimator.ofFloat(layoutQRCode, "translationX", 0);
+            animTexte.setDuration(1000);
+            animQRCode.setDuration(1000);
+
+            // Exécuter les animations en même temps
+            AnimatorSet animatorSet = new AnimatorSet();
+            animatorSet.playTogether(animTexte, animQRCode);
+            animatorSet.start();
+
+            // Animation de la flèche
+            //animateArrow(imageArrow);
+            new Handler().postDelayed(() -> startAnimateArrow(imageArrow), 1000);
+            if(timerDisplayQRCode != null) timerDisplayQRCode.cancel();
+            timerDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties").trim()) * 1000L,1000) {
+                @Override
+                public void onTick(long l) {
+                    Log.d(TAG, "timerDisplay QRCode onTick");
+                }
+                @Override
+                public void onFinish() {
+                    mlKitIsDownloading=false;
+                    stopAnimateArrow();
+
+                    // Animation pour les faire entrer au centre
+                    ObjectAnimator animTexte = ObjectAnimator.ofFloat(layoutTexteQR, "translationX", -largeurEcran);
+                    ObjectAnimator animQRCode = ObjectAnimator.ofFloat(layoutQRCode, "translationX", largeurEcran/4);
+                    animTexte.setDuration(1000);
+                    animQRCode.setDuration(1000);
+
+                    // Exécuter les animations en même temps
+                    AnimatorSet animatorSet = new AnimatorSet();
+                    animatorSet.playTogether(animTexte, animQRCode);
+                    animatorSet.start();
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            layoutTexteQR.setVisibility(View.INVISIBLE);
+                            layoutQRCode.setVisibility(View.INVISIBLE);
+                            BuddySDK.UI.setCloseWidgetVisibility(FloatingWidgetVisibility.ALWAYS);
+                            BuddySDK.UI.setMenuWidgetVisibility(FloatingWidgetVisibility.ALWAYS); //visible qu'après une touche
+
+                            lyt_open_menu_settings.setVisibility(View.VISIBLE);
+                            lyt_open_menu_chat.setVisibility(View.VISIBLE);
+                            teamChatBuddyApplication.setShouldDisplayQRCode(false);
+                            if (timerPeriodToDisplayQRCode!=null) timerPeriodToDisplayQRCode.start();
+                            iDisplayQrCodeCallback.onEnd();
+                        }
+                    },1000);
+
+
+
+                }
+            };
+            timerDisplayQRCode.start();
+
+        }
+        else {
+            iDisplayQrCodeCallback.onEnd();
+        }
+    }
+    public boolean qRCodeExist() {
+        File dossier = new File("/storage/emulated/0/TeamChatBuddy");
+
+        if (!dossier.exists() || !dossier.isDirectory()) {
+            return false; // Le répertoire n'existe pas
+        }
+
+        // Lister les fichiers du dossier
+        String[] fichiers = dossier.list();
+        if (fichiers != null) {
+            for (String fichier : fichiers) {
+                if (fichier.equalsIgnoreCase("qrCode.png")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    // Méthode pour trouver un fichier en ignorant la casse
+    private File findFileIgnoreCase() {
+        File dossier = new File("/storage/emulated/0/TeamChatBuddy");
+        if (!dossier.exists() || !dossier.isDirectory()) {
+            return null;
+        }
+
+        File[] fichiers = dossier.listFiles();
+        if (fichiers != null) {
+            for (File fichier : fichiers) {
+                if (fichier.getName().equalsIgnoreCase("qrCode.png")) {
+                    return fichier;
+                }
+            }
+        }
+        return null;
+    }
+    private void startAnimateArrow(ImageView imageArrow) {
+        // Réinitialiser la position à zéro avant de relancer l'animation
+        imageArrow.setTranslationX(0f);
+        // Animation de translation X (déplacement de la flèche)
+        animator = ObjectAnimator.ofFloat(imageArrow, "translationX", 0f, 70f);
+        animator.setDuration(1000); // Durée de 1 seconde
+        animator.setRepeatCount(ValueAnimator.INFINITE); // Répéter indéfiniment
+        animator.setRepeatMode(ValueAnimator.REVERSE); // Revenir en arrière
+        animator.start();
+    }
+    private void stopAnimateArrow(){
+        if (animator != null && animator.isRunning()) {
+            animator.cancel(); // Arrête immédiatement l'animation
+        }
+    }
     /**
      *   -------------------------------  Gestion des permissions  ---------------------------------------------------------------
      */

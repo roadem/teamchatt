@@ -258,5 +258,60 @@
 
     </RelativeLayout>
 
+    <!--  QRCode  displayed -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        >
+        <!-- Image du Texte -->
+        <RelativeLayout
+            android:id="@+id/layout_Texte"
+            android:layout_width="495dp"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:visibility="invisible"
+            >
+        <ImageView
+            android:id="@+id/imageText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/txt"
+
+            />
+
+        <!-- Image de la Flèche -->
+        <ImageView
+            android:id="@+id/imageArrow"
+            android:layout_width="75px"
+            android:layout_height="75px"
+            android:src="@drawable/arrows"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+
+            android:layout_marginBottom="20dp"
+            android:layout_marginEnd="70dp"/>
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/layout_QRCode"
+            android:layout_width="135dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/qrcode_bg"
+            android:visibility="invisible"
+            android:layout_margin="10dp"
+            android:padding="8dp">
+            <!-- Image du QR Code -->
+                    <ImageView
+                        android:id="@+id/imageQRCode"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+
+                        />
+
+        </RelativeLayout>
+
+
+
+    </RelativeLayout>
 
 </RelativeLayout>

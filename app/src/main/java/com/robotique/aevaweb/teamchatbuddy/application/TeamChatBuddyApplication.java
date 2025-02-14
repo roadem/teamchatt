@@ -267,6 +267,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public ArrayList<String> listOfResponseInContinuousListeningMode = new ArrayList<>();
     public ArrayList<String> listOfDetectedLanguagesOfResponseInContinuousListeningMode = new ArrayList<>();
     public ArrayList<String> listOfEmotionsForQuestionInContinuousListeningMode = new ArrayList<>();
+    private boolean shouldDisplayQRCode =false;
+
+    public boolean isShouldDisplayQRCode() {
+        return shouldDisplayQRCode;
+    }
+
+    public void setShouldDisplayQRCode(boolean shouldDisplayQRCode) {
+        this.shouldDisplayQRCode = shouldDisplayQRCode;
+    }
 
     public boolean isAlreadyChatting() {
         return alreadyChatting;
@@ -4252,6 +4261,9 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             BuddySDK.USB.updateAllLed("#FFFF00", iUsbLedCommandRsp);
                         }
                     }
+                    break;
+                case "displayQRCode":
+                    BuddySDK.USB.updateAllLed("#00D4D0", iUsbLedCommandRsp);
                     break;
             }
             Log.i(TAG, "Changement de couleurs des LEDs ["+state+"]");
