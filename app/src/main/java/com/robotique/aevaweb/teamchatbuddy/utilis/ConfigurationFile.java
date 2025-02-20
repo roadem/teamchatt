@@ -18,7 +18,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 44; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 45; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -204,7 +204,7 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Response_Timeout_in_seconds", "");
             props.addPropertyComment("Response_Timeout_in_seconds", "Waiting time for chatbot response and messages when exceeded");
-            setProperty("Response_Timeout_in_seconds","8");
+            setProperty("Response_Timeout_in_seconds","10");
             setProperty("Message_Timeout_NotRespected_fr","Ça prend un peu de temps, la connexion est un peu lente./Aahh! Internet n'est pas très rapide aujourd'hui/une petite seconde je connecte mes circuits");
             setProperty("Message_Timeout_NotRespected_en","It takes a little time, the connection is a bit slow./ohh! The internet is not very fast today/Just a moment, I'm connecting my circuits.");
 

@@ -4516,9 +4516,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
-        if (audioManager.isBluetoothScoOn()) {
-            max = audioManager.getStreamMaxVolume(6);
-        }
 
         int volume = getClosestInt((double) (percentage * max) / 100);
 
@@ -4527,9 +4524,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
             audioManager.startBluetoothSco();
             audioManager.setBluetoothScoOn(true);
-            audioManager.setStreamVolume(6, volume, AudioManager.FLAG_SHOW_UI);
+            audioManager.setStreamVolume(6, volume, type);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE );
         } else {
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,type );
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,type);
         }
     }
 
