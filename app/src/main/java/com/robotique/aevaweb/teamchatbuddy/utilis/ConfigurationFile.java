@@ -98,6 +98,7 @@ public class ConfigurationFile {
 
             // ---------------------------- VERSION DU FICHIER DE CONFIG -----------------
             //todo : upgrade FILE_VERSION whenever you want to overwrite the file !
+            props.addPropertyComment("fileVersion","TeamChatBuddy Ver 2.2.34 delivred with file version "+String.valueOf(FILE_VERSION));
             props.setProperty("fileVersion", String.valueOf(FILE_VERSION));
 
 
@@ -142,6 +143,8 @@ public class ConfigurationFile {
             setProperty("TTS_ApiGoogle_speed","100");
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "Voice type : Standard/Wavenet");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
+            props.addPropertyComment("TTS_ApiGoogle_Language_Voice", "Voice type : Standard/Wavenet");
+            setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
 
             props.addPropertyComment("ChatBot","");
             props.addPropertyComment("ChatBot","Default ChatBot : ChatGPT/CustomGPT");

@@ -556,6 +556,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private Runnable runnablePauseTime;
     private Handler handler = new Handler();
     private Runnable runnable;
+    private Handler handlerForClickBouton = new Handler();
+    private Runnable runnableforClickBouton;
     private int clickCount = 0;
     private static final int CLICK_TIMEOUT = 2000;
     private Handler clickHandler = new Handler();
@@ -819,6 +821,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if(handler!=null && runnable!=null){
             handler.removeCallbacks(runnable);
             handler.removeCallbacksAndMessages(null);
+        }
+        if(handlerForClickBouton!=null && runnableforClickBouton!=null){
+            handlerForClickBouton.removeCallbacks(runnableforClickBouton);
+            handlerForClickBouton.removeCallbacksAndMessages(null);
         }
         onSdkReadyIsAlreadyCalledOnce = false;
         isListeningFreeSpeech = false;
@@ -1373,36 +1379,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 });
                             }
                             else{
-                                if( !Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
-                                    Log.e("TEST_HOT","hotword Success !Tracking_Auto_Listen");
+
                                     teamChatBuddyApplication.setSpeaking(true);
                                     isListeningFreeSpeech = true;
                                     teamChatBuddyApplication.setActivityClosed(false);
                                     teamChatBuddyApplication.setStartRecording(true);
                                     startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
-                                }
-                                else{
-                                    if (teamChatBuddyApplication.isShouldLaunchListeningAfterGetingHotWord()){
-                                        Log.e("TEST_HOT","hotword Success isShouldLaunchListeningAfterGetingHotWord()");
-                                        teamChatBuddyApplication.setSpeaking(true);
-                                        isListeningFreeSpeech = true;
-                                        teamChatBuddyApplication.setActivityClosed(false);
-                                        teamChatBuddyApplication.setStartRecording(true);
-                                        startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
-                                    }
-                                    else{
-                                        Log.e("TEST_HOT","hotword Success !isShouldLaunchListeningAfterGetingHotWord()");
-                                        if (regarde_camera){
-                                            Log.e("TEST_HOT","hotword Success regarde_camera");
-                                            teamChatBuddyApplication.setSpeaking(true);
-                                            isListeningFreeSpeech = true;
-                                            teamChatBuddyApplication.setActivityClosed(false);
-                                            teamChatBuddyApplication.setStartRecording(true);
-                                            teamChatBuddyApplication.setShouldLaunchListeningAfterGetingHotWord(true);
-                                            startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
-                                        }
-                                    }
-                                }
                             }
                         }
 
@@ -2391,7 +2373,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     private void init() {
         Log.e(TAG,"init() ");
-        BuddySDK.UI.addFaceTouchListener(iuiFaceTouchCallback);
+        try {
+            BuddySDK.UI.addFaceTouchListener(iuiFaceTouchCallback);
+        }
+        catch (Exception e){
+            Log.e(TAG,"Exception BuddySdk "+e);
+        }
         if (teamChatBuddyApplication.getparam("Stimulis").contains("yes")){
             handlerForSensor = new Handler();
             BuddySDK.USB.enableSensorModule(true,iUsbCommadRspBI);
@@ -3203,6 +3190,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             clickHandler.removeCallbacks(resetClickCountRunnable);
             clickCount++;
             if (clickCount >= Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options", "TeamChatBuddy.properties"))) {
+                if (runnableforClickBouton!=null){
+                    handlerForClickBouton.removeCallbacks(runnableforClickBouton);
+                    runnableforClickBouton = null;
+                }
+                runnableforClickBouton= new Runnable() {
+                    @Override
+                    public void run() {
                 if (!mlKitIsDownloading) {
                     Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                     intent.putExtra("activity_name", "main");
@@ -3210,7 +3204,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     finish();
 
                     overridePendingTransition(0, 0);
-                } else if (teamChatBuddyApplication.getBIExecution()) {
+                }
+                else if (teamChatBuddyApplication.getBIExecution()) {
                     BIPlayer.getInstance().stopBehaviour();
                     Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                     intent.putExtra("activity_name", "main");
@@ -3219,12 +3214,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                     overridePendingTransition(0, 0);
                 }
+                    }
+                };
+                handlerForClickBouton.postDelayed(runnableforClickBouton,300);
             } else {
                 // Redémarrer le délai avant de réinitialiser le compteur
                 clickHandler.postDelayed(resetClickCountRunnable, CLICK_TIMEOUT);
             }
         }
         else {
+            if (runnableforClickBouton!=null){
+                handlerForClickBouton.removeCallbacks(runnableforClickBouton);
+                runnableforClickBouton = null;
+            }
+            runnableforClickBouton= new Runnable() {
+                @Override
+                public void run() {
             if (!mlKitIsDownloading) {
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 intent.putExtra("activity_name", "main");
@@ -3241,10 +3246,20 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                 overridePendingTransition(0, 0);
             }
+                }
+            };
+            handlerForClickBouton.postDelayed(runnableforClickBouton,300);
         }
     }
 
     public void btnOpenChat(View view) {
+        if (runnableforClickBouton!=null){
+            handlerForClickBouton.removeCallbacks(runnableforClickBouton);
+            runnableforClickBouton = null;
+        }
+        runnableforClickBouton= new Runnable() {
+            @Override
+            public void run() {
         if ( !mlKitIsDownloading) {
             Intent intent = new Intent(MainActivity.this, ChatWindow.class);
             startActivity(intent);
@@ -3258,6 +3273,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             finish();
             overridePendingTransition(0, 0);
         }
+        }
+        };
+        handlerForClickBouton.postDelayed(runnableforClickBouton,300);
+
     }
 
 

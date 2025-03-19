@@ -112,6 +112,8 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     private String addDestinationMailEditText="";
     private Handler handlerPauseTime = new Handler();
     private Runnable runnablePauseTime;
+    private Handler handler= new Handler();
+    private Runnable runnable;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -631,20 +633,31 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      * Fermeture de la fenetre de discussion
      */
     public void btnCloseChat(View view) {
-        teamChatBuddyApplication.stopTTS();
-        try {
-            BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
+        if (runnable!=null){
+            handler.removeCallbacks(runnable);
+            runnable = null;
         }
-        catch (Exception e){
-            Log.e(TAG,"BuddySDK Exception  "+e);
-        }
-        //stopListeningFreeSpeech();
+        runnable= new Runnable() {
+            @Override
+            public void run() {
+                teamChatBuddyApplication.stopTTS();
+                try {
+                    BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
+                }
+                catch (Exception e){
+                    Log.e(TAG,"BuddySDK Exception  "+e);
+                }
+                //stopListeningFreeSpeech();
 
-        Intent intent = new Intent(ChatWindow.this,MainActivity.class);
-        intent.putExtra("fromChatWindow", "true");
-        startActivity(intent);
-        finish();
-        overridePendingTransition(0, 0);
+                Intent intent = new Intent(ChatWindow.this,MainActivity.class);
+                intent.putExtra("fromChatWindow", "true");
+                startActivity(intent);
+                finish();
+                overridePendingTransition(0, 0);
+            }
+        };
+        handler.postDelayed(runnable,300);
+
     }
 
     /**

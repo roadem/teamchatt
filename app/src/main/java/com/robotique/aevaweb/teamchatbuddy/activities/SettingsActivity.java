@@ -197,6 +197,8 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private boolean isConnected = true;
     private boolean isClosingSettings = false;
     private Toast currentToast;
+    private Handler handler= new Handler();
+    private Runnable runnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1726,17 +1728,27 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         Log.w(TAG, "onEvent : "+iEvent.toString());
     }
     public void btnCloseSettings(View view) {
-        teamChatBuddyApplication.setSetting(set);
-        isClosingSettings = true;
-        if(!set.getChatbot().equals(setting.getChatbot())) {
-            teamChatBuddyApplication.setFileCreate(true);
+        if (runnable!=null){
+            handler.removeCallbacks(runnable);
+            runnable = null;
         }
+        runnable= new Runnable() {
+            @Override
+            public void run() {
+            teamChatBuddyApplication.setSetting(set);
+            isClosingSettings = true;
+            if(!set.getChatbot().equals(setting.getChatbot())) {
+                teamChatBuddyApplication.setFileCreate(true);
+            }
 
-        Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
-        intent.putExtra("fromSettings", "true");
-        finish();
-        startActivity(intent);
-        overridePendingTransition(0, 0);
+            Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+            intent.putExtra("fromSettings", "true");
+            finish();
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+            }
+        };
+        handler.postDelayed(runnable,300);
 
     }
 
