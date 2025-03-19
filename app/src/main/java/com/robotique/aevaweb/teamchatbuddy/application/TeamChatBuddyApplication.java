@@ -3879,6 +3879,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
         }
         Log.i("TTSG","  final voice name "+voice);
+        String finalLanguageCode = languageCode;
+        String finalVoice =voice;
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
