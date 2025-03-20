@@ -1,14 +1,10 @@
 package com.robotique.aevaweb.teamchatbuddy.utilis;
 
 import android.util.Log;
-import android.widget.Toast;
-
-import com.robotique.aevaweb.teamchatbuddy.R;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,12 +14,12 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 44; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 45; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
-    public static String createConfigurationFile(File directory) {
+    public static String createConfigurationFile(File directory, String app_version) {
         if (directory.exists() && directory.isDirectory()) {
             Log.i(TAG, "Le dossier 'TeamChatBuddy' existe déjà");
         }
@@ -32,7 +28,7 @@ public class ConfigurationFile {
             directory.mkdir();
         }
         File configFile = new File(directory.getPath(), "TeamChatBuddy.properties");
-        return WriteProperties(configFile);
+        return WriteProperties(configFile, app_version);
     }
 
 
@@ -70,7 +66,7 @@ public class ConfigurationFile {
         return properties;
     }
 
-    public static String WriteProperties(File configFile) {
+    public static String WriteProperties(File configFile, String app_version) {
         String initOrMajOrNone = "NONE";
         try {
 
@@ -204,7 +200,7 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Response_Timeout_in_seconds", "");
             props.addPropertyComment("Response_Timeout_in_seconds", "Waiting time for chatbot response and messages when exceeded");
-            setProperty("Response_Timeout_in_seconds","8");
+            setProperty("Response_Timeout_in_seconds","10");
             setProperty("Message_Timeout_NotRespected_fr","Ça prend un peu de temps, la connexion est un peu lente./Aahh! Internet n'est pas très rapide aujourd'hui/une petite seconde je connecte mes circuits");
             setProperty("Message_Timeout_NotRespected_en","It takes a little time, the connection is a bit slow./ohh! The internet is not very fast today/Just a moment, I'm connecting my circuits.");
 
@@ -736,7 +732,7 @@ public class ConfigurationFile {
 
 
             FileOutputStream fileOut = new FileOutputStream(configFile);
-            props.store(fileOut, "TeamChatBuddy configuration file");
+            props.store(fileOut, "TeamChatBuddy configuration file - Compatible with "+app_version);
             fileOut.close();
 
         } catch (Exception e) {

@@ -105,8 +105,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
@@ -1500,13 +1502,19 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 Log.e(TAG,"outPutphrase = "+outputPhrase);
             }
             if(outputPhrase.equalsIgnoreCase("")){
+                inputPhrase=inputPhrase.replace("\\","");
+                Log.e("testTTS","AFter .inputPhrase = "+inputPhrase);
                 return inputPhrase;
             }else {
+                outputPhrase=outputPhrase.replace("\\","");
+                Log.e("testTTS","AFter .outPutphrase = "+outputPhrase);
                 return outputPhrase;
             }
 
         }
         else {
+            inputPhrase=inputPhrase.replace("\\","");
+            Log.e("testTTS","AFter .inputPhrase = "+inputPhrase);
             return inputPhrase;
         }
 
@@ -3743,6 +3751,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             Log.e(TAG, "Erreur pendant l'initialisation de la langue TTS : "+e);
         }
     }
+
     public void speakGoogleCloudTTS(String languageCode,String texteToSpeak,String type){
         Log.e("MRA","speakGoogleCloudTTS  LanguageCode  "+languageCode);
         String voice ="";
@@ -4503,7 +4512,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      */
     public String createPropertiesFile() {
         File directory = new File(getString(R.string.path), "TeamChatBuddy");
-        String initOrMajOrNone = ConfigurationFile.createConfigurationFile(directory);
+        String initOrMajOrNone = ConfigurationFile.createConfigurationFile(directory, getString(R.string.version_app));
         init();
         notYet=false;
         return initOrMajOrNone;
@@ -4516,9 +4525,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         int max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
-        if (audioManager.isBluetoothScoOn()) {
-            max = audioManager.getStreamMaxVolume(6);
-        }
 
         int volume = getClosestInt((double) (percentage * max) / 100);
 
@@ -4527,9 +4533,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
             audioManager.startBluetoothSco();
             audioManager.setBluetoothScoOn(true);
-            audioManager.setStreamVolume(6, volume, AudioManager.FLAG_SHOW_UI);
+            audioManager.setStreamVolume(6, volume, type);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE );
         } else {
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,type );
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume,type);
         }
     }
 
