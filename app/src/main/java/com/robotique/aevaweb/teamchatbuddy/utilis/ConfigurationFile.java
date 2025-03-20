@@ -1,14 +1,10 @@
 package com.robotique.aevaweb.teamchatbuddy.utilis;
 
 import android.util.Log;
-import android.widget.Toast;
-
-import com.robotique.aevaweb.teamchatbuddy.R;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +19,7 @@ public class ConfigurationFile {
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
 
-    public static String createConfigurationFile(File directory) {
+    public static String createConfigurationFile(File directory, String app_version) {
         if (directory.exists() && directory.isDirectory()) {
             Log.i(TAG, "Le dossier 'TeamChatBuddy' existe déjà");
         }
@@ -32,7 +28,7 @@ public class ConfigurationFile {
             directory.mkdir();
         }
         File configFile = new File(directory.getPath(), "TeamChatBuddy.properties");
-        return WriteProperties(configFile);
+        return WriteProperties(configFile, app_version);
     }
 
 
@@ -70,7 +66,7 @@ public class ConfigurationFile {
         return properties;
     }
 
-    public static String WriteProperties(File configFile) {
+    public static String WriteProperties(File configFile, String app_version) {
         String initOrMajOrNone = "NONE";
         try {
 
@@ -98,7 +94,6 @@ public class ConfigurationFile {
 
             // ---------------------------- VERSION DU FICHIER DE CONFIG -----------------
             //todo : upgrade FILE_VERSION whenever you want to overwrite the file !
-            props.addPropertyComment("fileVersion","TeamChatBuddy Ver 2.2.34 delivred with file version "+String.valueOf(FILE_VERSION));
             props.setProperty("fileVersion", String.valueOf(FILE_VERSION));
 
 
@@ -143,8 +138,6 @@ public class ConfigurationFile {
             setProperty("TTS_ApiGoogle_speed","100");
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "Voice type : Standard/Wavenet");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
-            props.addPropertyComment("TTS_ApiGoogle_Language_Voice", "Voice type : Standard/Wavenet");
-            setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
 
             props.addPropertyComment("ChatBot","");
             props.addPropertyComment("ChatBot","Default ChatBot : ChatGPT/CustomGPT");
@@ -739,7 +732,7 @@ public class ConfigurationFile {
 
 
             FileOutputStream fileOut = new FileOutputStream(configFile);
-            props.store(fileOut, "TeamChatBuddy configuration file");
+            props.store(fileOut, "TeamChatBuddy configuration file - Compatible with "+app_version);
             fileOut.close();
 
         } catch (Exception e) {
