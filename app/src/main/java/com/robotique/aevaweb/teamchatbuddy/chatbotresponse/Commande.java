@@ -24,6 +24,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+import org.jsoup.nodes.Element;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
@@ -36,6 +40,12 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.ImageGenerator;
 import com.robotique.aevaweb.teamchatbuddy.utilis.MailSender;
 import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 import com.google.gson.GsonBuilder;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -256,6 +266,21 @@ public class Commande {
                         }
                     });
         }
+    }
+
+    public void translateNews(String message, ITranslationCallback iTranslationCallback){
+        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(message).addOnSuccessListener(new OnSuccessListener<String>() {
+            @Override
+            public void onSuccess(String translatedText) {
+                iTranslationCallback.onTranslated(translatedText);
+            }
+
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                iTranslationCallback.onTranslated(message);
+            }
+        });
     }
 
     private Locale getCurrentLocale(){
@@ -1921,11 +1946,288 @@ public class Commande {
                     }
                 });
                 break;
+            case "CMD_NEWS":
+                is_command = true;
+                Log.i(TAG, action);
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                CMD_NEWS(getDescription(action));
+                break;
             default:
                 is_command = false;
                 Log.i(TAG,"DEFAULT : "+ action);
         }
         return is_command;
+    }
+
+    public String extractCmdNewsValue(Activity activity) {
+        // Définition du fichier de configuration
+        File directory = new File(activity.getString(R.string.path), "TeamChatBuddy");
+        File configFile = new File(directory, "TeamChatBuddy.properties");
+
+        try {
+            // Lire tout le fichier en une seule chaîne (compatible Java 8)
+            String content = new String(Files.readAllBytes(configFile.toPath()), StandardCharsets.UTF_8);
+
+            // Expression régulière pour capturer le nombre après <CMD_NEWS
+            Pattern pattern = Pattern.compile("<CMD_NEWS\\s+(\\d+)>");
+            Matcher matcher = pattern.matcher(content);
+
+            // Extraction du nombre
+            if (matcher.find()) {
+                String extractedNumber = matcher.group(1);
+                Log.i("Commande", "Le nombre extrait est : " + extractedNumber);
+                return extractedNumber; // Retourne le nombre extrait
+            } else {
+                Log.i("Commande", "Aucune correspondance trouvée.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null; // Retourne null si aucune correspondance n'est trouvée
+    }
+
+    private void CMD_NEWS(String description) {
+
+        Log.i(TAG,"CMD_NEWS  "+description);
+
+        int durée = 3; // Valeur par défaut
+
+        if (description.isEmpty()) {
+            String extractedNumber = extractCmdNewsValue(activity);
+            if (extractedNumber != null) {
+                try {
+                    durée = Integer.parseInt(extractedNumber);
+                } catch (Exception e) {
+                    Log.e(TAG, "Erreur lors de la conversion de extractedNumber en entier", e);
+                }
+            }
+        } else {
+            try {
+                durée = Integer.parseInt(description);
+            } catch (Exception e) {
+                String extractedNumber = extractCmdNewsValue(activity);
+                if (extractedNumber != null) {
+                    try {
+                        durée = Integer.parseInt(extractedNumber);
+                    } catch (Exception exception) {
+                        Log.e(TAG, "Erreur lors de la conversion de extractedNumber en entier", exception);
+                    }
+                }
+            }
+        }
+        Log.i(TAG, "Durée finale: " + durée);
+
+        final int descriptionFinal = durée;
+        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,"https://www.bbc.com/", 50);
+        ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
+        Call<String> call = api.getBBCNews();
+
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Log.i(TAG, "---------------------------- BBC news ---------------------------- \n"+response.body());
+                    //    saveResponseToFile(response.body());
+                    extractAndLogNews(response.body(), descriptionFinal);
+                }
+                else {
+                    translate("CMD_NEWS", new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedText) {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                                try {
+                                    // get the historic commandes :
+                                    String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                    JSONObject history1 = new JSONObject();
+                                    history1.put("role", "assistant");
+                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                                    existingHistoryArray.put(history1);
+                                    // Stocker la nouvelle version de l'historique
+                                    teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                            }
+                        }
+                    });
+                }
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                translate("CMD_NEWS", new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedText) {
+                        String verifyMessage = verifyCmdMessages(translatedText);
+                        if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                            try {
+                                // get the historic commandes :
+                                String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                                JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                JSONObject history1 = new JSONObject();
+                                history1.put("role", "assistant");
+                                history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                                existingHistoryArray.put(history1);
+                                // Stocker la nouvelle version de l'historique
+                                teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                        }
+                    }
+                });
+                t.printStackTrace();
+            }
+        });
+    }
+
+    private void extractAndLogNews(String html, int thresholdHours) {
+        Document doc = Jsoup.parse(html);
+        //    Elements articles = doc.select("div[data-testid=london-article]");
+        Elements articles = doc.select("div.sc-93223220-0");
+        Set<String> uniqueTitles = new HashSet<>(); // Pour stocker les titres uniques
+        StringBuilder responseBuilder = new StringBuilder();
+        boolean foundNews = false;
+        int newsCount = 0;
+        Log.i(TAG, "articles: " + articles.size());
+
+        for (Element article : articles) {
+            String title = getText(article, "h2[data-testid=card-headline]");
+            String description = getText(article, "p[data-testid=card-description]");
+            String timeStr = getText(article, "span[data-testid=card-metadata-lastupdated]");
+            int minutesAgo = convertTimeToMinutes(timeStr);
+
+            if (title != null && description != null && minutesAgo <= thresholdHours * 60  && uniqueTitles.add(title)) {
+                foundNews = true;
+                newsCount++;
+                Log.i(TAG, "Titre: " + title);
+                Log.i(TAG, "Description: " + description);
+                Log.i(TAG, "Publié il y a: " + timeStr);
+                Log.i(TAG, "----------------------------");
+                responseBuilder.append("\n\n").append("Title "+newsCount+": ").append(title).append("\n").append(description);
+            }
+        }
+        String finalResponse = "The number of titles returned is : " + newsCount + "\n\n" +responseBuilder.toString().trim();
+
+        if(!foundNews){
+
+            translate("CMD_NEWS", new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedText) {
+                    String verifyMessage = verifyCmdMessages(translatedText);
+                    if(verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART") ){
+                        try {
+                            // get the historic commandes :
+                            String jsonArrayString = teamChatBuddyApplication.getparam("messages");
+                            JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                            JSONObject history1 = new JSONObject();
+                            history1.put("role", "assistant");
+                            history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                            existingHistoryArray.put(history1);
+                            // Stocker la nouvelle version de l'historique
+                            teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                    }
+                }
+            });
+        }
+
+        if(teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
+            Log.i(TAG, "---------------------------- Translated Text -----en \n " + finalResponse.replaceAll("\n\n",";splitNews;"));
+            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + finalResponse.replaceAll("\n\n",";splitNews;"));
+        }
+        else{
+            // Split articles by \n\n
+            String[] articlesArray = finalResponse.split("\n\n");
+
+            String firstSegment = articlesArray[0];
+            Log.i(TAG, "---------------------------- firstSegment ----- \n " + firstSegment);
+            boolean hasHeader = firstSegment.startsWith("The number of titles returned is :");
+
+            StringBuilder translatedResponse = new StringBuilder();
+            AtomicInteger pendingTranslations = new AtomicInteger(hasHeader ? articlesArray.length : articlesArray.length - 1);
+
+            if (hasHeader) {
+                translateNews(firstSegment, new ITranslationCallback() {
+                    @Override
+                    public void onTranslated(String translatedHeader) {
+                        synchronized (translatedResponse) {
+                            translatedResponse.append(translatedHeader);
+                            Log.i(TAG, "-------------------------translatedResponse --- firstSegment ----- \n " + translatedResponse);
+                        }
+
+                        // Start translating articles after header translation is done
+                        translateArticles(articlesArray, hasHeader, translatedResponse, pendingTranslations);
+                    }
+                });
+            } else {
+                // If there's no header, directly process articles
+                translateArticles(articlesArray, false, translatedResponse, pendingTranslations);
+            }
+        }
+    }
+
+    // Function to translate articles
+    private void translateArticles(String[] articlesArray, boolean hasHeader, StringBuilder translatedResponse, AtomicInteger pendingTranslations) {
+        int numberOfArticles = articlesArray.length - (hasHeader ? 1 : 0); // Adjust for header if present
+        pendingTranslations.set(numberOfArticles); // Initialize with the number of articles to be translated
+
+        for (int i = (hasHeader ? 1 : 0); i < articlesArray.length; i++) {
+
+            String article = articlesArray[i];
+            String[] lines = article.split("\n", 2); // Split into title and description
+            if (lines.length < 2) continue; // Skip malformed entries
+
+            String title = lines[0];
+            String description = lines[1];
+
+            translateNews(title, new ITranslationCallback() {
+                @Override
+                public void onTranslated(String translatedTitle) {
+                    Log.i(TAG, "Title Translated: " + translatedTitle); // Check title translation
+                    translateNews(description, new ITranslationCallback() {
+                        @Override
+                        public void onTranslated(String translatedDescription) {
+                            Log.i(TAG, "Description Translated: " + translatedDescription); // Check description translation
+                            synchronized (translatedResponse) {
+                                translatedResponse.append(";splitNews;").append(translatedTitle).append("\n").append(translatedDescription);
+                            }
+
+                            if (pendingTranslations.decrementAndGet() == 0) {
+                                // Notify once all translations are done
+                                String finalTranslatedText = translatedResponse.toString().trim();
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + finalTranslatedText);
+                                Log.i(TAG, "---------------------------- Translated Text ----- fr \n " + finalTranslatedText);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private String getText(Element parent, String selector) {
+        Element element = parent.selectFirst(selector);
+        return (element != null) ? element.text().trim() : null;
+    }
+
+    private int convertTimeToMinutes(String timeStr) {
+        if (timeStr == null) return Integer.MAX_VALUE;
+        timeStr = timeStr.toLowerCase();
+        if (timeStr.contains("min")) return Integer.parseInt(timeStr.replaceAll("\\D+", ""));
+        if (timeStr.contains("hr")) return Integer.parseInt(timeStr.replaceAll("\\D+", "")) * 60;
+        if (timeStr.contains("day")) return Integer.parseInt(timeStr.replaceAll("\\D+", "")) * 1440;
+        return Integer.MAX_VALUE;
     }
 
     public void CMD_MAIL(String description) {

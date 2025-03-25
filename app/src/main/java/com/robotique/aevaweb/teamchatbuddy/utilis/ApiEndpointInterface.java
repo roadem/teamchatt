@@ -171,4 +171,11 @@ public interface ApiEndpointInterface {
     // API pour récupérer des blagues en d'autres langues
     @GET
     Call<JsonObject> getJoke(@Url String url, @Query("blacklistFlags") String blacklistFlags, @Query("lang") String lang);
+
+    /**
+     *   -------------------------------  BBC News  ---------------------------------------------------------------
+     */
+    @GET("/news")
+    Call<String> getBBCNews();
+
 }

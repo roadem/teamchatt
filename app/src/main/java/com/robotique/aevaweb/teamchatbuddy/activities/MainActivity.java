@@ -3580,21 +3580,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         if (!teamChatBuddyApplication.getMessageError() && !teamChatBuddyApplication.getUsingEmotions()) {
                             BuddySDK.UI.setFacialExpression( FacialExpression.NEUTRAL, 1 );
                         }
+                        String displayText = texte.contains(";splitNews;") ? texte.replaceAll(";splitNews;","\n\n") : texte;
 
                         if (settingClass.getSwitchVisibility().equals( "true" )) {
                             if (teamChatBuddyApplication.getCurrentLanguage().equals( "en" )) {
-                                buddy_texte_resp.setText( String.format( "Response :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Response :  %s ", displayText ) );
                             } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "fr" )) {
-                                buddy_texte_resp.setText( String.format( "Réponse :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Réponse :  %s ", displayText ) );
                             } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "de" )) {
-                                buddy_texte_resp.setText( String.format( "Antwort :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Antwort :  %s ", displayText ) );
                             } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "es" )) {
-                                buddy_texte_resp.setText( String.format( "Respuesta :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Respuesta :  %s ", displayText ) );
                             } else {
                                 teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate( "Response" ).addOnSuccessListener( new OnSuccessListener<String>() {
                                     @Override
                                     public void onSuccess(String translatedText) {
-                                        buddy_texte_resp.setText( String.format( translatedText + " :  %s ", texte ) );
+                                        buddy_texte_resp.setText( String.format( translatedText + " :  %s ", displayText ));
                                     }
 
                                 } ).addOnFailureListener( new OnFailureListener() {
@@ -3616,7 +3617,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                         String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
                         Replica reponse = new Replica();
-                        reponse.setValue(texte);
+                        reponse.setValue(displayText);
                         reponse.setTime(time);
                         long responseTime = teamChatBuddyApplication.getGetResponseTime()- teamChatBuddyApplication.getQuestionTime();
                         DecimalFormat df = new DecimalFormat("#,###");
