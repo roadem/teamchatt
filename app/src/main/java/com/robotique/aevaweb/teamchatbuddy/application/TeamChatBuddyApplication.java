@@ -1,5 +1,6 @@
 package com.robotique.aevaweb.teamchatbuddy.application;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -3313,25 +3314,22 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     // Function to speak an article and trigger the callback on completion
     private void speakArticle(String article, int index, TTSCallback callback, Boolean isGoogle) {
-        Log.i(TAG, "Speaking article " + (index + 1) + ": " + article);
-        if(isGoogle){
-                  Log.i(TAG, "Speaking article handler !!!!!!!!!!!!!!! " );
-
-//            ExecutorService executorService = Executors.newSingleThreadExecutor();
-//            // Submit the task to be executed in the background
-//            executorService.submit(new Runnable() {
-//                @Override
-//                public void run() {
+        Log.i("googleNews", "Speaking article " + (index) + ": " + article);
+        if (isGoogle) {
+            new AsyncTask<Void, Void, Void>() {
+                @SuppressLint("StaticFieldLeak")
+                @Override
+                protected Void doInBackground(Void... voids) {
                     try {
-                        // Your network operation or API call
+                        SystemClock.sleep(2000);
                         getGoogleCloudTTS().start(article);
                     } catch (Exception e) {
-                        Log.e(TAG, "Error while speaking article: " + e.getMessage());
+                        e.printStackTrace();
                     }
-//                }
-//            });
-        }
-        else{
+                    return null;
+                }
+            }.execute();
+        } else {
             tts_android.speak(article, TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
         }
     }
@@ -3341,30 +3339,26 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @param texteToSpeak : message à dire par Buddy.
      * @param expression : jouer un mouvement spécial de la bouche [SPEAK_ANGRY / NO_FACE / SPEAK_HAPPY / SPEAK_NEUTRAL]
      */
-    public void speakTTS(final String texteToSpeak , LabialExpression expression, String type){
+    public void speakTTS(final String texteToSpeak, LabialExpression expression, String type) {
         setLed("speaking");
         setAlreadyChatting(true);
-        Log.e("MEHDI","texteToSpeak "+texteToSpeak);
+        Log.e("MEHDI", "texteToSpeak " + texteToSpeak);
         currentIndexText = 0;
         Stop_TTS_ReadSpeaker = false;
-        Log.w(TAG, "speakTTS : "+texteToSpeak);
+        Log.w(TAG, "speakTTS : " + texteToSpeak);
 
         currentIndexText = 0;
         Stop_TTS_ReadSpeaker = false;
 
         if (getCurrentLanguage().equals("en")) {
             toast_tts_android_indispo = getString(R.string.toast_tts_android_indispo_en);
-        }
-        else if (getCurrentLanguage().equals("fr")){
+        } else if (getCurrentLanguage().equals("fr")) {
             toast_tts_android_indispo = getString(R.string.toast_tts_android_indispo_fr);
-        }
-        else if (getCurrentLanguage().equals("de")) {
+        } else if (getCurrentLanguage().equals("de")) {
             toast_tts_android_indispo = getString(R.string.toast_tts_android_indispo_de);
-        }
-        else if (getCurrentLanguage().equals("es")) {
+        } else if (getCurrentLanguage().equals("es")) {
             toast_tts_android_indispo = getString(R.string.toast_tts_android_indispo_es);
-        }
-        else{
+        } else {
             getEnglishLanguageSelectedTranslator()
                     .translate(getString(R.string.toast_tts_android_indispo_en))
                     .addOnSuccessListener(new OnSuccessListener<String>() {
@@ -3387,34 +3381,29 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 //                shouldPlayEmotion= true;
 //                notifyObservers("playEmotion");
 //            }
-            if (((getCurrentLanguage().equals("en") || getCurrentLanguage().equals("fr")) && getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker) || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker) ){
-                Log.e("TEST","using readspeaker");
-                if (getCurrentLanguage().equals("en")){
-                    BuddySDK.Speech.setSpeakerSpeed(Integer.parseInt(getParamFromFile("ReadSpeaker_speed_en",configurationFilePseudo)));
-                    BuddySDK.Speech.setSpeakerPitch(Integer.parseInt(getParamFromFile("ReadSpeaker_pitch_en",configurationFilePseudo)));
-                }
-                else{
-                    BuddySDK.Speech.setSpeakerSpeed(Integer.parseInt(getParamFromFile("ReadSpeaker_speed_fr",configurationFilePseudo)));
-                    BuddySDK.Speech.setSpeakerPitch(Integer.parseInt(getParamFromFile("ReadSpeaker_pitch_fr",configurationFilePseudo)));
+            if (((getCurrentLanguage().equals("en") || getCurrentLanguage().equals("fr")) && getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker) || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker)) {
+                Log.e("TEST", "using readspeaker");
+                if (getCurrentLanguage().equals("en")) {
+                    BuddySDK.Speech.setSpeakerSpeed(Integer.parseInt(getParamFromFile("ReadSpeaker_speed_en", configurationFilePseudo)));
+                    BuddySDK.Speech.setSpeakerPitch(Integer.parseInt(getParamFromFile("ReadSpeaker_pitch_en", configurationFilePseudo)));
+                } else {
+                    BuddySDK.Speech.setSpeakerSpeed(Integer.parseInt(getParamFromFile("ReadSpeaker_speed_fr", configurationFilePseudo)));
+                    BuddySDK.Speech.setSpeakerPitch(Integer.parseInt(getParamFromFile("ReadSpeaker_pitch_fr", configurationFilePseudo)));
                 }
                 BuddySDK.Speech.setSpeakerVolume(getSpeakVolume());
-                if(BuddySDK.Speech.isReadyToSpeak()) {
+                if (BuddySDK.Speech.isReadyToSpeak()) {
                     String texteToSpeak_modified = texteToSpeak;
                     if (texteToSpeak.toLowerCase().contains("content")) {
                         texteToSpeak_modified = texteToSpeak.replaceAll("\\bcontent\\b", "contents");
                     }
                     if (!type.equals("timeOutExpired")) {
-                        if(texteToSpeak_modified.contains(";splitNews;")){
+                        if (texteToSpeak_modified.contains(";splitNews;")) {
                             texteToSpeakSplitted = texteToSpeak_modified.split(";splitNews;");
-                            Log.d("FCH_DEBUG", "calling startSpeakingSplittedText : " + texteToSpeak);
                             startSpeakingSplittedText(texteToSpeak, expression, type, texteToSpeakSplitted);
-                        }
-                        else {
+                        } else {
                             // Split the text based on periods and commas
                             texteToSpeakSplitted = texteToSpeak_modified.split("[.,]");
                             Log.e("texteToSpeakSplitted", texteToSpeakSplitted.toString());
-
-                            Log.d("FCH_DEBUG", "calling startSpeakingSplittedText : " + texteToSpeak);
                             startSpeakingSplittedText(texteToSpeak, expression, type, texteToSpeakSplitted);
                         }
                     } else {
@@ -3425,7 +3414,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                     @Override
                                     public void onSuccess(String iText) throws RemoteException {
                                         Log.i(TAG, "Succès de prononciation : " + iText);
-                                        allTextPronouced(texteToSpeak,  type);
+                                        allTextPronouced(texteToSpeak, type);
                                     }
 
                                     @Override
@@ -3434,13 +3423,11 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         if (type.equals("timeOutExpired")) {
                                             timeoutExpired = false;
 
-                                            if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                            if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
                                                 getChatGptStreamMode().resumeStreaming();
-                                            }
-                                            else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
+                                            } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
                                                 getCustomGPTStreamMode().resumeStreaming();
-                                            }
-                                            else{
+                                            } else {
                                                 notifyObservers("playStoredResponse");
                                             }
 
@@ -3461,10 +3448,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     }
                 }
             }
-            else if (getChosenTTS().trim().equalsIgnoreCase("Android") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("Android"))){
-                Log.e("TEST","using tts android");
+            else if (getChosenTTS().trim().equalsIgnoreCase("Android") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("Android"))) {
+                Log.e("TEST", "using tts android");
 
-                if(!isAppInstalled(getApplicationContext(),"com.google.android.tts")) {
+                if (!isAppInstalled(getApplicationContext(), "com.google.android.tts")) {
                     showToast(toast_tts_android_indispo);
                 }
                 if (texteToSpeak.contains(";splitNews;")) {
@@ -3481,7 +3468,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     TTSCallback callback = new TTSCallback() {
                         @Override
                         public void onSpeechCompleted(int nextIndex) {
-                            Log.e("MEHDI","onSpeechCompleted "+nextIndex);
+                            Log.e("MEHDI", "onSpeechCompleted " + nextIndex);
                             if (nextIndex < articlesList.size()) {
                                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
                                     speakArticle(articlesList.get(nextIndex), nextIndex, this, false);
@@ -3503,58 +3490,49 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                         @Override
                         public void onDone(String utteranceId) {
-                            Log.d("Commande", "onDone news : "+currentArticleIndex);
+                            Log.d("Commande", "onDone news : " + currentArticleIndex);
                             int nextIndex = currentArticleIndex.incrementAndGet();
-                            if(nextIndex==articlesList.size()){
-                                Log.e(TAG,"onDone android speak   ");
+                            if (nextIndex == articlesList.size()) {
+                                Log.e(TAG, "onDone android speak   ");
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                                }
-                                catch (Exception e){
-                                    Log.e(TAG,"BuddySDK Exception  "+e);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
 
-                                if (type.equals("timeOutExpired")){
+                                if (type.equals("timeOutExpired")) {
                                     timeoutExpired = false;
 
-                                    if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                    if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
                                         getChatGptStreamMode().resumeStreaming();
-                                    }
-                                    else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
+                                    } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
                                         getCustomGPTStreamMode().resumeStreaming();
-                                    }
-                                    else{
+                                    } else {
                                         notifyObservers("playStoredResponse");
                                     }
 
-                                }
-                                else if (type.equals("storedResponse")){
+                                } else if (type.equals("storedResponse")) {
                                     questionNumber++;
                                     notifyObservers("TTS_success;" + texteToSpeak);
-                                    storedResponse="";
+                                    storedResponse = "";
                                     setLanguageDetected("");
-                                }
-                                else {
+                                } else {
                                     questionNumber++;
                                     setLanguageDetected("");
-                                    if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
-                                        Log.e("MODE_STREAM","call onTTSEnd  speakTTS");
+                                    if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
+                                        Log.e("MODE_STREAM", "call onTTSEnd  speakTTS");
                                         getChatGptStreamMode().onTTSEnd();
-                                    }
-                                    else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")){
+                                    } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
                                         getCustomGPTStreamMode().onTTSEnd();
-                                    }
-                                    else{
+                                    } else {
                                         notifyObservers("TTS_success;" + texteToSpeak);
                                     }
                                 }
-                            }
-                            else{
+                            } else {
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                                }
-                                catch (Exception e){
-                                    Log.e(TAG,"BuddySDK Exception  "+e);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
                                 callback.onSpeechCompleted(nextIndex);// Trigger the callback
                             }
@@ -3563,173 +3541,161 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         @Override
                         public void onError(String utteranceId) {
                             Log.e(TAG, "Erreur pendant la prononciation " + utteranceId);
-                            if (type.equals("timeOutExpired")){
+                            if (type.equals("timeOutExpired")) {
                                 timeoutExpired = false;
-                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
                                     getChatGptStreamMode().resumeStreaming();
-                                }
-                                else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
+                                } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
                                     getCustomGPTStreamMode().resumeStreaming();
-                                }
-                                else{
+                                } else {
                                     notifyObservers("playStoredResponse");
                                 }
-                            }
-                            else if (type.equals("storedResponse")){
+                            } else if (type.equals("storedResponse")) {
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                }
-                                catch (Exception e){
-                                    Log.e(TAG,"BuddySDK Exception  "+e);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
                                 questionNumber++;
-                                notifyObservers("TTS_error;"+texteToSpeak);
-                                storedResponse="";
+                                notifyObservers("TTS_error;" + texteToSpeak);
+                                storedResponse = "";
                                 setLanguageDetected("");
-                            }
-                            else {
+                            } else {
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                }
-                                catch (Exception e){
-                                    Log.e(TAG,"BuddySDK Exception  "+e);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
                                 questionNumber++;
-                                notifyObservers("TTS_error;"+texteToSpeak);
+                                notifyObservers("TTS_error;" + texteToSpeak);
                                 setLanguageDetected("");
                             }
                         }
                     });
-                }
-
-                else {
+                } else {
                     // Lecture normale
                     int result = tts_android.speak(texteToSpeak, TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
-                if(result == -1){
-                    notifyObservers("TTS_error;"+texteToSpeak);
-                }else {
-                    tts_android.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                        @Override
-                        public void onStart(String utteranceId) {
-                            try {
-                                BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                            } catch (Exception e) {
-                                Log.e(TAG, "BuddySDK Exception  " + e);
-                            }
-                        }
-
-                        @Override
-                        public void onDone(String utteranceId) {
-                            try {
-                                BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                            } catch (Exception e) {
-                                Log.e(TAG, "BuddySDK Exception  " + e);
+                    if (result == -1) {
+                        notifyObservers("TTS_error;" + texteToSpeak);
+                    } else {
+                        tts_android.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                            @Override
+                            public void onStart(String utteranceId) {
+                                try {
+                                    BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
+                                }
                             }
 
-                            if (type.equals("timeOutExpired")) {
-                                timeoutExpired = false;
-
-                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
-                                    getChatGptStreamMode().resumeStreaming();
-                                } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
-                                    getCustomGPTStreamMode().resumeStreaming();
-                                } else {
-                                    notifyObservers("playStoredResponse");
+                            @Override
+                            public void onDone(String utteranceId) {
+                                try {
+                                    BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
 
-                            } else if (type.equals("storedResponse")) {
-                                questionNumber++;
-                                notifyObservers("TTS_success;" + texteToSpeak);
-                                storedResponse = "";
-                                setLanguageDetected("");
-                            } else {
-                                questionNumber++;
-                                setLanguageDetected("");
-                                if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
-                                    getChatGptStreamMode().onTTSEnd();
-                                } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
-                                    getCustomGPTStreamMode().onTTSEnd();
-                                } else {
+                                if (type.equals("timeOutExpired")) {
+                                    timeoutExpired = false;
+
+                                    if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
+                                        getChatGptStreamMode().resumeStreaming();
+                                    } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
+                                        getCustomGPTStreamMode().resumeStreaming();
+                                    } else {
+                                        notifyObservers("playStoredResponse");
+                                    }
+
+                                } else if (type.equals("storedResponse")) {
+                                    questionNumber++;
                                     notifyObservers("TTS_success;" + texteToSpeak);
-                                }
-                            }
-
-
-                        }
-
-                        @Override
-                        public void onError(String utteranceId) {
-                            Log.e(TAG, "Erreur pendant la prononciation " + utteranceId);
-                            if (type.equals("timeOutExpired")) {
-                                timeoutExpired = false;
-
-                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
-                                    getChatGptStreamMode().resumeStreaming();
-                                } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
-                                    getCustomGPTStreamMode().resumeStreaming();
+                                    storedResponse = "";
+                                    setLanguageDetected("");
                                 } else {
-                                    notifyObservers("playStoredResponse");
+                                    questionNumber++;
+                                    setLanguageDetected("");
+                                    if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
+                                        getChatGptStreamMode().onTTSEnd();
+                                    } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
+                                        getCustomGPTStreamMode().onTTSEnd();
+                                    } else {
+                                        notifyObservers("TTS_success;" + texteToSpeak);
+                                    }
                                 }
 
-                            } else if (type.equals("storedResponse")) {
-                                try {
-                                    BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                } catch (Exception e) {
-                                    Log.e(TAG, "BuddySDK Exception  " + e);
-                                }
-                                questionNumber++;
-                                notifyObservers("TTS_error;" + texteToSpeak);
-                                storedResponse = "";
-                                setLanguageDetected("");
-
-                            } else {
-                                try {
-                                    BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                } catch (Exception e) {
-                                    Log.e(TAG, "BuddySDK Exception  " + e);
-                                }
-                                questionNumber++;
-                                notifyObservers("TTS_error;" + texteToSpeak);
-                                setLanguageDetected("");
 
                             }
-                        }
-                    });
+
+                            @Override
+                            public void onError(String utteranceId) {
+                                Log.e(TAG, "Erreur pendant la prononciation " + utteranceId);
+                                if (type.equals("timeOutExpired")) {
+                                    timeoutExpired = false;
+
+                                    if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
+                                        getChatGptStreamMode().resumeStreaming();
+                                    } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
+                                        getCustomGPTStreamMode().resumeStreaming();
+                                    } else {
+                                        notifyObservers("playStoredResponse");
+                                    }
+
+                                } else if (type.equals("storedResponse")) {
+                                    try {
+                                        BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                    } catch (Exception e) {
+                                        Log.e(TAG, "BuddySDK Exception  " + e);
+                                    }
+                                    questionNumber++;
+                                    notifyObservers("TTS_error;" + texteToSpeak);
+                                    storedResponse = "";
+                                    setLanguageDetected("");
+
+                                } else {
+                                    try {
+                                        BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                    } catch (Exception e) {
+                                        Log.e(TAG, "BuddySDK Exception  " + e);
+                                    }
+                                    questionNumber++;
+                                    notifyObservers("TTS_error;" + texteToSpeak);
+                                    setLanguageDetected("");
+
+                                }
+                            }
+                        });
+                    }
                 }
-                }
-            }
-            else if (getChosenTTS().trim().equalsIgnoreCase("ApiGoogle") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("ApiGoogle"))){
-                String languageToUseInApiGoogle ="";
-                if (!getLanguageDetected().equals("")){
-                    languageToUseInApiGoogle=getLanguageDetected();
-                }
-                else{
-                    languageToUseInApiGoogle=getCurrentLanguage();
+            } else if (getChosenTTS().trim().equalsIgnoreCase("ApiGoogle") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("ApiGoogle"))) {
+                String languageToUseInApiGoogle = "";
+                if (!getLanguageDetected().equals("")) {
+                    languageToUseInApiGoogle = getLanguageDetected();
+                } else {
+                    languageToUseInApiGoogle = getCurrentLanguage();
                 }
                 List<String> TTSGoogleLangueCode = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_TTS");
-                String codeLanguageTTSGoogle= TTSGoogleLangueCode.get(getLangue().getId()-1);
+                String codeLanguageTTSGoogle = TTSGoogleLangueCode.get(getLangue().getId() - 1);
                 try {
-                    switch(languageToUseInApiGoogle){
+                    switch (languageToUseInApiGoogle) {
                         case "en":
 
-                                if (codeLanguageTTSGoogle.split("-")[0].equals("en")){
-                                    usingReadSpeaker = false;
-                                    speakGoogleCloudTTS(codeLanguageTTSGoogle,texteToSpeak,type);
-                                }
-                                else {
-                                    usingReadSpeaker = false;
-                                    speakGoogleCloudTTS("en-EN",texteToSpeak,type);
-                                }
-                                break;
+                            if (codeLanguageTTSGoogle.split("-")[0].equals("en")) {
+                                usingReadSpeaker = false;
+                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
+                            } else {
+                                usingReadSpeaker = false;
+                                speakGoogleCloudTTS("en-EN", texteToSpeak, type);
+                            }
+                            break;
                         case "fr":
-                                if (codeLanguageTTSGoogle.split("-")[0].equals("fr")){
-                                    usingReadSpeaker = false;
-                                    speakGoogleCloudTTS(codeLanguageTTSGoogle,texteToSpeak,type);
-                                }
-                                else {
-                                    usingReadSpeaker = false;
-                                    speakGoogleCloudTTS("fr-FR",texteToSpeak,type);
-                                }
+                            if (codeLanguageTTSGoogle.split("-")[0].equals("fr")) {
+                                usingReadSpeaker = false;
+                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
+                            } else {
+                                usingReadSpeaker = false;
+                                speakGoogleCloudTTS("fr-FR", texteToSpeak, type);
+                            }
 
 
                             break;
@@ -3737,43 +3703,40 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             usingReadSpeaker = false;
                             if (codeLanguageTTSGoogle.split("-")[0].equals("es")) {
 
-                                speakGoogleCloudTTS(codeLanguageTTSGoogle,texteToSpeak,type);
-                            }
-                            else{
-                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase()+"-"+languageToUseInApiGoogle.toUpperCase()),texteToSpeak,type);
+                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
+                            } else {
+                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase() + "-" + languageToUseInApiGoogle.toUpperCase()), texteToSpeak, type);
                             }
                             break;
                         case "de":
                             usingReadSpeaker = false;
                             if (codeLanguageTTSGoogle.split("-")[0].equals("de")) {
 
-                                speakGoogleCloudTTS(codeLanguageTTSGoogle,texteToSpeak,type);
-                            }
-                            else{
-                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase()+"-"+languageToUseInApiGoogle.toUpperCase()),texteToSpeak,type);
+                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
+                            } else {
+                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase() + "-" + languageToUseInApiGoogle.toUpperCase()), texteToSpeak, type);
                             }
                             break;
                         default:
                             usingReadSpeaker = false;
-                            Log.e("TEST","default language "+languageToUseInApiGoogle);
-                            Log.e("TEST","default getCurrentLanguage().split(\"-\")[0].trim() "+getCurrentLanguage().split("-").length);
-                            if (!getCurrentLanguage().equals("") && getCurrentLanguage().split("-")[0].trim().equalsIgnoreCase(languageToUseInApiGoogle)){
-                                speakGoogleCloudTTS(codeLanguageTTSGoogle,texteToSpeak,type);
-                            }
-                            else {
-                                Log.e("TEST","set Langue TTS "+languageToUseInApiGoogle.toLowerCase()+","+languageToUseInApiGoogle.toUpperCase());
-                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase()+"-"+languageToUseInApiGoogle.toUpperCase()),texteToSpeak,type);
+                            Log.e("TEST", "default language " + languageToUseInApiGoogle);
+                            Log.e("TEST", "default getCurrentLanguage().split(\"-\")[0].trim() " + getCurrentLanguage().split("-").length);
+                            if (!getCurrentLanguage().equals("") && getCurrentLanguage().split("-")[0].trim().equalsIgnoreCase(languageToUseInApiGoogle)) {
+                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
+                            } else {
+                                Log.e("TEST", "set Langue TTS " + languageToUseInApiGoogle.toLowerCase() + "," + languageToUseInApiGoogle.toUpperCase());
+                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase() + "-" + languageToUseInApiGoogle.toUpperCase()), texteToSpeak, type);
                             }
                             break;
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "Erreur pendant l'initialisation de la langue TTS : "+e);
+                    Log.e(TAG, "Erreur pendant l'initialisation de la langue TTS : " + e);
                 }
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Exception pendant la prononciation : "+e);
-            notifyObservers("TTS_exception;"+texteToSpeak);
+            Log.e(TAG, "Exception pendant la prononciation : " + e);
+            notifyObservers("TTS_exception;" + texteToSpeak);
         }
 
     }
@@ -3974,23 +3937,20 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
 
 
-    public void speakGoogleCloudTTS(String languageCode,String texteToSpeak,String type){
-        Log.e("MRA","speakGoogleCloudTTS  LanguageCode  "+languageCode);
-        String voice ="";
-        if (languageCode.split("-")[0].equals("ar")){
-            languageCode="ar-XA";
-        }
-        else if (languageCode.split("-")[0].equals("zh")){
-            languageCode= "cmn-CN";
-        }
-        else if (languageCode.split("-")[0].equals("he")){
-            languageCode= "he-IL";
-        }
-        else if (languageCode.split("-")[0].equals("id")){
-            languageCode= "id-ID";
+    public void speakGoogleCloudTTS(String languageCode, String texteToSpeak, String type) {
+        Log.e("MRA", "speakGoogleCloudTTS  LanguageCode  " + languageCode);
+        String voice = "";
+        if (languageCode.split("-")[0].equals("ar")) {
+            languageCode = "ar-XA";
+        } else if (languageCode.split("-")[0].equals("zh")) {
+            languageCode = "cmn-CN";
+        } else if (languageCode.split("-")[0].equals("he")) {
+            languageCode = "he-IL";
+        } else if (languageCode.split("-")[0].equals("id")) {
+            languageCode = "id-ID";
         }
         Boolean languageCodeExist = false;
-        if (getVoiceList()!=null) {
+        if (getVoiceList() != null) {
             for (String code : getVoiceList().getLanguageCodes()) {
                 if (code.equals(languageCode)) {
                     languageCodeExist = true;
@@ -4005,11 +3965,11 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 }
 
             }
-            if (!languageCodeExist){
+            if (!languageCodeExist) {
                 for (String code : getVoiceList().getLanguageCodes()) {
-                    if (code.split("-")[0].equals(languageCode.split("-")[0])){
-                        languageCodeExist=true;
-                        languageCode=code;
+                    if (code.split("-")[0].equals(languageCode.split("-")[0])) {
+                        languageCodeExist = true;
+                        languageCode = code;
                         for (String voiceName : getVoiceList().getVoiceNames(languageCode)) {
                             if (voiceName.equals(languageCode + "-" + getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo).trim() + "-A")) {
                                 voice = languageCode + "-" + getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo).trim() + "-A";
@@ -4021,21 +3981,22 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     }
                 }
             }
-            if (!languageCodeExist){
+            if (!languageCodeExist) {
                 languageCode = "en-EN";
                 voice = "en-US-Standard-C";
             }
         }
 
         String finalLanguageCode = languageCode;
-        String finalVoice =voice;
-//        new AsyncTask<Void, Void, Void>() {
-//            @Override
-//            protected Void doInBackground(Void... voids) {
+        String finalVoice = voice;
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... voids) {
                 try {
 
                     getGoogleCloudTTS().setVoiceSelectionParams(new VoiceSelectionParams(finalLanguageCode, finalVoice))
                             .setAudioConfig(new AudioConfig(AudioEncoding.MP3, getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_ApiGoogle_speed", configurationFilePseudo))), getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_ApiGoogle_pitch", configurationFilePseudo)))));
+
                     if (texteToSpeak.contains(";splitNews;")) {
                         String[] articlesArray = texteToSpeak.split(";splitNews;");
                         List<String> articlesList = new ArrayList<>();
@@ -4047,176 +4008,149 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         AtomicInteger currentArticleIndex = new AtomicInteger(0);
 
                         // Define the callback implementation
-                         TTSCallback callback = new TTSCallback() {
+                        TTSCallback callback1 = new TTSCallback() {
                             @Override
                             public void onSpeechCompleted(int nextIndex) {
-                                Log.e("MEHDI","onSpeechCompleted "+nextIndex);
+                                Log.d("googleNews", " onSpeechCompleted ");
                                 if (nextIndex < articlesList.size()) {
-                                    Log.e("MEHDI","onSpeechCompleted "+nextIndex);
-                                 //   new Handler().postDelayed(() -> {
-                                   //     speakArticle(articlesList.get(nextIndex), nextIndex, this, true);
-                                //    }, 2000); // Pause before the next article
-
-
-                            //        getGoogleCloudTTS().start(articlesList.get(nextIndex));
-
-//                                    new AsyncTask<Void, Void, Void>() {
-//                                        @Override
-//                                        protected Void doInBackground(Void... voids) {
-                                            try {
-                                                Thread.sleep(2000);
-                                                // Ensure this is off the main thread
-                                                speakArticle(articlesList.get(nextIndex), nextIndex, this, true);
-                                            } catch (Exception e) {
-                                                Log.e("MEHDI", "Error while speaking article: " + e.getMessage());
-                                            }
-//                                            return null;
-//                                        }
-//                                    }.execute(); // Start the next article in a new AsyncTask
+                                    try {
+                                        speakArticle(articlesList.get(nextIndex), nextIndex, this, true);
+                                    } catch (Exception e) {
+                                        Log.e("googleNews", "Error while speaking article: " + e.getMessage());
+                                    }
                                 }
                             }
                         };
-
-                        speakArticle(articlesList.get(0), 0, callback, true);
+                        speakArticle(articlesList.get(0), 0, callback1, true);
 
                         getGoogleCloudTTS().setTtsListener(new TtsGoogleApiListener() {
                             @Override
                             public void onStart() {
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                }
-                                catch (Exception e){
-                                    Log.e(TAG,"BuddySDK Exception  "+e);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
                             }
 
                             @Override
                             public void onDone() {
+                                Log.d("googleNews", "onDone ");
 
                                 int nextIndex = currentArticleIndex.incrementAndGet();
-                                if(nextIndex==articlesList.size()){
+                                if (nextIndex == articlesList.size()) {
                                     getGoogleCloudTTS().close();
                                     try {
                                         BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                                    }
-                                    catch (Exception e){
-                                        Log.e(TAG,"BuddySDK Exception  "+e);
+                                    } catch (Exception e) {
+                                        Log.e(TAG, "BuddySDK Exception  " + e);
                                     }
 
-                                    if (type.equals("timeOutExpired")){
+                                    if (type.equals("timeOutExpired")) {
                                         timeoutExpired = false;
 
-                                        if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                                        if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
                                             getChatGptStreamMode().resumeStreaming();
-                                        }
-                                        else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
+                                        } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
                                             getCustomGPTStreamMode().resumeStreaming();
-                                        }
-                                        else{
+                                        } else {
                                             notifyObservers("playStoredResponse");
                                         }
 
-                                    }
-                                    else if (type.equals("storedResponse")){
+                                    } else if (type.equals("storedResponse")) {
                                         questionNumber++;
                                         notifyObservers("TTS_success;" + texteToSpeak);
-                                        storedResponse="";
+                                        storedResponse = "";
                                         setLanguageDetected("");
-                                    }
-                                    else {
+                                    } else {
                                         questionNumber++;
                                         setLanguageDetected("");
-                                        if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")){
+                                        if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
                                             getChatGptStreamMode().onTTSEnd();
-                                        }
-                                        else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")){
+                                        } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
                                             getCustomGPTStreamMode().onTTSEnd();
-                                        }
-                                        else{
+                                        } else {
                                             notifyObservers("TTS_success;" + texteToSpeak);
                                         }
                                     }
-                                }
-                                else{
+                                } else {
                                     try {
                                         BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
+                                    } catch (Exception e) {
+                                        Log.e(TAG, "BuddySDK Exception  " + e);
                                     }
-                                    catch (Exception e){
-                                        Log.e(TAG,"BuddySDK Exception  "+e);
-                                    }
-                                    callback.onSpeechCompleted(nextIndex);// Trigger the callback
+                                    callback1.onSpeechCompleted(nextIndex);// Trigger the callback
                                 }
 
                             }
 
                             @Override
                             public void onError() {
-                                Log.e("MRA","speakGoogleCloudTTS  onError-----------  ");
+                                Log.e("googleNews", "speakGoogleCloudTTS  onError-----------  ");
                             }
                         });
 
-                    }
-                    else{
+                    } else {
                         getGoogleCloudTTS().setTtsListener(new TtsGoogleApiListener() {
-                        @Override
-                        public void onStart() {
-                            try {
-                                BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                            } catch (Exception e) {
-                                Log.e(TAG, "BuddySDK Exception  " + e);
-                            }
-                        }
-
-                        @Override
-                        public void onDone() {
-                            getGoogleCloudTTS().close();
-                            try {
-                                BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                            } catch (Exception e) {
-                                Log.e(TAG, "BuddySDK Exception  " + e);
+                            @Override
+                            public void onStart() {
+                                try {
+                                    BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
+                                }
                             }
 
-                            if (type.equals("timeOutExpired")) {
-                                timeoutExpired = false;
-
-                                if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
-                                    getChatGptStreamMode().resumeStreaming();
-                                } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
-                                    getCustomGPTStreamMode().resumeStreaming();
-                                } else {
-                                    notifyObservers("playStoredResponse");
+                            @Override
+                            public void onDone() {
+                                getGoogleCloudTTS().close();
+                                try {
+                                    BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
 
-                            } else if (type.equals("storedResponse")) {
-                                questionNumber++;
-                                notifyObservers("TTS_success;" + texteToSpeak);
-                                storedResponse = "";
-                                setLanguageDetected("");
-                            } else {
-                                questionNumber++;
-                                setLanguageDetected("");
-                                if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
-                                    getChatGptStreamMode().onTTSEnd();
-                                } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
-                                    getCustomGPTStreamMode().onTTSEnd();
-                                } else {
+                                if (type.equals("timeOutExpired")) {
+                                    timeoutExpired = false;
+
+                                    if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
+                                        getChatGptStreamMode().resumeStreaming();
+                                    } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
+                                        getCustomGPTStreamMode().resumeStreaming();
+                                    } else {
+                                        notifyObservers("playStoredResponse");
+                                    }
+
+                                } else if (type.equals("storedResponse")) {
+                                    questionNumber++;
                                     notifyObservers("TTS_success;" + texteToSpeak);
+                                    storedResponse = "";
+                                    setLanguageDetected("");
+                                } else {
+                                    questionNumber++;
+                                    setLanguageDetected("");
+                                    if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
+                                        getChatGptStreamMode().onTTSEnd();
+                                    } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
+                                        getCustomGPTStreamMode().onTTSEnd();
+                                    } else {
+                                        notifyObservers("TTS_success;" + texteToSpeak);
+                                    }
                                 }
                             }
-                        }
 
-                        @Override
-                        public void onError() {
-                            Log.e("MRA", "speakGoogleCloudTTS  onError-----------  ");
-                        }
-                    });
-                    getGoogleCloudTTS().start(texteToSpeak);
+                            @Override
+                            public void onError() {
+                                Log.e("MRA", "speakGoogleCloudTTS  onError-----------  ");
+                            }
+                        });
+                        getGoogleCloudTTS().start(texteToSpeak);
 
+                    }
                 }
-            }
                 catch (Exception e) {
-                    Log.e("MRA","speakGoogleCloudTTS  Exception-----------  "+e);
-                    Log.e(TAG,"Exception "+e);
+                    Log.e("MRA", "speakGoogleCloudTTS  Exception-----------  " + e);
+                    Log.e(TAG, "Exception " + e);
                     try {
                         int startIndex = e.getMessage().indexOf('{');
                         // Trouver la fin de la réponse JSON
@@ -4233,12 +4167,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         }
                         FileWriter fileWriter = new FileWriter(file1);
                         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                        String jsonStringF=gson.toJson(errorLOG);
+                        String jsonStringF = gson.toJson(errorLOG);
                         fileWriter.write(jsonStringF);
                         fileWriter.close();
-                        String errorTXT= new Date().toString()+", GoogleCloudTTSERROR,ERROR CODE= "+errorLOG.getAsJsonObject("error").get("code")+", ERROR Body{ message= "+errorLOG.getAsJsonObject("error").get("message")+", status= "+errorLOG.getAsJsonObject("error").get("status")+"}"+System.getProperty("line.separator");
+                        String errorTXT = new Date().toString() + ", GoogleCloudTTSERROR,ERROR CODE= " + errorLOG.getAsJsonObject("error").get("code") + ", ERROR Body{ message= " + errorLOG.getAsJsonObject("error").get("message") + ", status= " + errorLOG.getAsJsonObject("error").get("status") + "}" + System.getProperty("line.separator");
                         File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
-                        FileWriter fileWriter2 = new FileWriter(file2,true);
+                        FileWriter fileWriter2 = new FileWriter(file2, true);
                         fileWriter2.write(errorTXT);
                         fileWriter2.close();
 
@@ -4246,51 +4180,46 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         e.printStackTrace();
                     }
                     getGoogleCloudTTS().close();
-                    if (type.equals("timeOutExpired")){
+                    if (type.equals("timeOutExpired")) {
                         timeoutExpired = false;
 
-                        if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null){
+                        if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
                             getChatGptStreamMode().resumeStreaming();
-                        }
-                        else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null){
+                        } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
                             getCustomGPTStreamMode().resumeStreaming();
-                        }
-                        else{
+                        } else {
                             notifyObservers("playStoredResponse");
                         }
 
-                    }
-                    else if (type.equals("storedResponse")){
+                    } else if (type.equals("storedResponse")) {
                         try {
                             BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                        }
-                        catch (Exception ej){
-                            Log.e(TAG,"BuddySDK Exception  "+ej);
+                        } catch (Exception ej) {
+                            Log.e(TAG, "BuddySDK Exception  " + ej);
                         }
                         questionNumber++;
-                        notifyObservers("TTS_error;"+texteToSpeak);
-                        storedResponse="";
+                        notifyObservers("TTS_error;" + texteToSpeak);
+                        storedResponse = "";
                         setLanguageDetected("");
 
-                    }
-                    else {
+                    } else {
                         try {
                             BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                        }
-                        catch (Exception ej){
-                            Log.e(TAG,"BuddySDK Exception  "+ej);
+                        } catch (Exception ej) {
+                            Log.e(TAG, "BuddySDK Exception  " + ej);
                         }
                         questionNumber++;
-                        notifyObservers("TTS_error;"+texteToSpeak);
+                        notifyObservers("TTS_error;" + texteToSpeak);
                         setLanguageDetected("");
 
                     }
 
                 }
-//                return null;
-//            }
-//        }.execute();
+                return null;
+            }
+        }.execute();
     }
+
     public String getSecondTTSfromTTSList(){
         String[] listTTS= getParamFromFile("Text_To_Speech_List",configurationFilePseudo).split("/");
         if (listTTS.length>1){

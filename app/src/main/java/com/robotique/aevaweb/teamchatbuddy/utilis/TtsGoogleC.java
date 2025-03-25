@@ -115,9 +115,17 @@ public class TtsGoogleC implements AutoCloseable{
     }
 
     public void stop() {
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            mMediaPlayer.stop();
-            mMediaPlayer.reset();
+        if (mMediaPlayer != null) {
+            try {
+                mMediaPlayer.stop();
+            } catch (IllegalStateException ignored) {
+                // Already stopped or not initialized
+            }
+            try {
+                mMediaPlayer.reset();
+            } catch (IllegalStateException ignored) {}
+            mMediaPlayer.release();
+            mMediaPlayer = null;
             mVoiceLength = -1;
         }
     }
