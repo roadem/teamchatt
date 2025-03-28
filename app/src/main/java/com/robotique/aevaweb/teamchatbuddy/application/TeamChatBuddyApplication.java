@@ -3253,6 +3253,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @param expression : jouer un mouvement spécial de la bouche [SPEAK_ANGRY / NO_FACE / SPEAK_HAPPY / SPEAK_NEUTRAL]
      */
     public void speakTTS(final String texteToSpeak , LabialExpression expression, String type){
+        Log.w("TEST_voix","text To Speak : "+texteToSpeak);
+        Log.i("TEST_voix","Selected Language in app : "+getCurrentLanguage());
         setLed("speaking");
         setAlreadyChatting(true);
         Log.e("MEHDI","texteToSpeak "+texteToSpeak);
@@ -3294,12 +3296,21 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         try {
             setTTSAfterDetectingLanguage();
+            Log.i("TEST_voix","ConfigFile --> Text_To_Speech_List : "+getParamFromFile("Text_To_Speech_List",configurationFilePseudo));
+
 //            if (usingEmotions && !type.equals("timeOutExpired") && !messageError){
 //                shouldPlayEmotion= true;
 //                notifyObservers("playEmotion");
 //            }
-            if (((getCurrentLanguage().equals("en") || getCurrentLanguage().equals("fr")) && getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker) || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker) ){
-                Log.e("TEST","using readspeaker");
+            if (
+                    (
+                            (getCurrentLanguage().equals("en") || getCurrentLanguage().equals("fr"))
+                                    &&
+                                    getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker
+                    )
+                            || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && usingReadSpeaker)
+            ){
+                Log.i("TEST_voix","SPEAK using TTS ReadSpeaker "+BuddySDK.Speech.getSpeakerVoice().getName());
                 if (getCurrentLanguage().equals("en")){
                     BuddySDK.Speech.setSpeakerSpeed(Integer.parseInt(getParamFromFile("ReadSpeaker_speed_en",configurationFilePseudo)));
                     BuddySDK.Speech.setSpeakerPitch(Integer.parseInt(getParamFromFile("ReadSpeaker_pitch_en",configurationFilePseudo)));
@@ -3366,7 +3377,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 }
             }
             else if (getChosenTTS().trim().equalsIgnoreCase("Android") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("Android"))){
-                Log.e("TEST","using tts android");
+                Log.i("TEST_voix","SPEAK using TTS Android");
                 int result = tts_android.speak(texteToSpeak, TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
                 if(!isAppInstalled(getApplicationContext(),"com.google.android.tts")) {
                     showToast(toast_tts_android_indispo);
@@ -3478,6 +3489,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 }
             }
             else if (getChosenTTS().trim().equalsIgnoreCase("ApiGoogle") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("ApiGoogle"))){
+                Log.i("TEST_voix","SPEAK using TTS ApiGoogle");
                 String languageToUseInApiGoogle ="";
                 if (!getLanguageDetected().equals("")){
                     languageToUseInApiGoogle=getLanguageDetected();
@@ -3592,35 +3604,32 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
     }
     public void setTTSLanguage(String language){
-        Log.e("TEST","setTTSLanguage "+language);
-        Log.e("TEST","usingReadSpeaker language"+language);
         List<String> TTSAndroidLangueCode = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_TTS_Android");
         String codeLanguageTTSAndroid= TTSAndroidLangueCode.get(getLangue().getId()-1);
+        Log.i("TEST_voix","Language Code : "+codeLanguageTTSAndroid);
+        Log.i("TEST_voix","Detected Language : "+language);
         try {
             switch(language){
                 case "en":
                     if (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker")){
-                        if (codeLanguageTTSAndroid.equals("en-EN")){
+                        if (codeLanguageTTSAndroid.equals("en-US")){
+                            Log.i("TEST_voix","is en-US so we will be using ReadSpeaker");
                             BuddySDK.Speech.setSpeakerVoice("kate");
-                            Log.e("MRAA","english kate");
                             usingReadSpeaker = true;
-                        }else {
-
+                        }
+                        else{
                             if (codeLanguageTTSAndroid.split("-")[0].equals("en")){
+                                Log.i("TEST_voix","is not en-US so we will not be using ReadSpeaker");
                                 usingReadSpeaker = false;
                                 if (getChosenTTS().trim().equalsIgnoreCase("Android") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("Android"))){
                                     tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch",configurationFilePseudo))));
                                     tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed",configurationFilePseudo))));
                                     tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0],codeLanguageTTSAndroid.split("-")[1]));
-                                }else if (getChosenTTS().trim().equalsIgnoreCase("ApiGoogle") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("ApiGoogle"))){
-
                                 }
-                                //0.5,2.0
-
                             }
                             else {
+                                Log.i("TEST_voix","Detected language is 'en' so we will be using ReadSpeaker");
                                 BuddySDK.Speech.setSpeakerVoice("kate");
-                                Log.e("MRAA","english kate");
                                 usingReadSpeaker = true;
                             }
                         }
@@ -3643,24 +3652,22 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     break;
                 case "fr":
                     if (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker")){
-                        Log.e("MEHDI","usingReadSpeaker y");
                         if (codeLanguageTTSAndroid.equals("fr-FR")){
-                            Log.e("MRAA","frensh roxane");
+                            Log.i("TEST_voix","is fr-FR so we will be using ReadSpeaker");
                             BuddySDK.Speech.setSpeakerVoice("roxane");
-                            Log.e("MEHDI","usingReadSpeaker 1");
                             usingReadSpeaker = true;
-                        }else {
+                        }
+                        else {
                             if (codeLanguageTTSAndroid.split("-")[0].equals("fr")){
-                                Log.e("MEHDI","usingReadSpeaker 2");
+                                Log.i("TEST_voix","is not fr-FR so we will not be using ReadSpeaker");
                                 usingReadSpeaker = false;
                                 tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch",configurationFilePseudo))));
                                 tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed",configurationFilePseudo))));
                                 tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0],codeLanguageTTSAndroid.split("-")[1]));
                             }
                             else {
-                                Log.e("MRAA","frensh roxane");
+                                Log.i("TEST_voix","Detected language is 'fr' so we will be using ReadSpeaker");
                                 BuddySDK.Speech.setSpeakerVoice("roxane");
-                                Log.e("MEHDI","usingReadSpeaker 3");
                                 usingReadSpeaker = true;
                             }
                         }
@@ -3678,12 +3685,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             tts_android.setLanguage(new Locale("fr","FR"));
                         }
                     }
-
                     break;
                 case "es":
                     usingReadSpeaker = false;
                     if (codeLanguageTTSAndroid.split("-")[0].equals("es")) {
-
                         tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch", configurationFilePseudo))));
                         tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed", configurationFilePseudo))));
                         tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0], codeLanguageTTSAndroid.split("-")[1]));
@@ -3697,14 +3702,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch",configurationFilePseudo))));
                             tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed",configurationFilePseudo))));
                             tts_android.setLanguage(new Locale(code.split("-")[0].trim(),code.split("-")[1].trim()));
-
                         }
                     }
                     break;
                 case "de":
                     usingReadSpeaker = false;
                     if (codeLanguageTTSAndroid.split("-")[0].equals("de")) {
-
                         tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch", configurationFilePseudo))));
                         tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed", configurationFilePseudo))));
                         tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0], codeLanguageTTSAndroid.split("-")[1]));
@@ -3718,22 +3721,17 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch",configurationFilePseudo))));
                             tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed",configurationFilePseudo))));
                             tts_android.setLanguage(new Locale(code.split("-")[0].trim(),code.split("-")[1].trim()));
-
                         }
                     }
                     break;
                 default:
                     usingReadSpeaker = false;
-                    Log.e("TEST","default language "+language);
-                    Log.e("TEST","default getCurrentLanguage().split(\"-\")[0].trim() "+getCurrentLanguage().split("-").length);
-                    Log.e("TEST","codeLanguageTTSAndroid "+codeLanguageTTSAndroid);
                     if (!getCurrentLanguage().equals("") && getCurrentLanguage().split("-")[0].trim().equalsIgnoreCase(language)){
                         tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch",configurationFilePseudo))));
                         tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed",configurationFilePseudo))));
                         tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0].trim(),codeLanguageTTSAndroid.split("-")[1].trim()));
                     }
                     else {
-                        Log.e("TEST","set Langue TTS "+language.toLowerCase()+","+language.toUpperCase());
                         int result = tts_android.setLanguage(new Locale(language.toLowerCase(),language.toUpperCase()));
                         if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                             Log.e("TEST", "langue non pas prise ne charge");
@@ -3742,7 +3740,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch",configurationFilePseudo))));
                             tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed",configurationFilePseudo))));
                             tts_android.setLanguage(new Locale(code.split("-")[0].trim(),code.split("-")[1].trim()));
-
                         }
                     }
                     break;
