@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 45; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 46; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -128,14 +128,20 @@ public class ConfigurationFile {
             props.addPropertyComment("Text_To_Speech_List", "Text to Speech : ReadSpeaker/Android/ApiGoogle");
             setProperty("Text_To_Speech_List","ReadSpeaker/Android/ApiGoogle");
             props.addPropertyComment("ReadSpeaker_pitch_fr","Pitch and speed for TTS");
-            setProperty("ReadSpeaker_pitch_fr","130");
-            setProperty("ReadSpeaker_pitch_en","130");
+            props.addPropertyComment("ReadSpeaker_pitch_fr","ReadSpeaker Range : pitch [50-200] / speed [50-400]");
+            props.addPropertyComment("ReadSpeaker_pitch_fr","Android/ApiGoogle Range : pitch & speed [50-150]");
+            setProperty("ReadSpeaker_pitch_fr","160");
+            setProperty("ReadSpeaker_pitch_en","160");
             setProperty("ReadSpeaker_speed_fr","100");
             setProperty("ReadSpeaker_speed_en","100");
-            setProperty("TTS_Android_pitch","130");
-            setProperty("TTS_Android_speed","100");
-            setProperty("TTS_ApiGoogle_pitch","130");
-            setProperty("TTS_ApiGoogle_speed","100");
+            setProperty("TTS_Android_pitch_fr","115");
+            setProperty("TTS_Android_pitch_en","87");
+            setProperty("TTS_Android_speed_fr","100");
+            setProperty("TTS_Android_speed_en","70");
+            setProperty("TTS_ApiGoogle_pitch_fr","120");
+            setProperty("TTS_ApiGoogle_pitch_en","130");
+            setProperty("TTS_ApiGoogle_speed_fr","70");
+            setProperty("TTS_ApiGoogle_speed_en","70");
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "Voice type : Standard/Wavenet");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
 
