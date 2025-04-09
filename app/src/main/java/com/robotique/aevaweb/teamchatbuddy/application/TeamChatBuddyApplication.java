@@ -3462,7 +3462,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
             else if (getChosenTTS().trim().equalsIgnoreCase("Android") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("Android"))){
                 Log.i("TEST_voix","SPEAK using TTS Android");
-                int result = tts_android.speak(texteToSpeak, TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
                 if(!isAppInstalled(getApplicationContext(),"com.google.android.tts")) {
                     showToast(toast_tts_android_indispo);
                 }
