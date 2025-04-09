@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 47; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 48; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -144,6 +144,9 @@ public class ConfigurationFile {
             setProperty("TTS_ApiGoogle_speed_en","70");
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "Voice type : Standard/Wavenet");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
+
+            props.addPropertyComment("TTS_ApiGoogle_Language_Voice", "Voice type : Standard/Wavenet");
+            setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
 
             props.addPropertyComment("ChatBot","");
             props.addPropertyComment("ChatBot","Default ChatBot : ChatGPT/CustomGPT");

@@ -3934,6 +3934,69 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
     }
 
+    public String getLanguageVoice(String languageCode) {
+        // Parse voice configuration
+        String voice = "";
+        Log.i("TTSG", "TTS_ApiGoogle_Language_Voice :: " + getParamFromFile("TTS_ApiGoogle_Language_Voice", configurationFilePseudo));
+        String voiceConfig = getParamFromFile("TTS_ApiGoogle_Language_Voice", configurationFilePseudo);
+        if(voiceConfig!=null){
+            voiceConfig = voiceConfig.trim().replaceAll(" ","");
+        }
+        Log.i("TTSG", "TTS_ApiGoogle_Language_Voice " + voiceConfig);
+
+        Log.i("TTSG", "TTS_ApiGoogle_Voice_Type :" + getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo));
+        String defaultVoiceType = getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo);
+        if(defaultVoiceType!=null){
+            defaultVoiceType = defaultVoiceType.trim();
+        }
+
+        Map<String, String> voiceMap = new HashMap<>();
+        if (voiceConfig!=null && !voiceConfig.isEmpty()) {
+            String[] entries = voiceConfig.replace("[", "").split("],");
+            for (String entry : entries) {
+                String[] parts = entry.replace("]", "").split(":");
+                if (parts.length == 2) {
+                    // Normalize by trimming spaces and converting to lowercase for the key
+                    String key = parts[0].replace(" ", "").toLowerCase();
+                    // Format voice name
+                    String value = formatVoiceName(parts[1].replace(" ", ""));
+                    voiceMap.put(key, value);
+                }
+            }
+        }
+
+        // Normalize language code for lookup
+        String languageKey = languageCode.split("-")[0].toLowerCase();
+
+        // Check if a specific voice is configured for the language
+        if (voiceMap.containsKey(languageKey)) {
+            voice = languageCode + "-" + voiceMap.get(languageKey);
+        } else if (defaultVoiceType!=null && !defaultVoiceType.isEmpty()) {
+            voice = languageCode + "-" + formatVoiceName(defaultVoiceType.replace(" ", ""))+ "-A";
+        } else {
+            return "";
+        }
+        return voice;
+    }
+
+    /**
+     * Formats the voice name to have the first letter of each part capitalized and removes spaces.
+     * For example, "wavenet-c" or "WAVENET-C" becomes "Wavenet-C".
+     */
+    private String formatVoiceName(String voiceName) {
+        String[] parts = voiceName.split("-");
+        StringBuilder formattedName = new StringBuilder();
+        for (int i = 0; i < parts.length; i++) {
+            String part = parts[i].toLowerCase();
+            if (!part.isEmpty()) {
+                formattedName.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+            }
+            if (i < parts.length - 1) {
+                formattedName.append("-");
+            }
+        }
+        return formattedName.toString();
+    }
 
     public void speakGoogleCloudTTS(String languageCode, String texteToSpeak, String type) {
         Log.e("MRA", "speakGoogleCloudTTS  LanguageCode  " + languageCode);
@@ -3947,43 +4010,64 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         } else if (languageCode.split("-")[0].equals("id")) {
             languageCode = "id-ID";
         }
-        Boolean languageCodeExist = false;
-        if (getVoiceList() != null) {
-            for (String code : getVoiceList().getLanguageCodes()) {
-                if (code.equals(languageCode)) {
-                    languageCodeExist = true;
-                    for (String voiceName : getVoiceList().getVoiceNames(languageCode)) {
-                        if (voiceName.equals(languageCode + "-" + getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo).trim() + "-A")) {
-                            voice = languageCode + "-" + getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo).trim() + "-A";
-                            break;
-                        }
-                        voice = voiceName;
-                    }
-                    break;
-                }
-
-            }
-            if (!languageCodeExist) {
+        String languageVoice = getLanguageVoice(languageCode);
+        Log.i("TTSG","  LanguageCode  "+languageCode+" voice name "+languageVoice);
+        if(!languageVoice.isEmpty()){
+            Boolean languageCodeExist = false;
+            if (getVoiceList()!=null) {
                 for (String code : getVoiceList().getLanguageCodes()) {
-                    if (code.split("-")[0].equals(languageCode.split("-")[0])) {
+                    if (code.equals(languageCode)) {
                         languageCodeExist = true;
-                        languageCode = code;
                         for (String voiceName : getVoiceList().getVoiceNames(languageCode)) {
-                            if (voiceName.equals(languageCode + "-" + getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo).trim() + "-A")) {
-                                voice = languageCode + "-" + getParamFromFile("TTS_ApiGoogle_Voice_Type", configurationFilePseudo).trim() + "-A";
+                            if (voiceName.equals(languageVoice)) {
+                                Log.i("TTSG","  voiceName exist --- "+languageVoice);
+                                voice = languageVoice;
                                 break;
                             }
                             voice = voiceName;
                         }
+                        Log.i("TTSG","  voice   --- "+voice);
                         break;
+                    }
+
+                }
+                if (!languageCodeExist){
+                    for (String code : getVoiceList().getLanguageCodes()) {
+                        if (code.split("-")[0].equals(languageCode.split("-")[0])){
+                            languageCodeExist=true;
+                            languageCode=code;
+                            for (String voiceName : getVoiceList().getVoiceNames(languageCode)) {
+                                if (voiceName.equals(languageVoice)) {
+                                    Log.i("TTSG","  voiceName exist -- "+languageVoice);
+                                    voice = languageVoice;
+                                    break;
+                                }
+                                voice = voiceName;
+                            }
+                            Log.i("TTSG","  voice --  "+voice);
+                            break;
+                        }
                     }
                 }
             }
+
             if (!languageCodeExist){
                 languageCode = "en-US";
+                voice = getLanguageVoice(languageCode);
+                if(voice.isEmpty()){
+                    voice = "en-US-Standard-C";
+                }
+            }
+        }
+        else{
+            Log.i("TTSG","  code language null  ");
+            languageCode = "en-US";
+            voice = getLanguageVoice(languageCode);
+            if(voice.isEmpty()){
                 voice = "en-US-Standard-C";
             }
         }
+        Log.i("TTSG","  final voice name "+voice);
 
         String finalLanguageCode = languageCode;
         String finalVoice = voice;
