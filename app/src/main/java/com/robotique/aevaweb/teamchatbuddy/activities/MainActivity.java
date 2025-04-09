@@ -1403,6 +1403,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
                         Log.i("zomilito",""+message);
                         String detectedSTTMessage = message.split(";")[1].replaceAll("' ", "'");
+                        Log.i("TEST_voix","Question : "+detectedSTTMessage);
                         if (!teamChatBuddyApplication.isActivityClosed()) {
                             if (!teamChatBuddyApplication.isModeContinuousListeningON()) {
                                 teamChatBuddyApplication.setQuestionNumber(teamChatBuddyApplication.getQuestionNumber() + 1);
