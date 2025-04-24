@@ -113,7 +113,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="#000000"
                 android:minHeight="100px"
-                android:maxHeight="450px"
+                android:maxHeight="325px"
                 android:scrollbars = "vertical"
                 android:textSize="20sp"
                 android:padding="10dp"/>
@@ -262,6 +262,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="150dp"
+        android:layout_alignParentBottom="true"
         >
         <!-- Image du Texte -->
         <RelativeLayout
@@ -271,25 +272,25 @@
             android:layout_margin="10dp"
             android:visibility="invisible"
             >
-        <ImageView
-            android:id="@+id/imageText"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:src="@drawable/txt"
+            <ImageView
+                android:id="@+id/imageText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/txt"
 
-            />
+                />
 
-        <!-- Image de la Flèche -->
-        <ImageView
-            android:id="@+id/imageArrow"
-            android:layout_width="75px"
-            android:layout_height="75px"
-            android:src="@drawable/arrows"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentEnd="true"
+            <!-- Image de la Flèche -->
+            <ImageView
+                android:id="@+id/imageArrow"
+                android:layout_width="75px"
+                android:layout_height="75px"
+                android:src="@drawable/arrows"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
 
-            android:layout_marginBottom="20dp"
-            android:layout_marginEnd="70dp"/>
+                android:layout_marginBottom="20dp"
+                android:layout_marginEnd="70dp"/>
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/layout_QRCode"
@@ -301,16 +302,14 @@
             android:layout_margin="10dp"
             android:padding="8dp">
             <!-- Image du QR Code -->
-                    <ImageView
-                        android:id="@+id/imageQRCode"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+            <ImageView
+                android:id="@+id/imageQRCode"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
 
-                        />
+                />
 
         </RelativeLayout>
-
-
 
     </RelativeLayout>
 
