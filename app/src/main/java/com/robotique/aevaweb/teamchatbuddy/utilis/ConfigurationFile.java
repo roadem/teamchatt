@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 49; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 47; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -144,8 +144,6 @@ public class ConfigurationFile {
             setProperty("TTS_ApiGoogle_speed_en","70");
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "Voice type : Standard/Wavenet");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
-
-            props.addPropertyComment("TTS_ApiGoogle_Language_Voice", "Voice type : Standard/Wavenet");
             setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
 
             props.addPropertyComment("ChatBot","");
@@ -544,8 +542,8 @@ public class ConfigurationFile {
             setProperty( "CMD_RUN_fr", "D'accord, je vais lancer l'application [1] // L'application [1] n'existe pas " );
             setProperty( "CMD_RUN_en", "Ok I'll run the app [1] // Application [1] does not exist" );
 
-            setProperty( "CMD_SCEN_fr", "D'accord, je vais lancer le scénario [1] // le scénario est nul" );
-            setProperty( "CMD_SCEN_en", "Ok I'll run the scenario [1] // the scenario is null" );
+            setProperty( "CMD_SCEN_fr", "D'accord, je vais lancer le scénario [1] // le scénario est introuvable" );
+            setProperty( "CMD_SCEN_en", "Ok I'll run the scenario [1] // the scenario is not found" );
 
             setProperty( "CMD_DANCE_fr", "Ok je vais danser  // T'as vu comment je danse bien // Problème lors de l'exécution du comportement [1] " );
             setProperty( "CMD_DANCE_en", "Ok I'm going to dance // Have you seen how well I dance // Issue during behavior execution [1]" );

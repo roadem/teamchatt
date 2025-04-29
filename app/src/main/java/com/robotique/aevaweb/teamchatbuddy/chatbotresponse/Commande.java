@@ -2285,7 +2285,7 @@ public class Commande {
     private void extractAndLogNews(String html, int thresholdHours) {
         Document doc = Jsoup.parse(html);
         //    Elements articles = doc.select("div[data-testid=london-article]");
-        Elements articles = doc.select("div.sc-93223220-0");
+        Elements articles = doc.select("div.sc-666b6d83-0");
         Set<String> uniqueTitles = new HashSet<>(); // Pour stocker les titres uniques
         StringBuilder responseBuilder = new StringBuilder();
         boolean foundNews = false;

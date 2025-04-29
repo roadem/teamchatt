@@ -4087,6 +4087,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         speed = getConvertedSpeedValueGoogle(Integer.parseInt(getParamFromFile("TTS_ApiGoogle_speed_en",configurationFilePseudo)));
                     }
 
+                    Log.d("DEBUG_TTS_Google","LanguageCode : "+finalLanguageCode + " , Voice : " + finalVoice);
                     getGoogleCloudTTS().setVoiceSelectionParams(new VoiceSelectionParams(finalLanguageCode, finalVoice)).setAudioConfig(new AudioConfig(AudioEncoding.MP3, speed , pitch));
                     
                     if (texteToSpeak.contains(";splitNews;")) {
