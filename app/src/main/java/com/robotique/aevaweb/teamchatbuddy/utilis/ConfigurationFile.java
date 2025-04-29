@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 46; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 47; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -144,6 +144,7 @@ public class ConfigurationFile {
             setProperty("TTS_ApiGoogle_speed_en","70");
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "Voice type : Standard/Wavenet");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
+            setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
 
             props.addPropertyComment("ChatBot","");
             props.addPropertyComment("ChatBot","Default ChatBot : ChatGPT/CustomGPT");
@@ -446,7 +447,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_43=Affiche l’image « oiseau bleu » <CMD_SHOW_IMAGE oiseau_bleu>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_44=Supprime l’image « oiseau bleu » <CMD_DEL_IMAGE oiseau_bleu>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_45=Envoie à « Pierre paul » le mail « voici mon message » <CMD_MAIL [Pierre-paul] [voici mon message]>");
-
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_46= Donne-moi les dernières informations (depuis 3 heures) <CMD_NEWS 3>");
 
             setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding commands enclosed in <> if they exist, separated by spaces. If no command matches, do not respond. Do not add any explanations or additional text. ");
 
@@ -496,11 +497,11 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_43=Displays the « blue bird » image <CMD_SHOW_IMAGE blue_bird>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_44=Delete the « blue bird » image < CMD_DEL_IMAGE blue_bird>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_45=Send to « Pierre paul » the email « here is my message »  <CMD_MAIL [Pierre-Paul] [here is my message]>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_46=Give me the latest news (from the past 3 hours) <CMD_NEWS 3>");
 
 
-
-            setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila" );
-            setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done" );
+            setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila // Je n’arrive pas à générer la musique[1]" );
+            setProperty( "CMD_MUSIC_en", "Ok, I will play music corresponding to your request // Done // I can't generate the music[1]" );
 
             setProperty( "CMD_STOP_MUSIC_fr", "Ok j'arrête la musique// " );
             setProperty( "CMD_STOP_MUSIC_en", "Ok I'll stop the music// " );
@@ -511,8 +512,8 @@ public class ConfigurationFile {
             setProperty( "CMD_HOUR_fr", "// Il est [1]" );
             setProperty( "CMD_HOUR_en", "// It's [1]" );
 
-            setProperty( "CMD_LANGUE_fr", "Je change la langue // La langue a été changé" );
-            setProperty( "CMD_LANGUE_en", "I'm changing the language // The language has been changed" );
+            setProperty( "CMD_LANGUE_fr", "Je change la langue // La langue a été changé  // Je n’arrive pas à changer la langue" );
+            setProperty( "CMD_LANGUE_en", "I'm changing the language // The language has been changed  // I can't change the language" );
 
             setProperty( "CMD_TEMP_fr", "Je change la température // La température a été changé" );
             setProperty( "CMD_TEMP_en", "I'm changing the temperature // The temperature has been changed" );
@@ -541,26 +542,26 @@ public class ConfigurationFile {
             setProperty( "CMD_RUN_fr", "D'accord, je vais lancer l'application [1] // L'application [1] n'existe pas " );
             setProperty( "CMD_RUN_en", "Ok I'll run the app [1] // Application [1] does not exist" );
 
-            setProperty( "CMD_SCEN_fr", "D'accord, je vais lancer le scénario [1] //" );
-            setProperty( "CMD_SCEN_en", "Ok I'll run the scenario [1] //" );
+            setProperty( "CMD_SCEN_fr", "D'accord, je vais lancer le scénario [1] // le scénario est introuvable" );
+            setProperty( "CMD_SCEN_en", "Ok I'll run the scenario [1] // the scenario is not found" );
 
-            setProperty( "CMD_DANCE_fr", "Ok je vais danser  // T'as vu comment je danse bien" );
-            setProperty( "CMD_DANCE_en", "Ok I'm going to dance // Have you seen how well I dance" );
+            setProperty( "CMD_DANCE_fr", "Ok je vais danser  // T'as vu comment je danse bien // Problème lors de l'exécution du comportement [1] " );
+            setProperty( "CMD_DANCE_en", "Ok I'm going to dance // Have you seen how well I dance // Issue during behavior execution [1]" );
 
-            setProperty( "CMD_METEO_fr", "Je vérifie la météo à [1] // Le temps à [1] est [2], il fait [3]°C" );
-            setProperty( "CMD_METEO_en", "I'm checking the weather at [1] // The weather at [1] is [2], it's [3]°C" );
+            setProperty( "CMD_METEO_fr", "Je vérifie la météo à [1] // Le temps à [1] est [2], il fait [3]°C // Je n’arrive pas à récupérer la météo" );
+            setProperty( "CMD_METEO_en", "I'm checking the weather at [1] // The weather at [1] is [2], it's [3]°C // I can't retrieve the weather" );
 
-            setProperty( "CMD_RADIO_fr", "Je lance la radio [1] //" );
-            setProperty( "CMD_RADIO_en", "I'm starting the radio [1] //" );
+            setProperty( "CMD_RADIO_fr", "Je lance la radio [1] // Je n’arrive pas à lancer la radio[1]" );
+            setProperty( "CMD_RADIO_en", "I'm starting the radio [1] // I can’t start the radio[1]" );
 
             setProperty( "CMD_STOP_RADIO_fr", "Ok j'arrête la radio// " );
             setProperty( "CMD_STOP_RADIO_en", "Ok I'll stop the radio// " );
 
-            setProperty( "SWITCHBOT_LIGHT_fr", "Je mets la lumière [1] // C'est fait" );
-            setProperty( "SWITCHBOT_LIGHT_en", "I'm turning [1] the light // Done" );
+            setProperty( "SWITCHBOT_LIGHT_fr", "Je mets la lumière [1] // C'est fait // Je n’arrive à allumer la lumière" );
+            setProperty( "SWITCHBOT_LIGHT_en", "I'm turning [1] the light // Done // I can't turn on the light" );
 
-            setProperty( "HEALYSA_CONNECT_fr", "Je te connecte à la plateforme Healysa // Tu es connecté" );
-            setProperty( "HEALYSA_CONNECT_en", "I am connecting you to the Healysa platform // You are connected" );
+            setProperty( "HEALYSA_CONNECT_fr", "Je te connecte à la plateforme Healysa // Tu es connecté // Erreur lors de la connexion[1]" );
+            setProperty( "HEALYSA_CONNECT_en", "I am connecting you to the Healysa platform // You are connected // Error during connection[1]" );
 
             setProperty( "HEALYSA_HRV_fr", "Je prends ton rythme cardiaque // Ta fréquence cardiaque est de [1] bpm à [2] // Aucune mesure de rythme cardiaque n'a été effectuée aujourd'hui." );
             setProperty( "HEALYSA_HRV_en", "I'm taking your heart rate // Your heart rate is [1] bpm at [2] // No heart rate measurement was taken today." );
@@ -575,17 +576,17 @@ public class ConfigurationFile {
             setProperty( "HEALYSA_CHECKUP_en", "I'm doing your check up // Your heart rate is [1], your systolic blood pressure is [2] and diastolic blood pressure is [3], your oxygen level is [4]");
 
 
-            setProperty( "HEALYSA_CALL_fr", "Je lance l'appel // Voila" );
-            setProperty( "HEALYSA_CALL_en", "I'll start the call // Done" );
+            setProperty( "HEALYSA_CALL_fr", "Je lance l'appel // Voila // Erreur lors de l'appel[1]" );
+            setProperty( "HEALYSA_CALL_en", "I'll start the call // Done // Error during call[1]" );
 
-            setProperty( "HEALYSA_LOC_fr", "Un instant je cherche // Il est à [1]" );
-            setProperty( "HEALYSA_LOC_en", "Wait I'm searching // He's at [1]" );
+            setProperty( "HEALYSA_LOC_fr", "Un instant je cherche // Il est à [1] // Je n’arrive pas à localiser [1] [2]" );
+            setProperty( "HEALYSA_LOC_en", "Wait I'm searching // He's at [1] // I can’t locate [1] [2]" );
 
-            setProperty( "HEALYSA_FEEDCAT_fr", "Ok je nourris le chat // Il est servi" );
-            setProperty( "HEALYSA_FEEDCAT_en", "Ok I'll feed the cat // He is served" );
+            setProperty( "HEALYSA_FEEDCAT_fr", "Ok je nourris le chat // Il est servi // Je n’arrive pas à nourrir le chat[1]" );
+            setProperty( "HEALYSA_FEEDCAT_en", "Ok I'll feed the cat // He is served // I can't feed the cat [1]" );
 
-            setProperty( "CMD_IMAGE_fr", "Je vais vous montrer une image correspondant à votre demande // Voici l'image" );
-            setProperty( "CMD_IMAGE_en", "I will show you an image corresponding to your request // Here is the image" );
+            setProperty( "CMD_IMAGE_fr", "Je vais vous montrer une image correspondant à votre demande // Voici l'image // Problème lors du traitement de l'image[1]" );
+            setProperty( "CMD_IMAGE_en", "I will show you an image corresponding to your request // Here is the image // Issue during image processing[1]" );
 
             setProperty( "CMD_CLOSE_IMAGE_fr", "Ok je ferme l'image" );
             setProperty( "CMD_CLOSE_IMAGE_en", "Ok I'll close the image" );
@@ -599,11 +600,11 @@ public class ConfigurationFile {
             setProperty( "CMD_DEL_IMAGE_fr", "Ok, je vais supprimer l'image // aucune image correspondante n’existe");
             setProperty( "CMD_DEL_IMAGE_en", "Ok, I will delete the image // No matching image exists");
 
-            setProperty("CMD_PHOTO_fr","Je vais prendre une photo");
-            setProperty("CMD_PHOTO_en","I will take a picture");
+            setProperty("CMD_PHOTO_fr","Je vais prendre une photo // Problème lors de la prise de photo[1]");
+            setProperty("CMD_PHOTO_en","I will take a picture // Problem while taking the photo[1]");
 
-            setProperty( "CMD_BI_fr", "Je lance le comportement [1] // C'est bon // Le fichier de comportement [1] est introuvable" );
-            setProperty( "CMD_BI_en", "I'm starting the behaviour [1] // Done // Behavior file [1] could not be found" );
+            setProperty( "CMD_BI_fr", "Je lance le comportement [1] // C'est bon // Problème lors de l'exécution du comportement [1]" );
+            setProperty( "CMD_BI_en", "I'm starting the behaviour [1] // Done // Issue during behavior execution [1]" );
 
             setProperty( "CMD_JOKE_fr", "Ok, Voici une nouvelle blague // Voila j’espère que ma blague t’a fait rire // Aucune blague correspondante trouvée" );
             setProperty( "CMD_JOKE_en", "Ok, here’s a new joke // There you go, I hope my joke made you laugh // No matching joke found" );
@@ -611,12 +612,14 @@ public class ConfigurationFile {
             setProperty( "CMD_HEADER_fr", "// L'en-tête est modifié" );
             setProperty( "CMD_HEADER_en", "// The header is changed" );
 
-            setProperty( "CMD_MAIL_fr", "Ok, je vais envoyer le mail // le mail est envoyé");
-            setProperty( "CMD_MAIL_en", "Ok, I will send the mail // The email has been sent" );
+            setProperty( "CMD_MAIL_fr", "Ok, je vais envoyer le mail // le mail est envoyé // Erreur lors d'envoi du mail[1]");
+            setProperty( "CMD_MAIL_en", "Ok, I will send the mail // The email has been sent // Error while sending the email[1]" );
 
             setProperty("CMD_STOP_BI_fr","Ok j’arrête le comportement// " );
             setProperty("CMD_STOP_BI_en","Ok I'll stop the behaviour // ");
 
+            setProperty("CMD_NEWS_fr","// Problème lors de la récupération des actualités " );
+            setProperty("CMD_NEWS_en","// Problem retrieving news");
 
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
             setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");

@@ -974,7 +974,7 @@ public class ResponseFromChatbot {
                                                             teamChatBuddyApplication.setMultiCommandsDetected(false);
                                                         }
                                                         teamChatBuddyApplication.getListOfCommandmustToHavePlayed().remove(0);
-                                                            if(!commande.start_action( firstCommandToExecute,numberOfQuestion)) {
+                                                            if(!commande.start_action( firstCommandToExecute,numberOfQuestion, texte)) {
 //                                                            returnCommand = false;
                                                                 Log.e(tag, "COMMANDE NON RECONNUE : Start Emotion + ReponseFromChatGPT");
                                                                 activity.runOnUiThread(new Runnable() {
@@ -1294,11 +1294,11 @@ public class ResponseFromChatbot {
             if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed().size()==1){
                 teamChatBuddyApplication.setMultiCommandsDetected(false);
                 teamChatBuddyApplication.getListOfCommandmustToHavePlayed().remove(0);
-                commande.start_action(cmd, teamChatBuddyApplication.getQuestionNumber());
+                commande.start_action(cmd, teamChatBuddyApplication.getQuestionNumber(),"");
             }
             else{
                 teamChatBuddyApplication.getListOfCommandmustToHavePlayed().remove(0);
-                commande.start_action(cmd, teamChatBuddyApplication.getQuestionNumber());
+                commande.start_action(cmd, teamChatBuddyApplication.getQuestionNumber(),"");
             }
         }
 
