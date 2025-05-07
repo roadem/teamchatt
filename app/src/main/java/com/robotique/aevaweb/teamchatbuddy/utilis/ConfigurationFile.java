@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 47; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 48; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -189,6 +189,8 @@ public class ConfigurationFile {
             setProperty("Displaying_QRCode_period","0");
             props.addPropertyComment("Displaying_QRCode_Duration","Duration for displaying the QRCode in seconds");
             setProperty("Displaying_QRCode_Duration","30");
+            setProperty("QRcodeFileName","qrCode.png");
+            setProperty("QR_Text","SCAN FOR DRINKS AND SNACKS");
 
             props.addPropertyComment("Language","");
             props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");

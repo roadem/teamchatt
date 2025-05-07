@@ -2,6 +2,7 @@ package com.robotique.aevaweb.teamchatbuddy.chatbotresponse;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
@@ -9,6 +10,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.bfr.buddy.ui.shared.FacialExpression;
+import com.bfr.buddy.ui.shared.LabialExpression;
+import com.bfr.buddysdk.BuddySDK;
 import com.chaquo.python.PyException;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
@@ -43,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.FileOutputStream;
@@ -70,6 +75,7 @@ public class ResponseFromChatbot {
     private JSONArray existingHistoryArray;
     Commande commande;
     private String prompt_cmd;
+    public static CountDownTimer responseTimeout;
 
     public ResponseFromChatbot(TeamChatBuddyApplication context,Activity activity) {
         this.teamChatBuddyApplication = context;
@@ -213,6 +219,10 @@ public class ResponseFromChatbot {
             }
 
             RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
+            if(responseTimeout!=null){
+                responseTimeout.cancel();
+                responseTimeout = null;
+            }
 
             if (teamChatBuddyApplication.getparam("Mode_Stream").contains("yes")){
                 if(teamChatBuddyApplication.getChatGptStreamMode() != null){
@@ -224,12 +234,75 @@ public class ResponseFromChatbot {
                 teamChatBuddyApplication.getChatGptStreamMode().sendRequest(api,requestBody);
             }
             else{
+                if (
+                        ( Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Response_Timeout_in_seconds","TeamChatBuddy.properties"))!=0 )
+                        && ((teamChatBuddyApplication.getCurrentLanguage().equals("en")
+                        && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").trim().isEmpty())
+                        || (teamChatBuddyApplication.getCurrentLanguage().equals("fr")
+                        && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").trim().isEmpty())
+                        ||(!teamChatBuddyApplication.getCurrentLanguage().equals("en")
+                        && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").trim().isEmpty())
+                            )
+                ) {
+                            teamChatBuddyApplication.setAnswerHasExceededTimeOut(false);
+                            responseTimeout = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Response_Timeout_in_seconds", "TeamChatBuddy.properties")) * 1000, 1000) {
+                                @Override
+                                public void onTick(long l) {
+                                    Log.d("responseTimeout", "on Tick");
+                                }
+                                @Override
+                                public void onFinish() {
+                                    if (teamChatBuddyApplication.isAlreadyGetAnswer()) {
+                                    } else {
+                                        teamChatBuddyApplication.setAnswerHasExceededTimeOut(true);
+                                        teamChatBuddyApplication.setTimeoutExpired(true);
+                                        if (!teamChatBuddyApplication.isOpenaialreadySwitchEmotion()) {
+                                            BuddySDK.UI.setFacialExpression(FacialExpression.TIRED,1);
+                                        }
+                                        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
+                                            String[] message_Timeout_NotRespected_en = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
+                                            int randomNumber_message_Timeout_NotRespected_en = new Random().nextInt(message_Timeout_NotRespected_en.length);
+                                            teamChatBuddyApplication.speakTTS(message_Timeout_NotRespected_en[randomNumber_message_Timeout_NotRespected_en], LabialExpression.SPEAK_NEUTRAL,"timeOutExpired");
+                                        }
+                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
+                                            String[] message_Timeout_NotRespected_fr = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").split("/");
+                                            int randomNumber_message_Timeout_NotRespected_fr = new Random().nextInt(message_Timeout_NotRespected_fr.length);
+                                            teamChatBuddyApplication.speakTTS(message_Timeout_NotRespected_fr[randomNumber_message_Timeout_NotRespected_fr], LabialExpression.SPEAK_NEUTRAL,"timeOutExpired");
+                                        }
+                                        else {
+                                            String[] message_Timeout_NotRespected_en = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
+                                            int randomNumber_message_Timeout_NotRespected_en = new Random().nextInt(message_Timeout_NotRespected_en.length);
+                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(message_Timeout_NotRespected_en[randomNumber_message_Timeout_NotRespected_en]).addOnSuccessListener(new OnSuccessListener<String>() {
+                                                @Override
+                                                public void onSuccess(String translatedText) {
+                                                    teamChatBuddyApplication.speakTTS(translatedText, LabialExpression.SPEAK_NEUTRAL,"timeOutExpired");
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Log.e("responseTimeout","translatedText exception  "+e);
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            };
+                            Log.i("responseTimeout", " start responseTimeout ");
+                            responseTimeout.start();
+                }
+
+                Log.i("responseTimeout", " call ChatGPT API (StreamMode OFF) ");
                 Call call = api.getChatGPT( requestBody, "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"), "application/json");
 
                 call.enqueue(new Callback() {
                     @Override
                     public void onResponse(Call call, Response response) {
-                        teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                        if(responseTimeout!=null){
+                            responseTimeout.cancel();
+                            responseTimeout = null;
+                            Log.i( "responseTimeout", "réponse ChatGPT --> cancel timeout "+responseTimeout);
+                        }
+                        Log.i("responseTimeout", " timeout cancelled ");
                         teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
                         // Vérifie si la réponse est réussie
                         if(response.isSuccessful()) {
@@ -1628,7 +1701,18 @@ public class ResponseFromChatbot {
                 call.enqueue( new Callback<JsonObject>() {
                     @Override
                     public void onResponse(Call<JsonObject> call, retrofit2.Response<JsonObject> response) {
-                        teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                        Log.i( "responseTimeout", "Réponse ChatGPT emotion cancel timeout ");
+                        if(responseTimeout!=null){
+                            responseTimeout.cancel();
+                            responseTimeout = null;
+                        }
+                        if(ChatGptStreamMode.responseTimeout !=null){
+                            ChatGptStreamMode.responseTimeout.cancel();
+                        }
+                        if(CustomGPTStreamMode.responseTimeout !=null){
+                            CustomGPTStreamMode.responseTimeout.cancel();
+                        }
+
                         // teamChatTabletteApplication.setGetResponseTime(System.currentTimeMillis());
                         // teamChatTabletteApplication.setAlreadyGetAnswer(true);
                         // Vérifie si la réponse est réussie

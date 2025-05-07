@@ -267,17 +267,28 @@
         <!-- Image du Texte -->
         <RelativeLayout
             android:id="@+id/layout_Texte"
-            android:layout_width="495dp"
+            android:layout_width="474dp"
             android:layout_height="match_parent"
             android:layout_margin="10dp"
             android:visibility="invisible"
+            android:background="@drawable/rounded_white_background"
+
             >
-            <ImageView
-                android:id="@+id/imageText"
+
+            <TextView
+                android:id="@+id/textViewQRMessage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:src="@drawable/txt"
-
+                android:padding="10dp"
+                android:layout_toStartOf="@id/imageArrow"
+                android:layout_marginEnd="5dp"
+                android:textColor="#2B2B2B"
+                android:textSize="32sp"
+                android:lineSpacingExtra="0dp"
+                android:fontFamily="@font/cindie"
+                android:autoSizeTextType="uniform"
+                android:autoSizeMinTextSize="12sp"
+                android:autoSizeMaxTextSize="32sp"
                 />
 
             <!-- Image de la Flèche -->
@@ -288,9 +299,8 @@
                 android:src="@drawable/arrows"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentEnd="true"
-
                 android:layout_marginBottom="20dp"
-                android:layout_marginEnd="70dp"/>
+                android:layout_marginEnd="62dp"/>
         </RelativeLayout>
         <RelativeLayout
             android:id="@+id/layout_QRCode"
