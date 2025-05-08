@@ -190,7 +190,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Displaying_QRCode_Duration","Duration for displaying the QRCode in seconds");
             setProperty("Displaying_QRCode_Duration","30");
             setProperty("QRcodeFileName","qrCode.png");
-            setProperty("QR_Text","SCAN FOR DRINKS AND SNACKS");
+            setProperty("QR_Text","<b>SCAN FOR DRINKS AND SNACKS</b>");
 
             props.addPropertyComment("Language","");
             props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");

@@ -42,6 +42,8 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
@@ -4633,7 +4635,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             layoutQRCode.setVisibility(View.VISIBLE);
 
             String qrCodeText = teamChatBuddyApplication.getParamFromFile("QR_Text","TeamChatBuddy.properties");
-            textViewQRMessage.setText(qrCodeText);
+            textViewQRMessage.setText(Html.fromHtml(qrCodeText, Html.FROM_HTML_MODE_LEGACY));
+            textViewQRMessage.setMovementMethod(LinkMovementMethod.getInstance()); // Enable link clicks
+
 
             // Animation pour les faire entrer au centre
             ObjectAnimator animTexte = ObjectAnimator.ofFloat(layoutTexteQR, "translationX", 0);
