@@ -1701,17 +1701,7 @@ public class ResponseFromChatbot {
                 call.enqueue( new Callback<JsonObject>() {
                     @Override
                     public void onResponse(Call<JsonObject> call, retrofit2.Response<JsonObject> response) {
-                        Log.i( "responseTimeout", "Réponse ChatGPT emotion cancel timeout ");
-                        if(responseTimeout!=null){
-                            responseTimeout.cancel();
-                            responseTimeout = null;
-                        }
-                        if(ChatGptStreamMode.responseTimeout !=null){
-                            ChatGptStreamMode.responseTimeout.cancel();
-                        }
-                        if(CustomGPTStreamMode.responseTimeout !=null){
-                            CustomGPTStreamMode.responseTimeout.cancel();
-                        }
+                        Log.i( "responseTimeout", "Réponse ChatGPT emotion  ");
 
                         // teamChatTabletteApplication.setGetResponseTime(System.currentTimeMillis());
                         // teamChatTabletteApplication.setAlreadyGetAnswer(true);
