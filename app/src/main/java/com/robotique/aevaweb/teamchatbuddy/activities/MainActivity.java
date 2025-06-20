@@ -4636,7 +4636,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             String qrCodeText = teamChatBuddyApplication.getParamFromFile("QR_Text","TeamChatBuddy.properties");
             textViewQRMessage.setText(Html.fromHtml(qrCodeText, Html.FROM_HTML_MODE_LEGACY));
-            textViewQRMessage.setMovementMethod(LinkMovementMethod.getInstance()); // Enable link clicks
 
 
             // Animation pour les faire entrer au centre
