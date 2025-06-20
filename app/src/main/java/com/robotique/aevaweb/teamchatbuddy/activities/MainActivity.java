@@ -42,6 +42,8 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
@@ -158,6 +160,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private TextView photo_timer_txtView;
     private TextView buddy_texte_qst;
     private TextView buddy_texte_resp;
+    private TextView textViewQRMessage;
     private ImageView noNetwork;
     private ImageView imageArrow;
     private ImageView imageQRCode;
@@ -238,7 +241,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private boolean isFirstInvitaion = false;
 
     private CountDownTimer timerEcoute;
-    private CountDownTimer responseTimeout;
     private CountDownTimer timerDownloading;
     private CountDownTimer timerPhoto;
     private CountDownTimer timerToApplyBI;
@@ -633,6 +635,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         imageQRCode = findViewById(R.id.imageQRCode);
         layoutTexteQR = findViewById(R.id.layout_Texte);
         layoutQRCode = findViewById(R.id.layout_QRCode);
+        textViewQRMessage = findViewById(R.id.textViewQRMessage);
 
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         amanager.setStreamMute(AudioManager.STREAM_NOTIFICATION, true);
@@ -813,7 +816,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         super.onPause();
         Log.d(TAG," --- onPause() ---");
         initHasBeenLaunchedFromOnResume=true;
-        if (responseTimeout!=null) responseTimeout.cancel();
+        if(ResponseFromChatbot.responseTimeout !=null){
+            ResponseFromChatbot.responseTimeout.cancel();
+        }
+        if(ChatGptStreamMode.responseTimeout !=null){
+            ChatGptStreamMode.responseTimeout.cancel();
+        }
+        if(CustomGPTStreamMode.responseTimeout !=null){
+            CustomGPTStreamMode.responseTimeout.cancel();
+        }
         if (timerToApplyBI!=null) timerToApplyBI.cancel();
         if(teamChatBuddyApplication.getChatGptStreamMode() != null){
             teamChatBuddyApplication.getChatGptStreamMode().reset();
@@ -1086,7 +1097,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             handler.removeCallbacks(runnable);
                             handler.removeCallbacksAndMessages(null);
                         }
-                        if (responseTimeout!=null) responseTimeout.cancel();
+                        if(ResponseFromChatbot.responseTimeout !=null){
+                            ResponseFromChatbot.responseTimeout.cancel();
+                        }
+                        if(ChatGptStreamMode.responseTimeout !=null){
+                            ChatGptStreamMode.responseTimeout.cancel();
+                        }
+                        if(CustomGPTStreamMode.responseTimeout !=null){
+                            CustomGPTStreamMode.responseTimeout.cancel();
+                        }
                         if(teamChatBuddyApplication.getChatGptStreamMode() != null){
                             teamChatBuddyApplication.getChatGptStreamMode().reset();
                         }
@@ -1310,7 +1329,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if (message != null) {
 
             if (message.contains("CANCEL_RESPONSE_TIMEOUT")) {
-                if (responseTimeout!=null) responseTimeout.cancel();
+                if(ResponseFromChatbot.responseTimeout !=null){
+                    ResponseFromChatbot.responseTimeout.cancel();
+                }
+                if(ChatGptStreamMode.responseTimeout !=null){
+                    ChatGptStreamMode.responseTimeout.cancel();
+                }
+                if(CustomGPTStreamMode.responseTimeout !=null){
+                    CustomGPTStreamMode.responseTimeout.cancel();
+                }
             }
 
             else if (message.contains("MODE_STREAM_TEXT;SPLIT;")) {
@@ -1467,75 +1494,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             else {
                                 responseFromChatbot.getSessionId(detectedSTTMessage);
                             }
-                            if (
-                                    ( Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Response_Timeout_in_seconds","TeamChatBuddy.properties"))!=0 )
-                                            && (
-                                            (
-                                                    teamChatBuddyApplication.getCurrentLanguage().equals("en")
-                                                            && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").trim().isEmpty()
-                                            )
-                                                    ||
-                                                    (
-                                                            teamChatBuddyApplication.getCurrentLanguage().equals("fr")
-                                                                    && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").trim().isEmpty()
-                                                    )
-                                                    ||(
-                                                    !teamChatBuddyApplication.getCurrentLanguage().equals("en")
-                                                            && !teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").trim().isEmpty()
-                                            )
 
-                                    )
-                            ) {
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        teamChatBuddyApplication.setAnswerHasExceededTimeOut(false);
-                                        responseTimeout = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Response_Timeout_in_seconds", "TeamChatBuddy.properties")) * 1000, 1000) {
-                                            @Override
-                                            public void onTick(long l) {}
-                                            @Override
-                                            public void onFinish() {
-                                                if (teamChatBuddyApplication.isAlreadyGetAnswer()) {
-                                                    Log.e(TAG, "app get the answer on time");
-                                                } else {
-                                                    teamChatBuddyApplication.setAnswerHasExceededTimeOut(true);
-                                                    teamChatBuddyApplication.setTimeoutExpired(true);
-                                                    if (!teamChatBuddyApplication.isOpenaialreadySwitchEmotion()) {
-                                                        BuddySDK.UI.setFacialExpression(FacialExpression.TIRED,1);
-                                                    }
-                                                    if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                                        String[] message_Timeout_NotRespected_en = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
-                                                        int randomNumber_message_Timeout_NotRespected_en = new Random().nextInt(message_Timeout_NotRespected_en.length);
-                                                        speak(message_Timeout_NotRespected_en[randomNumber_message_Timeout_NotRespected_en],"timeOutExpired");
-                                                    }
-                                                    else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                                        String[] message_Timeout_NotRespected_fr = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").split("/");
-                                                        int randomNumber_message_Timeout_NotRespected_fr = new Random().nextInt(message_Timeout_NotRespected_fr.length);
-                                                        speak(message_Timeout_NotRespected_fr[randomNumber_message_Timeout_NotRespected_fr],"timeOutExpired");
-                                                    }
-                                                    else {
-                                                        String[] message_Timeout_NotRespected_en = teamChatBuddyApplication.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
-                                                        int randomNumber_message_Timeout_NotRespected_en = new Random().nextInt(message_Timeout_NotRespected_en.length);
-                                                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(message_Timeout_NotRespected_en[randomNumber_message_Timeout_NotRespected_en]).addOnSuccessListener(new OnSuccessListener<String>() {
-                                                            @Override
-                                                            public void onSuccess(String translatedText) {
-                                                                speak(translatedText,"timeOutExpired");
-                                                            }
-                                                        }).addOnFailureListener(new OnFailureListener() {
-                                                            @Override
-                                                            public void onFailure(@NonNull Exception e) {
-                                                                Log.e(TAG,"translatedText exception  "+e);
-                                                            }
-                                                        });
-
-                                                    }
-                                                }
-                                            }
-                                        };
-                                        responseTimeout.start();
-                                    }
-                                });
-                            }
                             if (teamChatBuddyApplication.getParamFromFile("Permanent_listening","TeamChatBuddy.properties")!=null
                                     &&teamChatBuddyApplication.getParamFromFile("Permanent_listening","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")) {
                                 teamChatBuddyApplication.setModeContinuousListeningON(true);
@@ -2073,7 +2032,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             else if (message.contains( "commandResponse" )){
                 if(message.split( ";SPLIT;" )[1].equals("CANCEL")){
                     if(!isSpeaking){
-                        if (responseTimeout!=null) responseTimeout.cancel();
+                        if(ResponseFromChatbot.responseTimeout !=null){
+                            ResponseFromChatbot.responseTimeout.cancel();
+                        }
+                        if(ChatGptStreamMode.responseTimeout !=null){
+                            ChatGptStreamMode.responseTimeout.cancel();
+                        }
+                        if(CustomGPTStreamMode.responseTimeout !=null){
+                            CustomGPTStreamMode.responseTimeout.cancel();
+                        }
                         if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
                             if (!teamChatBuddyApplication.getUsingEmotions()) {
                                 Log.d(TAG, "FacialExpression NEUTRAL");
@@ -3499,8 +3466,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             @Override
             public void run() {
                 buddy_texte_resp_lyt.setTranslationY(0);
-                if (responseTimeout!=null) responseTimeout.cancel();
-
+                if(ResponseFromChatbot.responseTimeout !=null){
+                    ResponseFromChatbot.responseTimeout.cancel();
+                }
+                if(ChatGptStreamMode.responseTimeout !=null){
+                    ChatGptStreamMode.responseTimeout.cancel();
+                }
+                if(CustomGPTStreamMode.responseTimeout !=null){
+                    CustomGPTStreamMode.responseTimeout.cancel();
+                }
                 if (!teamChatBuddyApplication.getUsingEmotions()){
                     Log.d(TAG,"FacialExpression NEUTRAL");
                     BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
@@ -4389,7 +4363,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         handler.removeCallbacks(runnable);
                         handler.removeCallbacksAndMessages(null);
                     }
-                    if (responseTimeout!=null) responseTimeout.cancel();
+                    if(ResponseFromChatbot.responseTimeout !=null){
+                        ResponseFromChatbot.responseTimeout.cancel();
+                    }
+                    if(ChatGptStreamMode.responseTimeout !=null){
+                        ChatGptStreamMode.responseTimeout.cancel();
+                    }
+                    if(CustomGPTStreamMode.responseTimeout !=null){
+                        CustomGPTStreamMode.responseTimeout.cancel();
+                    }
                     if(teamChatBuddyApplication.getChatGptStreamMode() != null){
                         teamChatBuddyApplication.getChatGptStreamMode().reset();
                     }
@@ -4431,7 +4413,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         handler.removeCallbacks(runnable);
                         handler.removeCallbacksAndMessages(null);
                     }
-                    if (responseTimeout!=null) responseTimeout.cancel();
+                    if(ResponseFromChatbot.responseTimeout !=null){
+                        ResponseFromChatbot.responseTimeout.cancel();
+                    }
+                    if(ChatGptStreamMode.responseTimeout !=null){
+                        ChatGptStreamMode.responseTimeout.cancel();
+                    }
+                    if(CustomGPTStreamMode.responseTimeout !=null){
+                        CustomGPTStreamMode.responseTimeout.cancel();
+                    }
                     if(teamChatBuddyApplication.getChatGptStreamMode() != null){
                         teamChatBuddyApplication.getChatGptStreamMode().reset();
                     }
@@ -4644,6 +4634,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             layoutTexteQR.setVisibility(View.VISIBLE);
             layoutQRCode.setVisibility(View.VISIBLE);
 
+            String qrCodeText = teamChatBuddyApplication.getParamFromFile("QR_Text","TeamChatBuddy.properties");
+            textViewQRMessage.setText(Html.fromHtml(qrCodeText, Html.FROM_HTML_MODE_LEGACY));
+
+
             // Animation pour les faire entrer au centre
             ObjectAnimator animTexte = ObjectAnimator.ofFloat(layoutTexteQR, "translationX", 0);
             ObjectAnimator animQRCode = ObjectAnimator.ofFloat(layoutQRCode, "translationX", 0);
@@ -4701,34 +4695,40 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     public boolean qRCodeExist() {
         File dossier = new File("/storage/emulated/0/TeamChatBuddy");
-
         if (!dossier.exists() || !dossier.isDirectory()) {
             return false; // Le répertoire n'existe pas
         }
 
-        // Lister les fichiers du dossier
-        String[] fichiers = dossier.list();
-        if (fichiers != null) {
-            for (String fichier : fichiers) {
-                if (fichier.equalsIgnoreCase("qrCode.png")) {
-                    return true;
+        String qrCodeFileName = teamChatBuddyApplication.getParamFromFile("QRcodeFileName","TeamChatBuddy.properties");
+        if(qrCodeFileName!=null && !qrCodeFileName.isEmpty()) {
+            // Lister les fichiers du dossier
+            String[] fichiers = dossier.list();
+            if (fichiers != null) {
+                for (String fichier : fichiers) {
+                    if (fichier.equalsIgnoreCase(qrCodeFileName.trim())) {
+                        return true;
+                    }
                 }
             }
         }
+
         return false;
     }
+
     // Méthode pour trouver un fichier en ignorant la casse
     private File findFileIgnoreCase() {
         File dossier = new File("/storage/emulated/0/TeamChatBuddy");
         if (!dossier.exists() || !dossier.isDirectory()) {
             return null;
         }
-
-        File[] fichiers = dossier.listFiles();
-        if (fichiers != null) {
-            for (File fichier : fichiers) {
-                if (fichier.getName().equalsIgnoreCase("qrCode.png")) {
-                    return fichier;
+        String qrCodeFileName = teamChatBuddyApplication.getParamFromFile("QRcodeFileName","TeamChatBuddy.properties");
+        if(qrCodeFileName!=null && !qrCodeFileName.isEmpty()) {
+            File[] fichiers = dossier.listFiles();
+            if (fichiers != null) {
+                for (File fichier : fichiers) {
+                    if (fichier.getName().equalsIgnoreCase(qrCodeFileName.trim())) {
+                        return fichier;
+                    }
                 }
             }
         }

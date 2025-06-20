@@ -1,6 +1,7 @@
 package com.robotique.aevaweb.teamchatbuddy.chatbotresponse;
 
 import android.app.Activity;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -39,6 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +76,7 @@ public class ChatGptStreamMode {
     private boolean isFullResponseReceived = false;
     private boolean isDisplayFinished = true;
     private int requestTotalTokens = 0;
+    public static CountDownTimer responseTimeout;
 
 
     public ChatGptStreamMode(Activity activity,JSONArray existingHistoryArray){
@@ -86,12 +89,78 @@ public class ChatGptStreamMode {
         try{
             //Calculer les tokens de la requête entière (entête + historique de discussion) :
             requestTotalTokens = getRequestTotalTokens(requestBody);
+
+            if(responseTimeout!=null){
+                responseTimeout.cancel();
+                responseTimeout = null;
+            }
+            if (
+                    ( Integer.parseInt(app.getParamFromFile("Response_Timeout_in_seconds","TeamChatBuddy.properties"))!=0 )
+                            && ((app.getCurrentLanguage().equals("en")
+                            && !app.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").trim().isEmpty())
+                            || (app.getCurrentLanguage().equals("fr")
+                            && !app.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").trim().isEmpty())
+                            ||(!app.getCurrentLanguage().equals("en")
+                            && !app.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").trim().isEmpty())
+                    )
+            ) {
+                app.setAnswerHasExceededTimeOut(false);
+                responseTimeout = new CountDownTimer(Integer.parseInt(app.getParamFromFile("Response_Timeout_in_seconds", "TeamChatBuddy.properties")) * 1000, 1000) {
+                    @Override
+                    public void onTick(long l) {
+                        Log.d("responseTimeout", "on Tick");
+                    }
+                    @Override
+                    public void onFinish() {
+                        if (app.isAlreadyGetAnswer()) {
+                        } else {
+                            app.setAnswerHasExceededTimeOut(true);
+                            app.setTimeoutExpired(true);
+                            if (!app.isOpenaialreadySwitchEmotion()) {
+                                BuddySDK.UI.setFacialExpression(FacialExpression.TIRED,1);
+                            }
+                            if (app.getCurrentLanguage().equals("en")) {
+                                String[] message_Timeout_NotRespected_en = app.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
+                                int randomNumber_message_Timeout_NotRespected_en = new Random().nextInt(message_Timeout_NotRespected_en.length);
+                                app.speakTTS(message_Timeout_NotRespected_en[randomNumber_message_Timeout_NotRespected_en], LabialExpression.SPEAK_NEUTRAL,"timeOutExpired");
+                            }
+                            else if (app.getCurrentLanguage().equals("fr")){
+                                String[] message_Timeout_NotRespected_fr = app.getParamFromFile("Message_Timeout_NotRespected_fr","TeamChatBuddy.properties").split("/");
+                                int randomNumber_message_Timeout_NotRespected_fr = new Random().nextInt(message_Timeout_NotRespected_fr.length);
+                                app.speakTTS(message_Timeout_NotRespected_fr[randomNumber_message_Timeout_NotRespected_fr], LabialExpression.SPEAK_NEUTRAL,"timeOutExpired");
+                            }
+                            else {
+                                String[] message_Timeout_NotRespected_en = app.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
+                                int randomNumber_message_Timeout_NotRespected_en = new Random().nextInt(message_Timeout_NotRespected_en.length);
+                                app.getEnglishLanguageSelectedTranslator().translate(message_Timeout_NotRespected_en[randomNumber_message_Timeout_NotRespected_en]).addOnSuccessListener(new OnSuccessListener<String>() {
+                                    @Override
+                                    public void onSuccess(String translatedText) {
+                                        app.speakTTS(translatedText, LabialExpression.SPEAK_NEUTRAL,"timeOutExpired");
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.e("responseTimeout","translatedText exception  "+e);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                };
+                Log.i("responseTimeout", " start responseTimeout StreamMode ON");
+                responseTimeout.start();
+            }
+            Log.i("responseTimeout", " call ChatGPT API (StreamMode ON) ");
             //Envoyer la requête
             Call<ResponseBody> call_stream = api.getStreamChatGPT( requestBody, "Bearer " + app.getparam("openAI_API_Key"), "application/json");
             call_stream.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    app.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                    if(responseTimeout!=null){
+                        responseTimeout.cancel();
+                        responseTimeout = null;
+                        Log.i( "responseTimeout", "réponse ChatGPT stream mode --> cancel timeout  "+responseTimeout);
+                    }
                     app.setGetResponseTime(System.currentTimeMillis());
                     Log.i(TAG_STREAM,"onResponse response     : "+response);
                     Log.i(TAG_STREAM,"onResponse isSuccessful : "+response.isSuccessful());

@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 47; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 48; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -143,6 +143,7 @@ public class ConfigurationFile {
             setProperty("TTS_ApiGoogle_speed_fr","70");
             setProperty("TTS_ApiGoogle_speed_en","70");
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "Voice type : Standard/Wavenet");
+            props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "If no voice is specified for a language in TTS_ApiGoogle_Language_Voice, the system uses the voice type defined in TTS_ApiGoogle_Voice_Type and appends '-A' as the default voice (e.g., Standard-A) ");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
             setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
 
@@ -189,6 +190,8 @@ public class ConfigurationFile {
             setProperty("Displaying_QRCode_period","0");
             props.addPropertyComment("Displaying_QRCode_Duration","Duration for displaying the QRCode in seconds");
             setProperty("Displaying_QRCode_Duration","30");
+            setProperty("QRcodeFileName","qrCode.png");
+            setProperty("QR_Text","SCAN<br>FOR DRINKS<br>AND SNACKS");
 
             props.addPropertyComment("Language","");
             props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
@@ -719,7 +722,7 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_Welcome", "Start Welcome");
             setProperty("WELCOME_tracking","No");
             props.addPropertyComment("TRACKING_delay_welcome", "Delay in minuts to welcome after watching no one");
-            setProperty("WELCOME_delay","2");
+            setProperty("WELCOME_delay","10");
             props.addPropertyComment("TRACKING_duration_welcome", "the person looks at Buddy for 2 seconds to issue an invitation");
             setProperty("WELCOME_duration_tracking","2");
             props.addPropertyComment("TRACKING_welcome_FR", "Welcoming messages");
