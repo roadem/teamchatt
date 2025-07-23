@@ -386,7 +386,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         case "NONE":
                             break;
                     }
-
                     if (isCMDLangue){
                         isCMDLangue = false;
                         commande.translate("CMD_LANGUE", new Commande.ITranslationCallback() {
@@ -466,10 +465,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         displayQRCode(new IDisplayQrCodeCallback() {
                                             @Override
                                             public void onEnd() {
-                                                isReTrack = false;
-                                                initTracking();
                                             }
                                         });
+
+                                        isReTrack = false;
+                                        initTracking();
                                     }
                                     else{
                                         if (timerPeriodToDisplayQRCode!=null) timerPeriodToDisplayQRCode.start();
@@ -509,10 +509,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             displayQRCode(new IDisplayQrCodeCallback() {
                                 @Override
                                 public void onEnd() {
-                                    isReTrack = false;
-                                    initTracking();
                                 }
                             });
+                            isReTrack = false;
+                            initTracking();
                         }
                         else{
                             if (timerPeriodToDisplayQRCode!=null) timerPeriodToDisplayQRCode.start();
