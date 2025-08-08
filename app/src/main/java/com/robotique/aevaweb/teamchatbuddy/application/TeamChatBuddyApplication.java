@@ -3631,7 +3631,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                             @Override
                             public void onError(String utteranceId) {
-                                Log.e(TAG, "Erreur pendant la prononciation " + utteranceId);
+                                Log.e(TAG, "Erreur pendant la prononciation 1 " + utteranceId);
                                 if (type.equals("timeOutExpired")) {
                                     timeoutExpired = false;
 
@@ -3674,69 +3674,31 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 Log.i("TEST_voix","SPEAK using TTS ApiGoogle");
                 String languageToUseInApiGoogle = "";
                 if (!getLanguageDetected().equals("")) {
-                    languageToUseInApiGoogle = getLanguageDetected();
+                    if(isLangSupportedByMLKit(getLanguageDetected())){
+                        languageToUseInApiGoogle = getLanguageDetected();
+                        Log.i("TEST_voix", "getLanguageDetected() google  " + getLanguageDetected() );
+                    }
+                    else{
+                        languageToUseInApiGoogle = getCurrentLanguage();
+                        Log.i("TEST_voix", "getCurrentLanguage() google " + getCurrentLanguage() );
+                    }
                 } else {
                     languageToUseInApiGoogle = getCurrentLanguage();
+                    Log.i("TEST_voix", "getCurrentLanguage() google 1 " + getCurrentLanguage() );
                 }
-                List<String> TTSGoogleLangueCode = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_TTS");
-                String codeLanguageTTSGoogle = TTSGoogleLangueCode.get(getLangue().getId() - 1);
-                try {
-                    switch (languageToUseInApiGoogle) {
-                        case "en":
 
-                                if (codeLanguageTTSGoogle.split("-")[0].equals("en")){
-                                    usingReadSpeaker = false;
-                                    speakGoogleCloudTTS(codeLanguageTTSGoogle,texteToSpeak,type);
-                                }
-                                else {
-                                    usingReadSpeaker = false;
-                                    speakGoogleCloudTTS("en-US",texteToSpeak,type);
-                                }
-                                break;
-                        case "fr":
-                            if (codeLanguageTTSGoogle.split("-")[0].equals("fr")) {
-                                usingReadSpeaker = false;
-                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
-                            } else {
-                                usingReadSpeaker = false;
-                                speakGoogleCloudTTS("fr-FR", texteToSpeak, type);
-                            }
+                List<String> googleTTSLangs = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_TTS");
+                String fullLangCode = null;
+                List<String> mlkitLangs = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Mlkit");
+                int index = mlkitLangs.indexOf(languageToUseInApiGoogle);
 
-
-                            break;
-                        case "es":
-                            usingReadSpeaker = false;
-                            if (codeLanguageTTSGoogle.split("-")[0].equals("es")) {
-
-                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
-                            } else {
-                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase() + "-" + languageToUseInApiGoogle.toUpperCase()), texteToSpeak, type);
-                            }
-                            break;
-                        case "de":
-                            usingReadSpeaker = false;
-                            if (codeLanguageTTSGoogle.split("-")[0].equals("de")) {
-
-                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
-                            } else {
-                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase() + "-" + languageToUseInApiGoogle.toUpperCase()), texteToSpeak, type);
-                            }
-                            break;
-                        default:
-                            usingReadSpeaker = false;
-                            Log.e("TEST", "default language " + languageToUseInApiGoogle);
-                            Log.e("TEST", "default getCurrentLanguage().split(\"-\")[0].trim() " + getCurrentLanguage().split("-").length);
-                            if (!getCurrentLanguage().equals("") && getCurrentLanguage().split("-")[0].trim().equalsIgnoreCase(languageToUseInApiGoogle)) {
-                                speakGoogleCloudTTS(codeLanguageTTSGoogle, texteToSpeak, type);
-                            } else {
-                                Log.e("TEST", "set Langue TTS " + languageToUseInApiGoogle.toLowerCase() + "," + languageToUseInApiGoogle.toUpperCase());
-                                speakGoogleCloudTTS((languageToUseInApiGoogle.toLowerCase() + "-" + languageToUseInApiGoogle.toUpperCase()), texteToSpeak, type);
-                            }
-                            break;
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Erreur pendant l'initialisation de la langue TTS : " + e);
+                if (index >= 0 && index < googleTTSLangs.size()) {
+                    fullLangCode = googleTTSLangs.get(index);
                 }
+
+                usingReadSpeaker = false;
+                Log.i("TEST_voix", "fullLangCode google : " + fullLangCode );
+                speakGoogleCloudTTS(fullLangCode, texteToSpeak, type);
             }
 
         } catch (Exception e) {
@@ -3774,13 +3736,39 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      */
     public void setTTSAfterDetectingLanguage(){
         if (!getLanguageDetected().equals("")){
-            setTTSLanguage(getLanguageDetected());
-            Log.i("TEST_voix", "getLanguageDetected() " + getLanguageDetected() );
+            if(isLangSupportedByMLKit(getLanguageDetected())){
+                setTTSLanguage(getLanguageDetected());
+                Log.i("TEST_voix", "getLanguageDetected() " + getLanguageDetected() );
+            }
+            else{
+                setTTSLanguage(getCurrentLanguage());
+                Log.i("TEST_voix", "getCurrentLanguage() 1 " + getCurrentLanguage() );
+            }
         }
         else{
             setTTSLanguage(getCurrentLanguage());
-            Log.i("TEST_voix", "getCurrentLanguage() " + getCurrentLanguage() );
+            Log.i("TEST_voix", "getCurrentLanguage() 2 " + getCurrentLanguage() );
         }
+    }
+
+    private boolean isLangSupportedByMLKit(String langCode) {
+        String supportedLangs = getParamFromFile("Language_Code_Used_In_Mlkit", configurationFilePseudo);
+        if (supportedLangs == null || supportedLangs.trim().isEmpty()) {
+            Log.w("MLKit", "Aucune langue configurée dans Language_Code_Used_In_Mlkit");
+            return false;
+        }
+
+        // Ex: "fr/en/es" → ["fr", "en", "es"]
+        String[] supportedLangArray = supportedLangs.trim().split("/");
+        for (String supported : supportedLangArray) {
+            if (supported.trim().equalsIgnoreCase(langCode.trim())) {
+                Log.d("MLKit", "Langue MLKit supportée : " + langCode);
+                return true;
+            }
+        }
+
+        Log.d("MLKit", "Langue MLKit non supportée : " + langCode);
+        return false;
     }
 
     private String[] getAppVersion(String packageName) {
@@ -3928,101 +3916,48 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
 
     private void initFallbackTTS(String language){
-        List<String> TTSAndroidLangueCode = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_TTS_Android");
-        String codeLanguageTTSAndroid= TTSAndroidLangueCode.get(getLangue().getId()-1);
-        Log.i("TEST_voix","Language Code : "+codeLanguageTTSAndroid);
 
         try {
-            switch(language){
-                case "en":
-                        if (codeLanguageTTSAndroid.split("-")[0].equals("en")){
-                            usingReadSpeaker = false;
-                            tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en",configurationFilePseudo))));
-                            tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en",configurationFilePseudo))));
-                            tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0],codeLanguageTTSAndroid.split("-")[1]));
-                        }
-                        else {
-                            usingReadSpeaker = false;
-                            tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en",configurationFilePseudo))));
-                            tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en",configurationFilePseudo))));
-                            tts_android.setLanguage(new Locale("en","US"));
-                        }
+            List<String> mlkitLangs = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Mlkit");
+            List<String> ttsLangs = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_TTS_Android");
 
-                    break;
-                case "fr":
-                        if (codeLanguageTTSAndroid.split("-")[0].equals("fr")){
-                            usingReadSpeaker = false;
-                            tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_fr",configurationFilePseudo))));
-                            tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_fr",configurationFilePseudo))));
-                            tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0],codeLanguageTTSAndroid.split("-")[1]));
-                        }
-                        else {
-                            usingReadSpeaker = false;
-                            tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_fr",configurationFilePseudo))));
-                            tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_fr",configurationFilePseudo))));
-                            tts_android.setLanguage(new Locale("fr","FR"));
-                        }
-                    break;
-                case "es":
-                    usingReadSpeaker = false;
-                    if (codeLanguageTTSAndroid.split("-")[0].equals("es")) {
-                        tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en", configurationFilePseudo))));
-                        tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en", configurationFilePseudo))));
-                        tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0], codeLanguageTTSAndroid.split("-")[1]));
-                    }
-                    else{
-                        int result = tts_android.setLanguage(new Locale(language.toLowerCase(),language.toUpperCase()));
-                        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            Log.e("TEST", "langue non pas prise ne charge");
-                            String code = getFirstFullLanguageCode(language.toLowerCase());
-                            Log.e("TEST", "langue qui doit etre "+code);
-                            tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en",configurationFilePseudo))));
-                            tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en",configurationFilePseudo))));
-                            tts_android.setLanguage(new Locale(code.split("-")[0].trim(),code.split("-")[1].trim()));
-                        }
-                    }
-                    break;
-                case "de":
-                    usingReadSpeaker = false;
-                    if (codeLanguageTTSAndroid.split("-")[0].equals("de")) {
-                        tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en", configurationFilePseudo))));
-                        tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en", configurationFilePseudo))));
-                        tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0], codeLanguageTTSAndroid.split("-")[1]));
-                    }
-                    else{
-                        int result = tts_android.setLanguage(new Locale(language.toLowerCase(),language.toUpperCase()));
-                        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            Log.e("TEST", "langue non pas prise ne charge");
-                            String code = getFirstFullLanguageCode(language.toLowerCase());
-                            Log.e("TEST", "langue qui doit etre "+code);
-                            tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en",configurationFilePseudo))));
-                            tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en",configurationFilePseudo))));
-                            tts_android.setLanguage(new Locale(code.split("-")[0].trim(),code.split("-")[1].trim()));
-                        }
-                    }
-                    break;
-                default:
-                    usingReadSpeaker = false;
-                    if (!getCurrentLanguage().equals("") && getCurrentLanguage().split("-")[0].trim().equalsIgnoreCase(language)){
-                        tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en",configurationFilePseudo))));
-                        tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en",configurationFilePseudo))));
-                        tts_android.setLanguage(new Locale(codeLanguageTTSAndroid.split("-")[0].trim(),codeLanguageTTSAndroid.split("-")[1].trim()));
-                    }
-                    else {
-                        int result = tts_android.setLanguage(new Locale(language.toLowerCase(),language.toUpperCase()));
-                        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            Log.e("TEST", "langue non pas prise ne charge");
-                            String code = getFirstFullLanguageCode(language.toLowerCase());
-                            Log.e("TEST", "langue qui doit etre "+code);
-                            tts_android.setPitch(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_pitch_en",configurationFilePseudo))));
-                            tts_android.setSpeechRate(getConvertedPitchAndSpeedValue(Integer.parseInt(getParamFromFile("TTS_Android_speed_en",configurationFilePseudo))));
-                            tts_android.setLanguage(new Locale(code.split("-")[0].trim(),code.split("-")[1].trim()));
-                        }
-                    }
-                    break;
+
+            String fullLangCode = null;
+            int index = mlkitLangs.indexOf(language);
+                if (index != -1 && index < ttsLangs.size()) {
+                    fullLangCode = ttsLangs.get(index);
+                }
+
+            String[] parts = fullLangCode.split("-");
+            Locale locale = new Locale(parts[0].trim(), parts[1].trim());
+
+            usingReadSpeaker = false;
+
+            String pitchKey;
+            String speedKey;
+            if ("fr".equalsIgnoreCase(language)) {
+                pitchKey = "TTS_Android_pitch_fr";
+                speedKey = "TTS_Android_speed_fr";
+            } else {
+                pitchKey = "TTS_Android_pitch_en";
+                speedKey = "TTS_Android_speed_en";
             }
+
+            float pitch = getConvertedPitchAndSpeedValue(
+                    Integer.parseInt(getParamFromFile(pitchKey, configurationFilePseudo))
+            );
+            float speed = getConvertedPitchAndSpeedValue(
+                    Integer.parseInt(getParamFromFile(speedKey, configurationFilePseudo))
+            );
+
+            tts_android.setPitch(pitch);
+            tts_android.setSpeechRate(speed);
+            tts_android.setLanguage(locale);
+
+            Log.i("TEST_voix", "TTS initialisé avec : " + locale.toString());
+
         } catch (Exception e) {
-            Log.e(TAG, "Erreur pendant l'initialisation de la langue TTS : "+e);
+            Log.e(TAG, "Erreur pendant l'initialisation de la langue TTS : " + e.getMessage(), e);
         }
     }
 
@@ -4093,73 +4028,32 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public void speakGoogleCloudTTS(String languageCode, String texteToSpeak, String type) {
         Log.e("MRA", "speakGoogleCloudTTS  LanguageCode  " + languageCode);
         String voice = "";
-        if (languageCode.split("-")[0].equals("ar")) {
-            languageCode = "ar-XA";
-        } else if (languageCode.split("-")[0].equals("zh")) {
-            languageCode = "cmn-CN";
-        } else if (languageCode.split("-")[0].equals("he")) {
-            languageCode = "he-IL";
-        } else if (languageCode.split("-")[0].equals("id")) {
-            languageCode = "id-ID";
-        }
         String languageVoice = getLanguageVoice(languageCode);
-        Log.i("TTSG","  LanguageCode  "+languageCode+" voice name "+languageVoice);
-        if(!languageVoice.isEmpty()){
-            Boolean languageCodeExist = false;
-            if (getVoiceList()!=null) {
-                for (String code : getVoiceList().getLanguageCodes()) {
-                    if (code.equals(languageCode)) {
-                        languageCodeExist = true;
-                        for (String voiceName : getVoiceList().getVoiceNames(languageCode)) {
-                            if (voiceName.equals(languageVoice)) {
-                                Log.i("TTSG","  voiceName exist --- "+languageVoice);
-                                voice = languageVoice;
-                                break;
-                            }
-                            voice = voiceName;
-                        }
-                        Log.i("TTSG","  voice   --- "+voice);
+        Log.i("TTSG", "  LanguageCode  " + languageCode + " voice name " + languageVoice);
+        if (!languageVoice.isEmpty()) {
+            if (getVoiceList() != null) {
+                for (String voiceName : getVoiceList().getVoiceNames(languageCode)) {
+                    if (voiceName.equals(languageVoice)) {
+                        Log.i("TTSG", "  voiceName exist --- " + languageVoice);
+                        voice = languageVoice;
                         break;
                     }
-
+                    voice = voiceName;
                 }
-                if (!languageCodeExist){
-                    for (String code : getVoiceList().getLanguageCodes()) {
-                        if (code.split("-")[0].equals(languageCode.split("-")[0])){
-                            languageCodeExist=true;
-                            languageCode=code;
-                            for (String voiceName : getVoiceList().getVoiceNames(languageCode)) {
-                                if (voiceName.equals(languageVoice)) {
-                                    Log.i("TTSG","  voiceName exist -- "+languageVoice);
-                                    voice = languageVoice;
-                                    break;
-                                }
-                                voice = voiceName;
-                            }
-                            Log.i("TTSG","  voice --  "+voice);
-                            break;
-                        }
-                    }
-                }
+                Log.i("TTSG", "  voice   --- " + voice);
             }
-
-            if (!languageCodeExist){
-                languageCode = "en-US";
-                voice = getLanguageVoice(languageCode);
-                if(voice.isEmpty()){
-                    voice = "en-US-Standard-C";
-                }
+            if (voice.isEmpty()) {
+                voice = languageVoice;
             }
-        }
-        else{
-            Log.i("TTSG","  code language null  ");
+        } else {
+            Log.i("TEST_voix", "  code language null  ");
             languageCode = "en-US";
             voice = getLanguageVoice(languageCode);
-            if(voice.isEmpty()){
+            if (voice.isEmpty()) {
                 voice = "en-US-Standard-C";
             }
         }
-        Log.i("TTSG","  final voice name "+voice);
+        Log.i("TEST_voix", "  final voice name " + voice);
 
         String finalLanguageCode = languageCode;
         String finalVoice = voice;
@@ -4543,6 +4437,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             ittsCallbacks.onError("error is in readspeaker not tts_android");
             return;
         }
+        Log.i("TEST_voix", "playUsingReadSpeakerCaseError ");
 
         String langCode = getCurrentLanguage();
         String validatedVoice = "";
