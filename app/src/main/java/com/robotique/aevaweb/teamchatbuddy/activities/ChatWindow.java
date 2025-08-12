@@ -841,7 +841,13 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                             public void onError(String s) {
                                 int textLength = text.length();// Calculate the length of the pronounced text
                                 int delayTime = (textLength / 20) * 1000; // 1 second for every 20 characters
-                                if(teamChatBuddyApplication.getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && (teamChatBuddyApplication.getCurrentLanguage().equals("en") || teamChatBuddyApplication.getCurrentLanguage().equals("fr")) && teamChatBuddyApplication.getUsingReadSpeaker() ){
+                                String langCode = teamChatBuddyApplication.getCurrentLanguage(); // fr, en, de, etc.
+                                String defaultVoice = teamChatBuddyApplication.getReadSpeakerVoiceFromLangCode(langCode);
+                                String validatedVoice = "";
+                                if(defaultVoice!=null && defaultVoice.isEmpty()){
+                                    validatedVoice = teamChatBuddyApplication.checkReadSpeakerVoices(defaultVoice);
+                                }
+                                if(teamChatBuddyApplication.getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && (validatedVoice!=null || !validatedVoice.isEmpty()) && teamChatBuddyApplication.getUsingReadSpeaker() ){
                                     delayTime = 0;
                                 }
                                 handlerTTSError.postDelayed(runnableTTSError = new Runnable() {

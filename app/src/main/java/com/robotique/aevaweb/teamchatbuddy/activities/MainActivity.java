@@ -1665,7 +1665,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 if (delayTime==0){
                                     delayTime=1500;
                                 }
-                                if(teamChatBuddyApplication.getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && (teamChatBuddyApplication.getCurrentLanguage().equals("en") || teamChatBuddyApplication.getCurrentLanguage().equals("fr")) && teamChatBuddyApplication.getUsingReadSpeaker() ){
+                                String langCode = teamChatBuddyApplication.getCurrentLanguage(); // fr, en, de, etc.
+                                String defaultVoice = teamChatBuddyApplication.getReadSpeakerVoiceFromLangCode(langCode);
+                                String validatedVoice = "";
+                                if(defaultVoice!=null && defaultVoice.isEmpty()){
+                                    validatedVoice = teamChatBuddyApplication.checkReadSpeakerVoices(defaultVoice);
+                                }
+                                if(teamChatBuddyApplication.getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && (validatedVoice!=null || !validatedVoice.isEmpty()) && teamChatBuddyApplication.getUsingReadSpeaker() ){
                                     delayTime = 0;
                                     Log.e(TAG,"set 0 delay time  "+delayTime);
                                 }

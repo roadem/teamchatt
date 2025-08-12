@@ -203,6 +203,10 @@ public class ConfigurationFile {
             setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/nb-NO");
             setProperty("Language_Code_Used_In_Whisper","fr/en/es/de/it/ja/ar/zh/da/nl/no");
             setProperty("Language_Code_Used_In_Mlkit","fr/en/es/de/it/ja/ar/zh/da/nl/no");
+            setProperty("Readspeaker_voices","roxane/kate/manuel/max/elisa/show/amir/ / /guus/");
+            setProperty("BuddyOS_1.3_voices","fr:roxane/en:kate");
+            setProperty("BuddyOS_1.4_voices","fr:roxane/en:kate,mark,alice/ar:amir,yasmin/de:lena,max/es:lola,manuel/it:elisa/ja:show/nl:alex,guus");
+
 
             props.addPropertyComment("Speech_volume","");
             props.addPropertyComment("Speech_volume","Speech volume (between 0 and 100)");
