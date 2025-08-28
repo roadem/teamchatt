@@ -746,6 +746,8 @@ public class ConfigurationFile {
             props.addPropertyComment("TRACKING_welcome_maxtoken", "Welcome max token");
             setProperty("WELCOME_maxtoken","100");
 
+            props.addPropertyComment("NEWS_ARTICLE_BBC_id ", " HTML selector of the web page https://www.bbc.com/");
+            setProperty("NEWS_ARTICLE_BBC_id","div.sc-666b6d83-0");
 
             FileOutputStream fileOut = new FileOutputStream(configFile);
             props.store(fileOut, "TeamChatBuddy configuration file - Compatible with "+app_version);

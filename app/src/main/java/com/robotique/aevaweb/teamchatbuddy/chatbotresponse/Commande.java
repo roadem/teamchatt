@@ -424,7 +424,7 @@ public class Commande {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         Log.i(TAG," verifyMusicMessage "+verifyMusicMessage+" translatedText "+translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -466,7 +466,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -601,7 +601,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -1018,7 +1018,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0].replace("[1]", getDescription(action)));
@@ -1246,7 +1246,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if(verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART") ){
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -1288,7 +1288,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -1329,7 +1329,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -1369,7 +1369,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -1456,7 +1456,7 @@ public class Commande {
                     public void onTranslated(String translatedText) {
                         String verifyMusicMessage = verifyCmdMessages(translatedText);
                         if (translatedText.contains("No_message_defined") || verifyMusicMessage.equals("CONTAIN_ONLY_SPLIT_CHARACTER")) {
-                            teamChatBuddyApplication.notifyObservers("ExecuteCMDPROMPT;SPLIT;" + texte + ";SPLIT;" + numberOfQuestion);
+                            teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;CANCEL");
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
@@ -2285,7 +2285,9 @@ public class Commande {
     private void extractAndLogNews(String html, int thresholdHours) {
         Document doc = Jsoup.parse(html);
         //    Elements articles = doc.select("div[data-testid=london-article]");
-        Elements articles = doc.select("div.sc-666b6d83-0");
+        String cssQuery = teamChatBuddyApplication.getParamFromFile("NEWS_ARTICLE_BBC_id","TeamChatBuddy.properties");
+        Elements articles = doc.select(cssQuery);
+
         Set<String> uniqueTitles = new HashSet<>(); // Pour stocker les titres uniques
         StringBuilder responseBuilder = new StringBuilder();
         boolean foundNews = false;
