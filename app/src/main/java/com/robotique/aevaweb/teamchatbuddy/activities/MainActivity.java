@@ -1125,6 +1125,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             teamChatBuddyApplication.setStartRecording(true);
                             teamChatBuddyApplication.setSpeaking(true);
                             teamChatBuddyApplication.setModeContinuousListeningON(false);
+                            teamChatBuddyApplication.isListeningHotw = false;
                             if(!isListeningFreeSpeech ) {
                                 if(mouth_messages!=null && mouth_messages.equalsIgnoreCase("Yes")){
                                     speakMouthMessages("listen", new IMouthMessageCallback() {
@@ -1144,6 +1145,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         else if (teamChatBuddyApplication.getSpeaking() && !mlKitIsDownloading) {
                             currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
                             totalTimeLookingAtCamera = 0L;
+                            teamChatBuddyApplication.isListeningHotw = true;
                             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence") || !teamChatBuddyApplication.getAppIsListeningToTheQuestion() || teamChatBuddyApplication.getParamFromFile("Processing_the_audio_sequence","TeamChatBuddy.properties").trim().equalsIgnoreCase("No")) {
                                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
                                 teamChatBuddyApplication.setStartRecording(false);

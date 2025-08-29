@@ -77,6 +77,14 @@ android {
         }
     }
 }
+
+
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+
 sonarqube {
     //noinspection GroovyAssignabilityCheck
     properties {
@@ -142,5 +150,9 @@ dependencies {
     implementation 'com.google.mlkit:pose-detection:17.0.0'
     implementation 'org.apache.commons:commons-text:1.10.0'
     implementation 'org.jsoup:jsoup:1.15.3'
+
+    //Ffmpeg to delete silence in the end of
+    implementation(name: 'mobile-ffmpeg-full-4.4.LTS', ext: 'aar')
+
 
 }

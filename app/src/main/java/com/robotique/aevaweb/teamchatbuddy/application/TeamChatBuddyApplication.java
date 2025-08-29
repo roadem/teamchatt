@@ -231,6 +231,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private Boolean usingReadSpeaker;
     private boolean alreadyCalled =false;
     private Vad vad;
+    public boolean isListeningHotw = false;
 
     private static final String TAG_STREAMING = "AudioCapture";
     private static final int SAMPLE_RATE = 8000; // Exemple : 8 kHz
@@ -1725,6 +1726,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                                 @Override
                                 public void onBeginningOfSpeech() {
+                                    stopTTS();
+                                    BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
                                     Log.e(TAG, "onBeginningOfSpeech");
                                 }
 
@@ -3008,6 +3011,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             if (word.trim().equalsIgnoreCase(hotword.get(i).trim())) {
                 try {
                     rightHottwordDetected =true;
+                    isListeningHotw = false;
                     notifyObservers("STTHotword_success");
 
 
@@ -4174,7 +4178,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             @Override
                             public void onStart() {
                                 try {
-                                    BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                    if(!isListeningHotw)BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
                                 } catch (Exception e) {
                                     Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
@@ -4272,7 +4276,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                     } else if (type.equals("storedResponse")) {
                         try {
-                            BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                            if(!isListeningHotw) BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
                         } catch (Exception ej) {
                             Log.e(TAG, "BuddySDK Exception  " + ej);
                         }
@@ -4283,7 +4287,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                     } else {
                         try {
-                            BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                            if(!isListeningHotw) BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
                         } catch (Exception ej) {
                             Log.e(TAG, "BuddySDK Exception  " + ej);
                         }
@@ -4384,7 +4388,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         },"com.google.android.tts");
     }
     public void initTTSGoogleCoud(){
-        googleCloudTTS = TtsFactory.create(getParamFromFile("ApiGoogle_Key",configurationFilePseudo));
+        googleCloudTTS = TtsFactory.create(this, getParamFromFile("ApiGoogle_Key",configurationFilePseudo));
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
