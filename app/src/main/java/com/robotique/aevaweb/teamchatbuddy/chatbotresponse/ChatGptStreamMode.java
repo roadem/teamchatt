@@ -35,15 +35,22 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import okio.Buffer;
@@ -85,9 +92,10 @@ public class ChatGptStreamMode {
         this.existingHistoryArray = existingHistoryArray;
     }
 
-    public void sendRequest(ApiEndpointInterface api, RequestBody requestBody){
+    public void sendRequest(JSONObject jsonParams){
         try{
             //Calculer les tokens de la requête entière (entête + historique de discussion) :
+            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
             requestTotalTokens = getRequestTotalTokens(requestBody);
 
             if(responseTimeout!=null){
@@ -152,61 +160,93 @@ public class ChatGptStreamMode {
             }
             Log.i("responseTimeout", " call ChatGPT API (StreamMode ON) ");
             //Envoyer la requête
-            Call<ResponseBody> call_stream = api.getStreamChatGPT( requestBody, "Bearer " + app.getparam("openAI_API_Key"), "application/json");
-            call_stream.enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+            new Thread(() -> {
+                try {
+
+                    String apiUrl = app.getParamFromFile("ChatGPT_url","TeamChatBuddy.properties")+"/v1/chat/completions";
+
+                    String payload = jsonParams.toString();
+                    URL url = new URL(apiUrl);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setConnectTimeout(50000);
+                    conn.setReadTimeout(50000);
+                    conn.setDoOutput(true);
+
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + app.getparam("openAI_API_Key"));
+                    headers.put("Content-Type", "application/json");
+                    if (headers != null) {
+                        for (Map.Entry<String, String> entry : headers.entrySet()) {
+                            conn.setRequestProperty(entry.getKey(), entry.getValue());
+                        }
+                    }
+
+                    try (OutputStream os = conn.getOutputStream()) {
+                        os.write(payload.getBytes(StandardCharsets.UTF_8));
+                    }
+
+                    int responseCode = conn.getResponseCode();
                     if(responseTimeout!=null){
                         responseTimeout.cancel();
                         responseTimeout = null;
                         Log.i( "responseTimeout", "réponse ChatGPT stream mode --> cancel timeout  "+responseTimeout);
                     }
                     app.setGetResponseTime(System.currentTimeMillis());
-                    Log.i(TAG_STREAM,"onResponse response     : "+response);
-                    Log.i(TAG_STREAM,"onResponse isSuccessful : "+response.isSuccessful());
-                    Log.i(TAG_STREAM,"onResponse code         : "+response.code());
-                    Log.i(TAG_STREAM,"onResponse message      : "+response.message());
-                    if (response.isSuccessful() && response.body() != null) {
+                    Log.i(TAG_STREAM,"onResponse code         : "+responseCode);
+                    if (responseCode >= 200 && responseCode < 300 ) {
                         if(!isReset){
                             try {
                                 new Thread(() -> {
-                                    handleStreamingResponse(response);
+                                    try {
+                                        handleStreamingResponse(conn.getInputStream());
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
                                 }).start();
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                onErrorStreaming("EXCEPTION",null);
+                                onErrorStreaming("EXCEPTION", null, null);
                             }
                         }
                         else{
                             Log.w(TAG_STREAM,"Ignore API response because reset() was called");
                         }
+                    } else {
+                        // Lire le corps de la réponse d'erreur (error stream)
+                        String errorBody = "";
+                        try (InputStream errorStream = conn.getErrorStream()) {
+                            if (errorStream != null) {
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream, StandardCharsets.UTF_8));
+                                StringBuilder sb = new StringBuilder();
+                                String line;
+                                while ((line = reader.readLine()) != null) {
+                                    sb.append(line);
+                                }
+                                errorBody = sb.toString();
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG_STREAM, "Erreur lors de la lecture du errorStream", e);
+                        }
+                        onErrorStreaming("RESPONSE_NOT_SUCCESSFUL", errorBody, responseCode);
                     }
-
-                    else{
-                        onErrorStreaming("RESPONSE_NOT_SUCCESSFUL",response);
-                    }
-                }
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                } catch (Exception e) {
                     app.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                     app.setGetResponseTime(System.currentTimeMillis());
-                    Log.e(TAG_STREAM,"onFailure Throwable     : "+t);
-                    Log.e(TAG_STREAM,"onFailure message       : "+t.getMessage());
-                    Log.e(TAG_STREAM,"onFailure cause         : "+t.getCause());
-                    t.printStackTrace();
-                    onErrorStreaming("FAILURE",null);
+                    e.printStackTrace();
+                    onErrorStreaming("EXCEPTION", null, null);
                 }
-            });
+            }).start();
         }
         catch (Exception e){
             app.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
             app.setGetResponseTime(System.currentTimeMillis());
             e.printStackTrace();
-            onErrorStreaming("EXCEPTION",null);
+            onErrorStreaming("EXCEPTION",null,null);
         }
     }
 
-    private void handleStreamingResponse(Response<ResponseBody> response) {
+    private void handleStreamingResponse(InputStream inputStream) {
         try {
             onStartStreaming();
 
@@ -217,7 +257,6 @@ public class ChatGptStreamMode {
             }
             Log.w(TAG_STREAM, "pattern_fin_phrase: " + pattern_fin_phrase);
 
-            InputStream inputStream = response.body().byteStream();
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader reader = new BufferedReader(inputStreamReader);
             String fileName = "ChatGPT-recv-stream";
@@ -356,7 +395,7 @@ public class ChatGptStreamMode {
         }
         catch (Exception e) {
             e.printStackTrace();
-            onErrorStreaming("EXCEPTION",null);
+            onErrorStreaming("EXCEPTION",null, null);
         }
     }
 
@@ -606,7 +645,7 @@ public class ChatGptStreamMode {
         Log.i(TAG_STREAM, "------------------END-------------------");
     }
 
-    private void onErrorStreaming(String error,Response<ResponseBody> response){
+    private void onErrorStreaming(String error,String response, Integer  responseCode){
         Log.e(TAG_STREAM, "------------------ERROR-------------------");
 
         if(!isReset){
@@ -634,12 +673,11 @@ public class ChatGptStreamMode {
             if(error.equals("RESPONSE_NOT_SUCCESSFUL")){
 
                 try {
-                    if (response != null && response.errorBody() != null){
+                    if (response != null){
                         JsonObject errorLOG = new JsonObject();
                         JsonObject errorCode = new JsonObject();
-                        errorCode.addProperty("ERROR CODE", response.code());
-                        String jsonString = response.errorBody().string();
-                        JSONObject jsonErrorContent = new JSONObject(jsonString);
+                        errorCode.addProperty("ERROR CODE", responseCode);
+                        JSONObject jsonErrorContent = new JSONObject(response);
                         JSONObject errorObject = jsonErrorContent.getJSONObject("error");
                         String message = errorObject.getString("message");
                         String type = errorObject.getString("type");
@@ -666,7 +704,7 @@ public class ChatGptStreamMode {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        String errorTXT= new Date().toString()+", OpenAIERROR,ERROR CODE= "+response.code()+", ERROR Body{ message= "+message+", type= "+type+", param= "+param+", code= "+code+"}"+System.getProperty("line.separator");
+                        String errorTXT= new Date().toString()+", OpenAIERROR,ERROR CODE= "+responseCode+", ERROR Body{ message= "+message+", type= "+type+", param= "+param+", code= "+code+"}"+System.getProperty("line.separator");
                         File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
                         try {
                             FileWriter fileWriter = new FileWriter(file2,true);
@@ -682,7 +720,7 @@ public class ChatGptStreamMode {
                             verifyLimitTokens(requestTotalTokens);
                         }
 
-                        int checkErrorCode = response.code();
+                        int checkErrorCode = responseCode;
                         // Calcul de la consommation openai de le cas d'echec
                         if (checkErrorCode==500 ||checkErrorCode==503 || checkErrorCode==504){
                             app.calcul_consommation(app.getparam("model"),requestTotalTokens,0);
