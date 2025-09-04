@@ -30,7 +30,9 @@ import com.google.mlkit.nl.languageid.LanguageIdentification;
 import com.google.mlkit.nl.languageid.LanguageIdentifier;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
+import com.robotique.aevaweb.teamchatbuddy.models.HttpResponse;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
+import com.robotique.aevaweb.teamchatbuddy.utilis.HttpClientUtils;
 import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 
 
@@ -45,9 +47,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -96,61 +101,54 @@ public class CustomGPTStreamMode {
 
     }
 
-    public void sendRequestToGetSessionID(ApiEndpointInterface api, RequestBody requestBody, String question) {
-        try {
-            String endPoint= teamChatBuddyApplication.getParamFromFile("CustomGPT_ApiEndpoint_SessionID","TeamChatBuddy.properties");
-            endPoint = endPoint.replace("{project_id}",teamChatBuddyApplication.getparam("CustomGPT_Project_ID"));
-            Call<JsonObject> call = api.getSessionID(endPoint, requestBody, "application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
+    public void sendRequestToGetSessionID(JSONObject jsonParams, String question) {
+        new Thread(() -> {
+            try {
+                String endPoint = teamChatBuddyApplication.getParamFromFile("CustomGPT_ApiEndpoint_SessionID", "TeamChatBuddy.properties");
+                endPoint = endPoint.replace("{project_id}", teamChatBuddyApplication.getparam("CustomGPT_Project_ID"));
 
-            call.enqueue(new Callback<JsonObject>() {
-                @Override
-                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                    if (response.isSuccessful()) {
-                        try {
-                            JSONObject jsonObj = new JSONObject(response.body().toString());
-                            JSONObject dataObject = jsonObj.getJSONObject("data");
-                            Log.e("MEHDI", "response.isSuccessful() pendant la récupération de la SESSionID : " + response.body());
-                            Log.e("MEHDI", "response.isSuccessful() pendant la récupération de la SESSionID : " + dataObject.getString("session_id"));
-                            getResponseFromCustomGPT(question, dataObject.getString("session_id"));
-                        } catch (JSONException e) {
-                            teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-                            teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
-                            Log.e("MEHDI", "JSONException pendant la récupération de la SESSionID : " + e.getMessage());
-                            onErrorGettingSessionID("EXCEPTION",null);
-                            e.printStackTrace();
-                        }
+                // Préparer l'URL complète
+                String urlStr = teamChatBuddyApplication.getParamFromFile("CustomGPT_url", "TeamChatBuddy.properties") + endPoint;
 
+                // Préparer les headers
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getparam("CustomGPT_API_Key"));
+                headers.put("content-type", mediaType);
 
-                    } else {
+                // Appel via la classe centralisée
+                HttpResponse httpResponse = HttpClientUtils.sendPost(urlStr, jsonParams.toString(), headers, 30000);
+
+                if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300) {
+                    try {
+                        JSONObject jsonObj = new JSONObject(httpResponse.body);
+                        JSONObject dataObject = jsonObj.getJSONObject("data");
+                        Log.e("MEHDI", "response.isSuccessful() pendant la récupération de la SESSionID : " + httpResponse.body);
+                        Log.e("MEHDI", "response.isSuccessful() pendant la récupération de la SESSionID : " + dataObject.getString("session_id"));
+                        getResponseFromCustomGPT(question, dataObject.getString("session_id"));
+                    } catch (JSONException e) {
                         teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                         teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
-                        onErrorGettingSessionID("RESPONSE_NOT_SUCCESSFUL",response);
+                        Log.e("MEHDI", "JSONException pendant la récupération de la SESSionID : " + e.getMessage());
+                        onErrorGettingSessionID("EXCEPTION", null);
+                        e.printStackTrace();
                     }
-
-
-                }
-
-                @Override
-                public void onFailure(Call<JsonObject> call, Throwable t) {
+                } else {
                     teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                     teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
-                    Log.e("MEHDI", "onFailure pendant la récupération de la SESSionID : " + call.toString());
-                    onErrorGettingSessionID("FAILURE",null);
+                    onErrorGettingSessionID("RESPONSE_NOT_SUCCESSFUL", null);
                 }
-            });
-        } catch (Exception e) {
-            teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-            Log.e("MEHDI", "Exception pendant la récupération de la SESSionID : " + e);
-            onErrorGettingSessionID("EXCEPTION",null);
-
-        }
+            } catch (Exception e) {
+                teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
+                Log.e("MEHDI", "Exception pendant la récupération de la SESSionID : " + e);
+                onErrorGettingSessionID("EXCEPTION", null);
+            }
+        }).start();
     }
+
     private void getResponseFromCustomGPT(String question,String sessionId){
         try {
             List<String> WhisperLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Whisper");
             String codeLanguageWhisper = WhisperLangueCode.get(teamChatBuddyApplication.getLangue().getId()-1);
-            Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("CustomGPT_url","TeamChatBuddy.properties"), 50);
-            ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
             JSONObject jsonParams = new JSONObject();
             // define the model
             jsonParams.put("prompt", question);
@@ -180,10 +178,7 @@ public class CustomGPTStreamMode {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
             Log.e("MEHDI","ennvoie requete CustomGPT  sessionID "+sessionId);
-            String endpoint = teamChatBuddyApplication.getParamFromFile("CustomGPT_ApiEndpoint","TeamChatBuddy.properties");
-            endpoint =endpoint.replace("{project_id}",teamChatBuddyApplication.getparam("CustomGPT_Project_ID")).replace("{session_id}",sessionId.trim());
 
             if(responseTimeout!=null){
                 responseTimeout.cancel();
@@ -251,50 +246,43 @@ public class CustomGPTStreamMode {
                 });
             }
             Log.i("responseTimeout", " call CustomGPT API (StreamMode ON) ");
+            new Thread(() -> {
+                try{
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getparam("CustomGPT_API_Key"));
+                    headers.put("content-type", mediaType);
 
+                    String endpoint = teamChatBuddyApplication.getParamFromFile("CustomGPT_ApiEndpoint","TeamChatBuddy.properties");
+                    endpoint =endpoint.replace("{project_id}",teamChatBuddyApplication.getparam("CustomGPT_Project_ID")).replace("{session_id}",sessionId.trim());
+                    String fullUrl = teamChatBuddyApplication.getParamFromFile("CustomGPT_url", "TeamChatBuddy.properties")
+                            + endpoint + "?lang=" + codeLanguageWhisper;
 
-            Call<ResponseBody> call = api.getCustomGPT( endpoint, codeLanguageWhisper,requestBody,"application/json", "Bearer "+ teamChatBuddyApplication.getparam("CustomGPT_API_Key"), mediaType);
+                    Log.e("MEHDI", "envoie requete CustomGPT sessionID " + sessionId);
 
-            call.enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    if(responseTimeout!=null){
-                        responseTimeout.cancel();
-                        responseTimeout = null;
-                    }
-                    Log.i("responseTimeout", " cancel timeout in CustomGPT ");
-                    teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
-                    if(response.isSuccessful()) {
-                        if (!isReset){
+                    HttpResponse httpResponse = HttpClientUtils.sendPost(fullUrl, jsonParams.toString(), headers, 50000);
+                    if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300) {
+                        if (!isReset) {
                             try {
                                 new Thread(() -> {
-                                    handleStreamingResponse(response);
+                                    handleStreamingResponse(httpResponse);
                                 }).start();
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                onErrorStreaming("EXCEPTION",null);
+                                onErrorStreaming("EXCEPTION", null);
                             }
+                        } else {
+                            Log.w(TAG, "Ignore API response because reset() was called");
                         }
-                        else {
-                            Log.w(TAG,"Ignore API response because reset() was called");
-                        }
+                    } else {
+                        onErrorStreaming("RESPONSE_NOT_SUCCESSFUL", httpResponse);
                     }
-                    else {
-                        onErrorStreaming("RESPONSE_NOT_SUCCESSFUL",response);
-
-                    }
-
-
-
-                }
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                } catch (Exception e){
                     teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                     teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
                     onErrorStreaming("FAILURE",null);
-                    Log.e("MEHDI", "onFailure pendant la récupération de la CustopGPT : " + t.getMessage());
+                    Log.e("MEHDI", "onFailure pendant la récupération de la CustopGPT : " + e.getMessage());
                 }
-            });
+            }).start();
         } catch (Exception e) {
             teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
             Log.e("MEHDI", "Exception pendant la récupération de la CustopGPT : " + e);
@@ -305,7 +293,7 @@ public class CustomGPTStreamMode {
 
 
     }
-    private void handleStreamingResponse(Response<ResponseBody> response) {
+    private void handleStreamingResponse(HttpResponse httpResponse) {
         try {
             onStartStreaming();
             //get Pattern_Fin_Phrase from config file
@@ -315,9 +303,8 @@ public class CustomGPTStreamMode {
             }
             Log.w(TAG, "pattern_fin_phrase: " + pattern_fin_phrase);
 
-            InputStream inputStream = response.body().byteStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader reader = new BufferedReader(inputStreamReader);
+            // Lecture du body ligne par ligne
+            BufferedReader reader = new BufferedReader(new StringReader(httpResponse.body));
             String fileName = "CustomGPT-recv-stream";
             StringBuilder formattedContent = new StringBuilder();
             String line;
@@ -430,7 +417,8 @@ public class CustomGPTStreamMode {
             onErrorStreaming("EXCEPTION",null);
         }
     }
-    private void onErrorStreaming(String error,Response<ResponseBody> response){
+
+    private void onErrorStreaming(String error,HttpResponse response){
         Log.e(TAG, "------------------ERROR-------------------");
 
         if(!isReset){
@@ -458,17 +446,17 @@ public class CustomGPTStreamMode {
             if(error.equals("RESPONSE_NOT_SUCCESSFUL")){
 
                 try {
-                    if (response !=null &&response.errorBody()!= null){
+                    if (response !=null &&response.body!= null){
                         Log.e("MEHDI","response.errorBody()!= null ");
                         JsonObject errorLOG = new JsonObject();
 
                         JsonObject errorCode = new JsonObject();
-                        errorCode.addProperty("ERROR CODE", response.code());
+                        errorCode.addProperty("ERROR CODE", response.responseCode);
 
-                        Log.e("MEHDI","response.code() "+response.code());
+                        Log.e("MEHDI","response.code() "+response.responseCode);
 
                         // Obtenez la réponse JSON sous forme de chaîne
-                        String jsonString = response.errorBody().string();
+                        String jsonString = response.body;
                         // Analysez la chaîne JSON en un objet JSON
                         JSONObject jsonErrorContent = new JSONObject(jsonString);
                         Log.e("MEHDI","jsonErrorContent------ "+jsonErrorContent);
@@ -506,7 +494,7 @@ public class CustomGPTStreamMode {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        String errorTXT= new Date().toString()+", CustomGPTERROR,ERROR CODE= "+response.code()+", ERROR Body{ message= "+message+", status= "+status+", url= "+url+", code= "+code+"}"+System.getProperty("line.separator");
+                        String errorTXT= new Date().toString()+", CustomGPTERROR,ERROR CODE= "+response.responseCode+", ERROR Body{ message= "+message+", status= "+status+", url= "+url+", code= "+code+"}"+System.getProperty("line.separator");
                         File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
 
 
