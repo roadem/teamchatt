@@ -8,15 +8,10 @@ import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.bfr.buddy.ui.shared.FacialExpression;
 import com.bfr.buddy.ui.shared.LabialExpression;
 import com.bfr.buddysdk.BuddySDK;
-import com.chaquo.python.PyException;
-import com.chaquo.python.PyObject;
-import com.chaquo.python.Python;
-import com.chaquo.python.android.AndroidPlatform;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
@@ -25,13 +20,10 @@ import com.google.gson.JsonObject;
 import com.google.mlkit.nl.languageid.IdentifiedLanguage;
 import com.google.mlkit.nl.languageid.LanguageIdentification;
 import com.google.mlkit.nl.languageid.LanguageIdentifier;
-import com.ibm.icu.text.BreakIterator;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 import com.robotique.aevaweb.teamchatbuddy.models.HttpResponse;
-import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
 import com.robotique.aevaweb.teamchatbuddy.utilis.HttpClientUtils;
-import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,24 +36,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.io.FileOutputStream;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class ResponseFromChatbot {
     TeamChatBuddyApplication teamChatBuddyApplication;
@@ -707,10 +691,7 @@ public class ResponseFromChatbot {
                         @Override
                         public void run() {
                             Log.i( "DLA", "Commande : question " + texte );
-                            Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication, teamChatBuddyApplication.getparam( "ChatGPT_url" ), 50 );
-                            ApiEndpointInterface api = retrofit.create( ApiEndpointInterface.class );
                             JSONObject jsonParams = new JSONObject();
-
 
                             try {
 

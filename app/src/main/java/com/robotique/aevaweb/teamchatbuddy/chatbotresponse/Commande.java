@@ -21,8 +21,6 @@ import com.bfr.buddysdk.BuddySDK;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -36,13 +34,11 @@ import com.robotique.aevaweb.teamchatbuddy.models.HttpResponse;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.Missions;
 import com.robotique.aevaweb.teamchatbuddy.models.Setting;
-import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
 import com.robotique.aevaweb.teamchatbuddy.utilis.BIPlayer;
 import com.robotique.aevaweb.teamchatbuddy.utilis.HttpClientUtils;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IBehaviourCallBack;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ImageGenerator;
 import com.robotique.aevaweb.teamchatbuddy.utilis.MailSender;
-import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 import com.google.gson.GsonBuilder;
 
 import java.io.BufferedInputStream;
@@ -80,14 +76,6 @@ import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class Commande {
     private String TAG="Commande";
@@ -3195,8 +3183,6 @@ public class Commande {
 
         Log.i("HOO"," handle by chatgpt ");
 
-        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getparam("ChatGPT_url"), 50);
-        ApiEndpointInterface api = retrofit.create( ApiEndpointInterface.class );
 
         String joke_model = teamChatBuddyApplication.getParamFromFile("JOKE_Model",configFile);
         if(joke_model == null || joke_model.isEmpty()) joke_model = "gpt-3.5-turbo";
@@ -4756,24 +4742,29 @@ public class Commande {
                 jsonParams.put("email", teamChatBuddyApplication.getParamFromFile("Healysa_mail", configFile));
                 jsonParams.put("password", teamChatBuddyApplication.getParamFromFile("Healysa_password", configFile));
 
+                Map<String, String> headersCmd = new HashMap<>();
+                headersCmd.put("Content-Type", "application/json; charset=utf-8");
+
                 HttpResponse authResponse = HttpClientUtils.sendPost(
-                        baseUrl + "/publicApi/auth/login",
+                        baseUrl + "publicApi/auth/login",
                         jsonParams.toString(),
-                        null,
+                        headersCmd,
                         30000
                 );
 
                 if (authResponse.responseCode >= 200 && authResponse.responseCode < 300 && authResponse.body != null) {
                     Log.i(TAG, "Réponse Auth Healysa [successful] :" + authResponse.body);
                     JSONObject jsonObj = new JSONObject(authResponse.body);
+                    Log.i(TAG, "Réponse Auth Healysa [successful] token :" + jsonObj.getString("token"));
                     teamChatBuddyApplication.setTokenHealysa(jsonObj.getString("token"));
 
                     // 2. Récupération IMEI (GET)
                     Map<String, String> headersGetIMEI = new HashMap<>();
                     headersGetIMEI.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
+                    headersGetIMEI.put("Content-Type", "application/json; charset=utf-8");
 
                     HttpResponse imeiResponse = HttpClientUtils.sendGet(
-                            baseUrl + "/api/users/account",
+                            baseUrl + "api/users/account",
                             headersGetIMEI,
                             30000
                     );
@@ -4924,20 +4915,23 @@ public class Commande {
         final String TAG = "Commande";
         new Thread(() -> {
             try {
-                String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
-
-                // 1. Lancer la commande HRV (POST)
+                String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());//
                 Map<String, String> headersCmd = new HashMap<>();
                 headersCmd.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                 headersCmd.put("Content-Type", "application/json; charset=utf-8");
 
-                JSONObject cmdBody = new JSONObject();
-                cmdBody.put("cmd", "IWBPXL," + teamChatBuddyApplication.getImeiDevice() + ",080835#");
+                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
+                String imei = teamChatBuddyApplication.getImeiDevice();
+                String product = "silver";
+                String cmd = "IWBPXL," + imei + ",080835#";
 
+                String urlStr = baseUrl + "api/deviceMessageProcessor/test/cmd"
+                        + "?product=" + URLEncoder.encode(product, "UTF-8")
+                        + "&imei=" + URLEncoder.encode(imei, "UTF-8")
+                        + "&cmd=" + URLEncoder.encode(cmd, "UTF-8");
                 HttpResponse cmdResponse = HttpClientUtils.sendPost(
-                        baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice() + "/command",
-                        cmdBody.toString(),
+                        urlStr,
+                        "", // corps vide
                         headersCmd,
                         30000
                 );
@@ -4951,10 +4945,15 @@ public class Commande {
                     Map<String, String> headersGet = new HashMap<>();
                     headersGet.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
 
-                    String urlGet = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                            + "/data?start=" + date + "T00:00:00.000Z"
-                            + "&end=" + date + "T23:59:59.000Z"
-                            + "&type=HEART_RATE&interval=day";
+                    String start = date + "T00:00:00.000Z";
+                    String end = date + "T23:59:59.000Z";
+
+                    String urlGet = baseUrl + "api/devicesData/chart?"
+                            + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                            + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                            + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                            + "&dataType=" + URLEncoder.encode("HEART_RATE", "UTF-8")
+                                    + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                     HttpResponse getHRResponse = HttpClientUtils.sendGet(urlGet, headersGet, 30000);
 
@@ -5049,21 +5048,30 @@ public class Commande {
         new Thread(() -> {
             try {
                 String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
 
                 Log.i(TAG, "Tension Healysa imei:" + teamChatBuddyApplication.getImeiDevice());
-
-                // 1. Lancer la commande Tension (POST)
-                Map<String, String> headersCmd = new HashMap<>();
-                headersCmd.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
-                headersCmd.put("Content-Type", "application/json; charset=utf-8");
+                Log.i(TAG, "Tension Healysa token :" + teamChatBuddyApplication.getTokenHealysa());
 
                 JSONObject cmdBody = new JSONObject();
                 cmdBody.put("cmd", "IWBPXY," + teamChatBuddyApplication.getImeiDevice() + ",080835#");
 
+                Map<String, String> headersCmd = new HashMap<>();
+                headersCmd.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
+                headersCmd.put("Content-Type", "application/json; charset=utf-8");
+
+                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
+                String imei = teamChatBuddyApplication.getImeiDevice();
+                String product = "silver";
+                String cmd = "IWBPXL," + imei + ",080835#";
+
+                String urlStr = baseUrl + "api/deviceMessageProcessor/test/cmd"
+                        + "?product=" + URLEncoder.encode(product, "UTF-8")
+                        + "&imei=" + URLEncoder.encode(imei, "UTF-8")
+                        + "&cmd=" + URLEncoder.encode(cmd, "UTF-8");
+
                 HttpResponse cmdResponse = HttpClientUtils.sendPost(
-                        baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice() + "/command",
-                        cmdBody.toString(),
+                        urlStr,
+                        "", // corps vide
                         headersCmd,
                         30000
                 );
@@ -5073,14 +5081,19 @@ public class Commande {
                     SystemClock.sleep(35000);
                     Log.i(TAG, "Réponse Tension Healysa [successful] : 30 secondes plus tard");
 
-                    // 2. Récupérer la donnée BLOOD_PRESSURE_SYSTOLIC (GET)
+
                     Map<String, String> headersGet = new HashMap<>();
                     headersGet.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
 
-                    String urlTensionS = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                            + "/data?start=" + date + "T00:00:00.000Z"
-                            + "&end=" + date + "T23:59:59.000Z"
-                            + "&type=BLOOD_PRESSURE_SYSTOLIC&interval=day";
+                    String start = date + "T00:00:00.000Z";
+                    String end = date + "T23:59:59.000Z";
+
+                    String urlTensionS = baseUrl + "api/devicesData/chart?"
+                            + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                            + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                            + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                            + "&dataType=" + URLEncoder.encode("BLOOD_PRESSURE_SYSTOLIC", "UTF-8")
+                            + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                     HttpResponse getTensionSResponse = HttpClientUtils.sendGet(urlTensionS, headersGet, 30000);
 
@@ -5097,11 +5110,12 @@ public class Commande {
                                 String hour = outputFormat.format(inputFormat.parse(dateTension));
                                 Log.i(TAG, "Réponse GET Tension Healysa [successful] : " + tensionS);
 
-                                // 3. Récupérer la donnée BLOOD_PRESSURE_DIASTOLIC (GET)
-                                String urlTensionD = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                                        + "/data?start=" + date + "T00:00:00.000Z"
-                                        + "&end=" + date + "T23:59:59.000Z"
-                                        + "&type=BLOOD_PRESSURE_DIASTOLIC&interval=day";
+                                String urlTensionD = baseUrl + "api/devicesData/chart?"
+                                        + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                                        + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                                        + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                                        + "&dataType=" + URLEncoder.encode("BLOOD_PRESSURE_DIASTOLIC", "UTF-8")
+                                        + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                                 HttpResponse getTensionDResponse = HttpClientUtils.sendGet(urlTensionD, headersGet, 30000);
 
@@ -5214,19 +5228,26 @@ public class Commande {
         new Thread(() -> {
             try {
                 String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
+                JSONObject cmdBody = new JSONObject();
+                cmdBody.put("cmd", "IWBPXY," + teamChatBuddyApplication.getImeiDevice() + ",080835#");
 
-                // 1. Lancer la commande SPO2 (POST)
                 Map<String, String> headersCmd = new HashMap<>();
                 headersCmd.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                 headersCmd.put("Content-Type", "application/json; charset=utf-8");
 
-                JSONObject cmdBody = new JSONObject();
-                cmdBody.put("cmd", "IWBPXZ," + teamChatBuddyApplication.getImeiDevice() + ",080835#");
+                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
+                String imei = teamChatBuddyApplication.getImeiDevice();
+                String product = "silver";
+                String cmd = "IWBPXL," + imei + ",080835#";
+
+                String urlStr = baseUrl + "api/deviceMessageProcessor/test/cmd"
+                        + "?product=" + URLEncoder.encode(product, "UTF-8")
+                        + "&imei=" + URLEncoder.encode(imei, "UTF-8")
+                        + "&cmd=" + URLEncoder.encode(cmd, "UTF-8");
 
                 HttpResponse cmdResponse = HttpClientUtils.sendPost(
-                        baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice() + "/command",
-                        cmdBody.toString(),
+                        urlStr,
+                        "", // corps vide
                         headersCmd,
                         30000
                 );
@@ -5236,14 +5257,18 @@ public class Commande {
                     SystemClock.sleep(35000);
                     Log.i(TAG, "Réponse SPO2 Healysa [successful] : 30 secondes plus tard");
 
-                    // 2. Récupérer la donnée SPO2 (GET)
                     Map<String, String> headersGet = new HashMap<>();
                     headersGet.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
 
-                    String urlGet = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                            + "/data?start=" + date + "T00:00:00.000Z"
-                            + "&end=" + date + "T23:59:59.000Z"
-                            + "&type=SPO2&interval=day";
+                    String start = date + "T00:00:00.000Z";
+                    String end = date + "T23:59:59.000Z";
+
+                    String urlGet = baseUrl + "api/devicesData/chart?"
+                            + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                            + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                            + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                            + "&dataType=" + URLEncoder.encode("SPO2", "UTF-8")
+                            + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                     HttpResponse getHRResponse = HttpClientUtils.sendGet(urlGet, headersGet, 30000);
 
@@ -5338,19 +5363,23 @@ public class Commande {
         new Thread(() -> {
             try {
                 String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
 
-                // 1. Lancer la commande CHECKUP (POST)
                 Map<String, String> headersCmd = new HashMap<>();
                 headersCmd.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
                 headersCmd.put("Content-Type", "application/json; charset=utf-8");
 
-                JSONObject cmdBody = new JSONObject();
-                cmdBody.put("cmd", "IWBPXZ," + teamChatBuddyApplication.getImeiDevice() + ",080835#");
+                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
+                String imei = teamChatBuddyApplication.getImeiDevice();
+                String product = "silver";
+                String cmd = "IWBPXL," + imei + ",080835#";
 
+                String urlStr = baseUrl + "api/deviceMessageProcessor/test/cmd"
+                        + "?product=" + URLEncoder.encode(product, "UTF-8")
+                        + "&imei=" + URLEncoder.encode(imei, "UTF-8")
+                        + "&cmd=" + URLEncoder.encode(cmd, "UTF-8");
                 HttpResponse cmdResponse = HttpClientUtils.sendPost(
-                        baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice() + "/command",
-                        cmdBody.toString(),
+                        urlStr,
+                        "", // corps vide
                         headersCmd,
                         30000
                 );
@@ -5364,10 +5393,15 @@ public class Commande {
                     Map<String, String> headersGet = new HashMap<>();
                     headersGet.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
 
-                    String urlHR = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                            + "/data?start=" + date + "T00:00:00.000Z"
-                            + "&end=" + date + "T23:59:59.000Z"
-                            + "&type=HEART_RATE&interval=day";
+                    String start = date + "T00:00:00.000Z";
+                    String end = date + "T23:59:59.000Z";
+
+                    String urlHR = baseUrl + "api/devicesData/chart?"
+                            + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                            + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                            + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                            + "&dataType=" + URLEncoder.encode("HEART_RATE", "UTF-8")
+                            + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                     HttpResponse getHRResponse = HttpClientUtils.sendGet(urlHR, headersGet, 30000);
 
@@ -5381,11 +5415,12 @@ public class Commande {
                                 heart_rate = data.getString("dataValue");
                                 heart_rate = heart_rate.replace(".", ",");
 
-                                // 3. Récupérer la donnée BLOOD_PRESSURE_SYSTOLIC (GET)
-                                String urlTension1 = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                                        + "/data?start=" + date + "T00:00:00.000Z"
-                                        + "&end=" + date + "T23:59:59.000Z"
-                                        + "&type=BLOOD_PRESSURE_SYSTOLIC&interval=day";
+                                String urlTension1 = baseUrl + "api/devicesData/chart?"
+                                        + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                                        + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                                        + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                                        + "&dataType=" + URLEncoder.encode("BLOOD_PRESSURE_SYSTOLIC", "UTF-8")
+                                        + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                                 HttpResponse getTension1Response = HttpClientUtils.sendGet(urlTension1, headersGet, 30000);
 
@@ -5399,11 +5434,12 @@ public class Commande {
                                             tensionS = dataTension1.getString("dataValue");
                                             tensionS = tensionS.replace(".", ",");
 
-                                            // 4. Récupérer la donnée BLOOD_PRESSURE_DIASTOLIC (GET)
-                                            String urlTension2 = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                                                    + "/data?start=" + date + "T00:00:00.000Z"
-                                                    + "&end=" + date + "T23:59:59.000Z"
-                                                    + "&type=BLOOD_PRESSURE_DIASTOLIC&interval=day";
+                                            String urlTension2 = baseUrl + "api/devicesData/chart?"
+                                                    + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                                                    + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                                                    + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                                                    + "&dataType=" + URLEncoder.encode("BLOOD_PRESSURE_DIASTOLIC", "UTF-8")
+                                                    + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                                             HttpResponse getTension2Response = HttpClientUtils.sendGet(urlTension2, headersGet, 30000);
 
@@ -5418,10 +5454,12 @@ public class Commande {
                                                         tensionD = tensionD.replace(".", ",");
 
                                                         // 5. Récupérer la donnée SPO2 (GET)
-                                                        String urlSPO2 = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice()
-                                                                + "/data?start=" + date + "T00:00:00.000Z"
-                                                                + "&end=" + date + "T23:59:59.000Z"
-                                                                + "&type=SPO2&interval=day";
+                                                        String urlSPO2 = baseUrl + "api/devicesData/chart?"
+                                                                + "deviceImei=" + URLEncoder.encode(imei, "UTF-8")
+                                                                + "&dateDebut=" + URLEncoder.encode(start, "UTF-8")
+                                                                + "&dateFin=" + URLEncoder.encode(end, "UTF-8")
+                                                                + "&dataType=" + URLEncoder.encode("SPO2", "UTF-8")
+                                                                + "&jsmFiltre=" + URLEncoder.encode("day", "UTF-8");
 
                                                         HttpResponse getSPO2Response = HttpClientUtils.sendGet(urlSPO2, headersGet, 30000);
 
@@ -5606,8 +5644,11 @@ public class Commande {
                 // 1. Récupérer la liste des numéros (GET)
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
+                headers.put("Content-Type", "application/json; charset=utf-8");
 
-                String url = baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice() + "/phoneNumber?type=AGENDA";
+
+                String url = baseUrl + "api/deviceParams/device/" + teamChatBuddyApplication.getImeiDevice() +
+                         "?paramsTypes=" + URLEncoder.encode("AGENDA", "UTF-8");
                 HttpResponse httpResponse = HttpClientUtils.sendGet(url, headers, 30000);
 
                 if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300 && httpResponse.body != null) {
@@ -5653,18 +5694,22 @@ public class Commande {
                         }
                         Log.i(TAG, "Réponse numéro de téléphone :" + phone_number + "  imei " + teamChatBuddyApplication.getImeiDevice());
 
-                        // 2. Lancer la commande d'appel (POST)
-                        Map<String, String> headersCmd = new HashMap<>();
-                        headersCmd.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
-                        headersCmd.put("Content-Type", "application/json; charset=utf-8");
-
                         JSONObject cmdBody = new JSONObject();
                         cmdBody.put("cmd", "IWBP32," + teamChatBuddyApplication.getImeiDevice() + ",080835," + phone_number + "#");
 
+                        String imei = teamChatBuddyApplication.getImeiDevice();
+                        String product = "silver";
+                        String cmd = "IWBP32," + teamChatBuddyApplication.getImeiDevice() + ",080835," + phone_number + "#";
+
+                        String urlStr = baseUrl + "api/deviceMessageProcessor/test/cmd"
+                                + "?product=" + URLEncoder.encode(product, "UTF-8")
+                                + "&imei=" + URLEncoder.encode(imei, "UTF-8")
+                                + "&cmd=" + URLEncoder.encode(cmd, "UTF-8");
+
                         HttpResponse callResponse = HttpClientUtils.sendPost(
-                                baseUrl + "/api/device/" + teamChatBuddyApplication.getImeiDevice() + "/command",
-                                cmdBody.toString(),
-                                headersCmd,
+                                urlStr,
+                                "", // corps vide
+                                headers,
                                 30000
                         );
 
@@ -5806,16 +5851,19 @@ public class Commande {
         final String TAG = "Commande";
         new Thread(() -> {
             try {
-                // 1. Authentification (POST)
+
                 String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
                 JSONObject jsonParams = new JSONObject();
                 jsonParams.put("email", teamChatBuddyApplication.getParamFromFile("Healysa_mail", configFile));
                 jsonParams.put("password", teamChatBuddyApplication.getParamFromFile("Healysa_password", configFile));
 
+                Map<String, String> headersCmd = new HashMap<>();
+                headersCmd.put("Content-Type", "application/json; charset=utf-8");
+
                 HttpResponse authResponse = HttpClientUtils.sendPost(
-                        baseUrl + "/publicApi/auth/login",
+                        baseUrl + "publicApi/auth/login",
                         jsonParams.toString(),
-                        null,
+                        headersCmd,
                         30000
                 );
 
@@ -5827,9 +5875,10 @@ public class Commande {
                     // 2. Récupération IMEI (GET)
                     Map<String, String> headersGetIMEI = new HashMap<>();
                     headersGetIMEI.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
+                    headersGetIMEI.put("Content-Type", "application/json; charset=utf-8");
 
                     HttpResponse imeiResponse = HttpClientUtils.sendGet(
-                            baseUrl + "/api/users/account",
+                            baseUrl + "api/users/account",
                             headersGetIMEI,
                             30000
                     );
@@ -5852,7 +5901,7 @@ public class Commande {
                                 headersLocation.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
 
                                 HttpResponse locationResponse = HttpClientUtils.sendGet(
-                                        baseUrl + "/api/beacon/" + imeiLocation,
+                                        baseUrl + "api/beacon/" + imeiLocation,
                                         headersLocation,
                                         30000
                                 );
@@ -6070,19 +6119,22 @@ public class Commande {
     public void HEALYSA_FEEDCAT(String portion) {
         new Thread(() -> {
             try {
-                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
 
-                // 1. AUTHENTIFICATION
+                String baseUrl = teamChatBuddyApplication.getParamFromFile("Healysa_URL_PROD", configFile);
                 JSONObject jsonParams = new JSONObject();
                 jsonParams.put("email", teamChatBuddyApplication.getParamFromFile("Healysa_mail", configFile));
                 jsonParams.put("password", teamChatBuddyApplication.getParamFromFile("Healysa_password", configFile));
 
+                Map<String, String> headersCmd = new HashMap<>();
+                headersCmd.put("Content-Type", "application/json; charset=utf-8");
+
                 HttpResponse authResponse = HttpClientUtils.sendPost(
-                        baseUrl + "/publicApi/auth/login",
+                        baseUrl + "publicApi/auth/login",
                         jsonParams.toString(),
-                        null,
+                        headersCmd,
                         30000
                 );
+
 
                 if (authResponse.responseCode >= 200 && authResponse.responseCode < 300) {
                     Log.i(TAG, "Réponse Auth Healysa [successful] :" + authResponse.body);
@@ -6110,20 +6162,22 @@ public class Commande {
                     return;
                 }
 
-                // 2. RÉCUPÉRATION IMEI
                 Map<String, String> headersGetIMEI = new HashMap<>();
                 headersGetIMEI.put("Authorization", "Bearer " + teamChatBuddyApplication.getTokenHealysa());
+                headersGetIMEI.put("Content-Type", "application/json; charset=utf-8");
 
                 HttpResponse imeiResponse = HttpClientUtils.sendGet(
-                        baseUrl + "/api/users/account",
+                        baseUrl + "api/users/account",
                         headersGetIMEI,
                         30000
                 );
 
                 String imeiFeeder = null;
                 if (imeiResponse.responseCode >= 200 && imeiResponse.responseCode < 300) {
+                    Log.i(TAG, "Réponse Feed Healysa imei [successful] "+imeiResponse.body);
                     JSONObject jsonObj = new JSONObject(imeiResponse.body);
                     JSONArray devices = jsonObj.getJSONArray("devices");
+                    Log.i(TAG, "Réponse Feed Healysa imei [successful] "+new Gson().toJson(devices));
                     for (int i = 0; i < devices.length(); i++) {
                         if (devices.getJSONObject(i).getJSONObject("consumer").getString("firstname").equals("FEEDER USA")) {
                             imeiFeeder = devices.getJSONObject(i).getString("imei");
@@ -6148,6 +6202,7 @@ public class Commande {
                     });
                     return;
                 }
+                Log.i(TAG, "Réponse Feed Healysa imei [successful] imei feeder "+imeiFeeder);
 
                 // 3. ENVOI COMMANDE FEED
                 if (imeiFeeder != null) {
@@ -6163,7 +6218,7 @@ public class Commande {
                     headersFeed.put("Content-Type", "application/json");
 
                     HttpResponse feedResponse = HttpClientUtils.sendPost(
-                            baseUrl + "/publicApi/Tuya/" + imeiFeeder,
+                            baseUrl + "publicApi/Tuya/" + imeiFeeder,
                             jsonBody.toString(),
                             headersFeed,
                             30000
@@ -6212,6 +6267,24 @@ public class Commande {
                             }
                         });
                     }
+                }
+                else {
+                    logErrorAPIHealysa("HEALYSA_FEEDCAT", imeiResponse.body, "notOnFailure");
+                    translate("HEALYSA_FEEDCAT", translatedText -> {
+                        if (translatedText.contains("No_message_defined")) {
+                            teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                        } else {
+                            String verifyMessage = verifyCmdMessages(translatedText);
+                            if (verifyMessage.equals("CONTAIN_BOTH_PARTS") || verifyMessage.equals("CONTAIN_ONLY_SECOND_PART")) {
+                                teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
+                                translateSpecificErrors(" problème lors de la récuperation de l'IMEI", translatedMessage -> {
+                                    teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +
+                                            translatedText.split("\\s*/\\s*(?:/\\s*)?")[2]
+                                                    .replace("[1]", ": " + translatedMessage));
+                                });
+                            }
+                        }
+                    });
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Exception pendant la récupération de la réponse Healysa : " + e);

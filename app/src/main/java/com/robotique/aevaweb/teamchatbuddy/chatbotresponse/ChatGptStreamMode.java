@@ -21,10 +21,8 @@ import com.google.mlkit.nl.languageid.IdentifiedLanguage;
 import com.google.mlkit.nl.languageid.LanguageIdentification;
 import com.google.mlkit.nl.languageid.LanguageIdentifier;
 import com.knuddels.jtokkit.api.Encoding;
-import com.knuddels.jtokkit.api.ModelType;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
-import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -52,11 +50,7 @@ import java.util.regex.Pattern;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 import okio.Buffer;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class ChatGptStreamMode {
 

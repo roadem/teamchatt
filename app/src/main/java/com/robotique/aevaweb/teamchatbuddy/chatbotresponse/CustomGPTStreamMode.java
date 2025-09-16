@@ -1,17 +1,11 @@
 package com.robotique.aevaweb.teamchatbuddy.chatbotresponse;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -31,9 +25,7 @@ import com.google.mlkit.nl.languageid.LanguageIdentifier;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 import com.robotique.aevaweb.teamchatbuddy.models.HttpResponse;
-import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
 import com.robotique.aevaweb.teamchatbuddy.utilis.HttpClientUtils;
-import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 
 
 import org.json.JSONArray;
@@ -44,9 +36,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,13 +47,7 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class CustomGPTStreamMode {
     private static final String TAG = "CustomGPT";
