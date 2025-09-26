@@ -1,7 +1,16 @@
 package com.robotique.aevaweb.teamchatbuddy.utilis;
 
+import android.content.Context;
 import android.media.MediaPlayer;
+import android.util.Base64;
+import android.util.Log;
 
+import com.arthenica.mobileffmpeg.FFmpeg;
+import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import darren.googlecloudtts.api.SynthesizeApi;
@@ -9,6 +18,7 @@ import darren.googlecloudtts.api.VoicesApi;
 import darren.googlecloudtts.exception.ApiException;
 import darren.googlecloudtts.model.VoicesList;
 import darren.googlecloudtts.parameter.AudioConfig;
+import darren.googlecloudtts.parameter.AudioEncoding;
 import darren.googlecloudtts.parameter.SynthesisInput;
 import darren.googlecloudtts.parameter.VoiceSelectionParams;
 import darren.googlecloudtts.request.SynthesizeRequest;
@@ -19,18 +29,22 @@ public class TtsGoogleC implements AutoCloseable{
 
     private SynthesizeApi mSynthesizeApi;
     private VoicesApi mVoicesApi;
+    private final Context context;
+
 
     private VoiceSelectionParams mVoiceSelectionParams;
     private AudioConfig mAudioConfig;
 
     private MediaPlayer mMediaPlayer;
+    private TeamChatBuddyApplication teamChatBuddyApplication;
 
     private int mVoiceLength = -1;
     private TtsGoogleApiListener mTtsListener;
 
-    public TtsGoogleC(SynthesizeApi synthesizeApi, VoicesApi voicesApi) {
-        mSynthesizeApi = synthesizeApi;
-        mVoicesApi = voicesApi;
+    public TtsGoogleC(Context context, SynthesizeApi synthesizeApi, VoicesApi voicesApi) {
+        this.context = context;
+        this.mSynthesizeApi = synthesizeApi;
+        this.mVoicesApi = voicesApi;
     }
 
     public  TtsGoogleC setVoiceSelectionParams(VoiceSelectionParams voiceSelectionParams) {
@@ -80,32 +94,63 @@ public class TtsGoogleC implements AutoCloseable{
             //playAudio(response.getAudioContent());
             stop();
             String base64EncodedString = response.getAudioContent();
-            String url = "data:audio/mp3;base64," + base64EncodedString;
-            mMediaPlayer = new MediaPlayer();
-            mMediaPlayer.setDataSource(url);
-            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    if (mTtsListener != null) {
-                        mTtsListener.onStart();
-                    }
-                    mp.start();
+            byte[] audioData = Base64.decode(base64EncodedString, Base64.DEFAULT);
+
+            File outputDir = context.getCacheDir(); // ou getExternalFilesDir(null)
+            File audioFile = File.createTempFile("tts_audio_", ".wav", outputDir);
+            try (FileOutputStream fos = new FileOutputStream(audioFile)) {
+                fos.write(audioData);
+            }
+
+            File trimmedAudioFile = File.createTempFile("tts_audio_trimmed_", ".wav", outputDir);
+
+            String cmd = "-y -i \"" + audioFile.getAbsolutePath() + "\" " +
+                    "-af \"areverse,silenceremove=start_periods=1:start_duration=0.01:start_threshold=-40dB:detection=peak,areverse\" " +
+                    "-c:a pcm_s16le \"" + trimmedAudioFile.getAbsolutePath() + "\"";
+
+            FFmpeg.executeAsync(cmd, (executionId, returnCode) -> {
+                if (returnCode == 0) {
+                    // Succès, jouer trimmedAudioFile
+                    playAudioFile(trimmedAudioFile);
+                } else {
+                    // Échec, jouer audio original
+                    Log.e("FFmpeg", "Failed to remove silence, return code: " + returnCode);
+                    playAudioFile(audioFile);
                 }
             });
 
-            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    if (mTtsListener != null) {
-                        mTtsListener.onDone();
-                    }
-                    mp.release();
+        } catch (Exception e) {
+            if (mTtsListener != null) {
+                mTtsListener.onError();
+            }
+            throw new ApiException(e);
+        }
+    }
+
+    private void playAudioFile(File audioFile) {
+        try {
+            mMediaPlayer = new MediaPlayer();
+            FileInputStream fis = new FileInputStream(audioFile);
+            mMediaPlayer.setDataSource(fis.getFD());
+            fis.close();
+
+            mMediaPlayer.setOnPreparedListener(mp -> {
+                if (mTtsListener != null) {
+                    mTtsListener.onStart();
                 }
+                mp.start();
+            });
+
+            mMediaPlayer.setOnCompletionListener(mp -> {
+                if (mTtsListener != null) {
+                    Log.d("MYA_TTS", "retard onDone");
+                    mTtsListener.onDone();
+                }
+                mp.release();
             });
 
             mMediaPlayer.prepareAsync();
-//                mMediaPlayer.prepare();
-//                mMediaPlayer.start();
+
         } catch (Exception e) {
             if (mTtsListener != null) {
                 mTtsListener.onError();

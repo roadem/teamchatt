@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 48; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 49; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -203,6 +203,10 @@ public class ConfigurationFile {
             setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/nb-NO");
             setProperty("Language_Code_Used_In_Whisper","fr/en/es/de/it/ja/ar/zh/da/nl/no");
             setProperty("Language_Code_Used_In_Mlkit","fr/en/es/de/it/ja/ar/zh/da/nl/no");
+            setProperty("Readspeaker_voices","roxane/kate/manuel/max/elisa/show/amir/ / /guus/");
+            setProperty("BuddyOS_1.3_voices","fr:roxane/en:kate");
+            setProperty("BuddyOS_1.4_voices","fr:roxane/en:kate,mark,alice/ar:amir,yasmin/de:lena,max/es:lola,manuel/it:elisa/ja:show/nl:alex,guus");
+
 
             props.addPropertyComment("Speech_volume","");
             props.addPropertyComment("Speech_volume","Speech volume (between 0 and 100)");
@@ -684,6 +688,9 @@ public class ConfigurationFile {
             setProperty("JOKE_Model", "gpt-3.5-turbo");
             setProperty("JOKE_X_points","20");
 
+            props.addPropertyComment("NEWS_ARTICLE_BBC_id", " HTML selector of the news web page https://www.bbc.com/");
+            setProperty("NEWS_ARTICLE_BBC_id","div.sc-666b6d83-0");
+
             props.addPropertyComment("mail_pierre-paul", "");
             setProperty("mail_pierre-paul","b.fache@teamnet.fr");
             setProperty("CMD_MAIL_subject_en","Email from TeamChatBuddy");
@@ -741,7 +748,6 @@ public class ConfigurationFile {
             setProperty("WELCOME_prompt_EN","say an invitation to dialogue");
             props.addPropertyComment("TRACKING_welcome_maxtoken", "Welcome max token");
             setProperty("WELCOME_maxtoken","100");
-
 
             FileOutputStream fileOut = new FileOutputStream(configFile);
             props.store(fileOut, "TeamChatBuddy configuration file - Compatible with "+app_version);

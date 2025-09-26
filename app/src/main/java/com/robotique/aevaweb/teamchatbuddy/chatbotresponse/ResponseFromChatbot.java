@@ -8,15 +8,10 @@ import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.bfr.buddy.ui.shared.FacialExpression;
 import com.bfr.buddy.ui.shared.LabialExpression;
 import com.bfr.buddysdk.BuddySDK;
-import com.chaquo.python.PyException;
-import com.chaquo.python.PyObject;
-import com.chaquo.python.Python;
-import com.chaquo.python.android.AndroidPlatform;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
@@ -25,11 +20,10 @@ import com.google.gson.JsonObject;
 import com.google.mlkit.nl.languageid.IdentifiedLanguage;
 import com.google.mlkit.nl.languageid.LanguageIdentification;
 import com.google.mlkit.nl.languageid.LanguageIdentifier;
-import com.ibm.icu.text.BreakIterator;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
-import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
-import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
+import com.robotique.aevaweb.teamchatbuddy.models.HttpResponse;
+import com.robotique.aevaweb.teamchatbuddy.utilis.HttpClientUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,22 +36,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.io.FileOutputStream;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
 
 public class ResponseFromChatbot {
     TeamChatBuddyApplication teamChatBuddyApplication;
@@ -113,8 +101,7 @@ public class ResponseFromChatbot {
 
 
         Log.e("MRAA","question "+texte);
-        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getparam("ChatGPT_url"),50);
-        ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
+
         JSONObject jsonParams = new JSONObject();
 
 
@@ -231,7 +218,7 @@ public class ResponseFromChatbot {
                     }
                 }
                 teamChatBuddyApplication.setChatGptStreamMode(new ChatGptStreamMode(activity,existingHistoryArray));
-                teamChatBuddyApplication.getChatGptStreamMode().sendRequest(api,requestBody);
+                teamChatBuddyApplication.getChatGptStreamMode().sendRequest(jsonParams);
             }
             else{
                 if (
@@ -292,412 +279,339 @@ public class ResponseFromChatbot {
                 }
 
                 Log.i("responseTimeout", " call ChatGPT API (StreamMode OFF) ");
-                Call call = api.getChatGPT( requestBody, "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"), "application/json");
+                new Thread(() -> {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"));
+                    headers.put("Content-Type", "application/json");
 
-                call.enqueue(new Callback() {
-                    @Override
-                    public void onResponse(Call call, Response response) {
-                        if(responseTimeout!=null){
-                            responseTimeout.cancel();
-                            responseTimeout = null;
-                            Log.i( "responseTimeout", "réponse ChatGPT --> cancel timeout "+responseTimeout);
-                        }
-                        Log.i("responseTimeout", " timeout cancelled ");
-                        teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
-                        // Vérifie si la réponse est réussie
-                        if(response.isSuccessful()) {
-                            if (response.body().toString().contains("Failed to find bot")) {
+                    HttpResponse httpResponse = null;
+                    try {
+                        httpResponse = HttpClientUtils.sendPost(teamChatBuddyApplication.getparam("ChatGPT_url") + "/v1/chat/completions", jsonParams.toString(), headers, 50000);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
-                                if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_en)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                }
-                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_fr)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                }
-                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_es)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                }
-                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_de)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                }
-                                else {
-                                    teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBotNoFound_en)).addOnSuccessListener(new OnSuccessListener<String>() {
-                                        @Override
-                                        public void onSuccess(String translatedText) {
+                    if (responseTimeout != null) {
+                        responseTimeout.cancel();
+                        responseTimeout = null;
+                        Log.i("responseTimeout", "réponse ChatGPT --> cancel timeout " + responseTimeout);
+                    }
+                    Log.i("responseTimeout", " timeout cancelled ");
+                    teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
+                    // Vérifie si la réponse est réussie
+                    int responseCode = httpResponse.responseCode;
+                    String response = httpResponse.body;
+                    if (responseCode >= 200 && responseCode < 300) {
 
-                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                        }
-
-                                    }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Log.e(tag,"translatedText exception  "+e);
-                                        }
-                                    });
-
-                                }
-
-                            }
-                            else if (response.body().toString().contains("NoResponseServer")) {
-                                if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+chatBotServerNoResponce_en+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                }
-                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+chatBotServerNoResponce_fr+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                }
-                                else {
-                                    teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
-                                        @Override
-                                        public void onSuccess(String translatedText) {
-
-                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                        }
-
-                                    }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Log.e(tag,"translatedText exception  "+e);
-                                        }
-                                    });
-
-                                }
-
-                            }
-                            // Traitement de la réponse :
-                            else {
-                                try {
-
-                                    JSONObject jsonObj = new JSONObject(response.body().toString());
-                                    //Mettre   le fichier le plus récent reçu
-                                    String fileName = "ChatGPT-recv";
-
-                                    File file1 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName + ".json");
-
-                                    try {
-                                        if (file1.exists() && file1.isFile()) {
-                                            file1.delete();
-                                            Log.v("Json_API", "file deleted");
-                                        }
-
-                                        FileWriter fileWriter = new FileWriter(file1);
-                                        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                                        String jsonString=gson.toJson(jsonObj);
-                                        fileWriter.write(jsonString);
-                                        fileWriter.close();
-                                        Log.v("Json_API", "new file added");
-
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-
-                                    // récupérer la réponse
-                                    JSONArray choicesArray = jsonObj.getJSONArray("choices");
-                                    JSONObject choiceObject = choicesArray.getJSONObject(0);
-                                    JSONObject messageObject = choiceObject.getJSONObject("message");
-
-                                    result = messageObject.getString(content);
-
-                                    // Elimination d’une phrase si elle est incomplète :
-                                    int complete_answer_index = result.lastIndexOf(".");
-                                    if(complete_answer_index != -1) {
-                                        result = result.substring(0, complete_answer_index);
-                                        Log.e(tag,"the answer after elimination : " + result);
-                                    }
-                                    else {
-                                        Log.e(tag,"no period found in the answer : " + result);
-                                    }
-                                    Log.e(tag,"the answer with max nb parameter : " + result);
-
-                                    if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
-                                        result = teamChatBuddyApplication.applyFilters(teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties"),result);
-                                    }
-
-                                    JSONObject history1 = new JSONObject();
-                                    history1.put("role", "assistant");
-                                    history1.put(content, result);
-
-                                    existingHistoryArray.put(history1);
-
-                                    // récupérer la total_tokens :
-                                    JSONObject usages = jsonObj.getJSONObject("usage");
-                                    int total_tokens  = Integer.parseInt(usages.getString("total_tokens"));
-
-                                    int inputTokens = Integer.parseInt(usages.getString("prompt_tokens"));
-                                    int outputTokens = Integer.parseInt(usages.getString("completion_tokens"));
-                                    Log.i("MYA", "traitementResponseChatGpt: totalTokens --- "+total_tokens);
-                                    Log.i("MYA", "traitementResponseChatGpt: inputTokens --- "+inputTokens);
-                                    Log.i("MYA", "traitementResponseChatGpt: outputTokens --- "+outputTokens);
-
-                                    //-------Calculer la consommation OpenAI
-
-                                    teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getparam("model"), inputTokens, outputTokens);
-
-                                    // Stocker la nouvelle version de l'historique
-                                    if(total_tokens  > Max_LIMIT ){
-
-                                        existingHistoryArray.remove(1);
-                                        existingHistoryArray.remove(1);
-
-                                        teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
-
-                                    }else {
-                                        teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
-                                    }
-
-
-                                    // Géerer le cas où la réponse est vide
-
-                                    if (result.equals("")){
-
-
-                                        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                        }
-                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                        }
-                                        else {
-                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
-                                                @Override
-                                                public void onSuccess(String translatedText) {
-
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                }
-
-                                            }).addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    Log.e(tag,"translatedText exception  "+e);
-                                                }
-                                            });
-
-                                        }
-
-                                    }
-                                    // Play la suite de la réponse.
-                                    else{ Log.e("MRAA","Detection_de_langue  -----"+teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes"));
-                                        Log.e("MRAA","nombreDeMotsCheck(result) -------"+teamChatBuddyApplication.nombreDeMotsCheck(result));
-                                        if (teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
-
-                                            LanguageIdentifier languageIdentifier =
-                                                    LanguageIdentification.getClient();
-                                            languageIdentifier.identifyPossibleLanguages(result)
-                                                    .addOnSuccessListener(
-                                                            new OnSuccessListener<List<IdentifiedLanguage>>() {
-                                                                @Override
-                                                                public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
-                                                                    if (identifiedLanguages.isEmpty()) {
-                                                                        Log.i("MRA_idetifyLanguage", "Can't identify language.");
-                                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+result+";SPLIT;"+String.valueOf(numberOfQuestion));
-                                                                    } else {
-                                                                        // Utiliser la première langue identifiée
-                                                                        IdentifiedLanguage language = identifiedLanguages.get(0);
-                                                                        String languageCode = language.getLanguageTag();
-                                                                        float confidence = language.getConfidence();
-
-                                                                        Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
-                                                                        if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("")&& !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("0")) {
-                                                                            if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
-                                                                                teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion)+ ";SPLIT;" +languageCode.trim());
-                                                                            } else {
-                                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion)+ ";SPLIT;" +"NotDetected");
-                                                                            }
-                                                                        }
-                                                                        else {
-                                                                            teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion)+ ";SPLIT;" +languageCode.trim());
-                                                                        }
-                                                                    }
-                                                                }
-                                                            })
-                                                    .addOnFailureListener(
-                                                            new OnFailureListener() {
-                                                                @Override
-                                                                public void onFailure(@NonNull Exception e) {
-                                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+result+";SPLIT;"+String.valueOf(numberOfQuestion));
-                                                                }
-                                                            });
-                                        }
-                                        else{
-                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
-                                        }
-
-                                    }
-
-                                } catch (Exception e) {
-
-                                    if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                    }
-                                    else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
-                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_fr)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                    }
-                                    else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
-                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_es)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                    }
-                                    else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
-                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_de)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                    }
-                                    else {
-                                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en)).addOnSuccessListener(new OnSuccessListener<String>() {
-                                            @Override
-                                            public void onSuccess(String translatedText) {
-
-                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                            }
-
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Log.e(tag,"translatedText exception  "+e);
-                                            }
-                                        });
-
-                                    }
-
-                                }
-
-                            }
-                        }
-                        else{
-                            try {
-                                if (response.errorBody()!= null){
-                                    JsonObject errorLOG = new JsonObject();
-
-                                    JsonObject errorCode = new JsonObject();
-                                    errorCode.addProperty("ERROR CODE", response.code());
-
-                                    // Obtenez la réponse JSON sous forme de chaîne
-                                    String jsonString = response.errorBody().string();
-
-                                    // Analysez la chaîne JSON en un objet JSON
-                                    JSONObject jsonErrorContent = new JSONObject(jsonString);
-                                    // Accédez à chaque élément et sa valeur individuellement
-                                    JSONObject errorObject = jsonErrorContent.getJSONObject("error");
-                                    String message = errorObject.getString("message");
-                                    String type = errorObject.getString("type");
-                                    String param = errorObject.getString("param");
-                                    String code = errorObject.getString("code");
-                                    JsonObject reformErrorJson = new JsonObject();
-                                    reformErrorJson.addProperty("message",message);
-                                    reformErrorJson.addProperty("type",type);
-                                    reformErrorJson.addProperty("param",param);
-                                    reformErrorJson.addProperty("code",code);
-
-                                    int checkErrorCode = response.code();
-                                    // Calcul de la consommation openai de le cas d'echec
-                                    if (checkErrorCode==500 ||checkErrorCode==503 || checkErrorCode==504){
-                                        int inputTokens = teamChatBuddyApplication.getRequestTotalTokens(requestBody);
-                                        teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getparam("model"),inputTokens,0);
-                                    }
-
-                                    errorCode.add("ERROR Body",reformErrorJson);
-                                    errorLOG.add("OpenAIERROR",errorCode);
-                                    //Mettre   le fichier le plus récent reçu
-                                    String fileName = "ERROR-LOG";
-                                    File file1 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName + ".json");
-
-
-                                    try {
-                                        if (file1.exists() && file1.isFile()) {
-                                            file1.delete();
-                                        }
-                                        FileWriter fileWriter = new FileWriter(file1);
-                                        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                                        String jsonStringF=gson.toJson(errorLOG);
-                                        fileWriter.write(jsonStringF);
-                                        fileWriter.close();
-
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                    String errorTXT= new Date().toString()+", OpenAIERROR,ERROR CODE= "+response.code()+", ERROR Body{ message= "+message+", type= "+type+", param= "+param+", code= "+code+"}"+System.getProperty("line.separator");
-                                    File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
-
-
-                                    try {
-
-                                        FileWriter fileWriter = new FileWriter(file2,true);
-                                        fileWriter.write(errorTXT);
-                                        fileWriter.close();
-
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-
-
-                            catch (Exception e){
-                                e.printStackTrace();
-                            }
+                        if (response.contains("Failed to find bot")) {
 
                             if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                            }
-                            else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
-                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                            }
-                            else {
-                                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
+                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_en) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                            } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_fr) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                            } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
+                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_es) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                            } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
+                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_de) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                            } else {
+                                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBotNoFound_en)).addOnSuccessListener(new OnSuccessListener<String>() {
                                     @Override
                                     public void onSuccess(String translatedText) {
 
-                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
                                     }
 
                                 }).addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        Log.e(tag,"translatedText exception  "+e);
+                                        Log.e(tag, "translatedText exception  " + e);
                                     }
                                 });
 
                             }
-                        }
 
-                    }
-                    @Override
-                    public void onFailure(Call call, Throwable t) {
-                        teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-                        teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
-                        Log.e(tag, "Réponse ChatGPT [Failure] : " + t);
+                        } else if (response.contains("NoResponseServer")) {
+                            if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
+                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                            } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                            } else {
+                                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
+                                    @Override
+                                    public void onSuccess(String translatedText) {
 
-                        if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_en)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                    }
+
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.e(tag, "translatedText exception  " + e);
+                                    }
+                                });
+
+                            }
+
                         }
-                        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
-                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_fr)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                        }
-                        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
-                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_es)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                        }
-                        else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
-                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_de)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                        }
+                        // Traitement de la réponse :
                         else {
-                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBotNoFound_en)).addOnSuccessListener(new OnSuccessListener<String>() {
-                                @Override
-                                public void onSuccess(String translatedText) {
+                            try {
+                                Log.i("responseTimeout", " start 5 Traitement de la réponse ");
 
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+                                JSONObject jsonObj = new JSONObject(response);
+                                //Mettre   le fichier le plus récent reçu
+                                String fileName1 = "ChatGPT-recv";
+                                File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName1 + ".json");
+                                try {
+                                    if (file2.exists() && file2.isFile()) {
+                                        file2.delete();
+                                        Log.v("Json_API", "file deleted");
+                                    }
+                                    FileWriter fileWriter = new FileWriter(file2);
+                                    Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+                                    String jsonString = gson.toJson(jsonObj);
+                                    fileWriter.write(jsonString);
+                                    fileWriter.close();
+                                    Log.v("Json_API", "new file added");
+                                } catch (IOException e) {
+                                    e.printStackTrace();
                                 }
 
+                                // récupérer la réponse
+                                JSONArray choicesArray = jsonObj.getJSONArray("choices");
+                                JSONObject choiceObject = choicesArray.getJSONObject(0);
+                                JSONObject messageObject = choiceObject.getJSONObject("message");
+
+                                result = messageObject.getString(content);
+
+                                // Elimination d’une phrase si elle est incomplète :
+                                int complete_answer_index = result.lastIndexOf(".");
+                                if (complete_answer_index != -1) {
+                                    result = result.substring(0, complete_answer_index);
+                                    Log.e(tag, "the answer after elimination : " + result);
+                                } else {
+                                    Log.e(tag, "no period found in the answer : " + result);
+                                }
+                                Log.e(tag, "the answer with max nb parameter : " + result);
+
+                                if (teamChatBuddyApplication.getParamFromFile("Response_filter", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.getParamFromFile("Response_filter", "TeamChatBuddy.properties").trim().equalsIgnoreCase("")) {
+                                    result = teamChatBuddyApplication.applyFilters(teamChatBuddyApplication.getParamFromFile("Response_filter", "TeamChatBuddy.properties"), result);
+                                }
+
+                                JSONObject history1 = new JSONObject();
+                                history1.put("role", "assistant");
+                                history1.put(content, result);
+
+                                existingHistoryArray.put(history1);
+
+                                // récupérer la total_tokens :
+                                JSONObject usages = jsonObj.getJSONObject("usage");
+                                int total_tokens = Integer.parseInt(usages.getString("total_tokens"));
+
+                                int inputTokens = Integer.parseInt(usages.getString("prompt_tokens"));
+                                int outputTokens = Integer.parseInt(usages.getString("completion_tokens"));
+                                Log.i("MYA", "traitementResponseChatGpt: totalTokens --- " + total_tokens);
+                                Log.i("MYA", "traitementResponseChatGpt: inputTokens --- " + inputTokens);
+                                Log.i("MYA", "traitementResponseChatGpt: outputTokens --- " + outputTokens);
+
+                                //-------Calculer la consommation OpenAI
+
+                                teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getparam("model"), inputTokens, outputTokens);
+
+                                // Stocker la nouvelle version de l'historique
+                                if (total_tokens > Max_LIMIT) {
+
+                                    existingHistoryArray.remove(1);
+                                    existingHistoryArray.remove(1);
+
+                                    teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
+
+                                } else {
+                                    teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
+                                }
+
+
+                                // Géerer le cas où la réponse est vide
+
+                                if (result.equals("")) {
+                                    if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
+                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                    } else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")) {
+                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                    } else {
+                                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
+                                            @Override
+                                            public void onSuccess(String translatedText) {
+                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.e(tag, "translatedText exception  " + e);
+                                            }
+                                        });
+                                    }
+                                }
+                                // Play la suite de la réponse.
+                                else {
+                                    Log.e("MRAA", "Detection_de_langue  -----" + teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes"));
+                                    Log.e("MRAA", "nombreDeMotsCheck(result) -------" + teamChatBuddyApplication.nombreDeMotsCheck(result));
+                                    if (teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
+
+                                        LanguageIdentifier languageIdentifier =
+                                                LanguageIdentification.getClient();
+                                        languageIdentifier.identifyPossibleLanguages(result)
+                                                .addOnSuccessListener(
+                                                        new OnSuccessListener<List<IdentifiedLanguage>>() {
+                                                            @Override
+                                                            public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
+                                                                if (identifiedLanguages.isEmpty()) {
+                                                                    Log.i("MRA_idetifyLanguage", "Can't identify language.");
+                                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                                } else {
+                                                                    // Utiliser la première langue identifiée
+                                                                    IdentifiedLanguage language = identifiedLanguages.get(0);
+                                                                    String languageCode = language.getLanguageTag();
+                                                                    float confidence = language.getConfidence();
+
+                                                                    Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
+                                                                    if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties").trim().equals("") && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties").trim().equals("0")) {
+                                                                        if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
+                                                                            teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
+                                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;" + languageCode.trim());
+                                                                        } else {
+                                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;" + "NotDetected");
+                                                                        }
+                                                                    } else {
+                                                                        teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
+                                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;" + languageCode.trim());
+                                                                    }
+                                                                }
+                                                            }
+                                                        })
+                                                .addOnFailureListener(
+                                                        new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                                            }
+                                                        });
+                                    } else {
+                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + result + ";SPLIT;" + String.valueOf(numberOfQuestion));
+                                    }
+
+                                }
+
+                            } catch (Exception e) {
+                                if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
+                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_fr) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
+                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_es) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
+                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_de) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                } else {
+                                    teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en)).addOnSuccessListener(new OnSuccessListener<String>() {
+                                        @Override
+                                        public void onSuccess(String translatedText) {
+                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.e(tag, "translatedText exception  " + e);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    } else if (responseCode >= 400) {
+                        try {
+                            if (response != null) {
+
+                                JsonObject errorLOG = new JsonObject();
+                                JsonObject errorCode = new JsonObject();
+                                errorCode.addProperty("ERROR CODE", responseCode);
+
+                                // Obtenez la réponse JSON sous forme de chaîne
+                                String jsonString = response;
+
+                                // Analysez la chaîne JSON en un objet JSON
+                                JSONObject jsonErrorContent = new JSONObject(jsonString);
+                                // Accédez à chaque élément et sa valeur individuellement
+                                JSONObject errorObject = jsonErrorContent.getJSONObject("error");
+                                String message = errorObject.getString("message");
+                                String type = errorObject.getString("type");
+                                String param = errorObject.getString("param");
+                                String code = errorObject.getString("code");
+                                JsonObject reformErrorJson = new JsonObject();
+                                reformErrorJson.addProperty("message", message);
+                                reformErrorJson.addProperty("type", type);
+                                reformErrorJson.addProperty("param", param);
+                                reformErrorJson.addProperty("code", code);
+
+                                int checkErrorCode = responseCode;
+                                // Calcul de la consommation openai de le cas d'echec
+                                if (checkErrorCode == 500 || checkErrorCode == 503 || checkErrorCode == 504) {
+                                    int inputTokens = teamChatBuddyApplication.getRequestTotalTokens(requestBody);
+                                    teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getparam("model"), inputTokens, 0);
+                                }
+                                errorCode.add("ERROR Body", reformErrorJson);
+                                errorLOG.add("OpenAIERROR", errorCode);
+                                //Mettre   le fichier le plus récent reçu
+                                String fileName2 = "ERROR-LOG";
+                                File file3 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + fileName2 + ".json");
+                                try {
+                                    if (file3.exists() && file3.isFile()) {
+                                        file3.delete();
+                                    }
+                                    FileWriter fileWriter = new FileWriter(file3);
+                                    Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+                                    String jsonStringF = gson.toJson(errorLOG);
+                                    fileWriter.write(jsonStringF);
+                                    fileWriter.close();
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                String errorTXT = new Date().toString() + ", OpenAIERROR,ERROR CODE= " + responseCode + ", ERROR Body{ message= " + message + ", type= " + type + ", param= " + param + ", code= " + code + "}" + System.getProperty("line.separator");
+                                File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ERROR-History.txt");
+                                try {
+                                    FileWriter fileWriter = new FileWriter(file2, true);
+                                    fileWriter.write(errorTXT);
+                                    fileWriter.close();
+
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
+                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                        } else {
+                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
+                                @Override
+                                public void onSuccess(String translatedText) {
+                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                }
                             }).addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-                                    Log.e(tag,"translatedText exception  "+e);
+                                    Log.e(tag, "translatedText exception  " + e);
                                 }
                             });
-
                         }
-
                     }
-                });
+                }).start();
             }
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
             teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
             Log.e(tag, "Exception pendant la récupération de la réponse ChatGPT : " + e);
@@ -777,10 +691,7 @@ public class ResponseFromChatbot {
                         @Override
                         public void run() {
                             Log.i( "DLA", "Commande : question " + texte );
-                            Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication, teamChatBuddyApplication.getparam( "ChatGPT_url" ), 50 );
-                            ApiEndpointInterface api = retrofit.create( ApiEndpointInterface.class );
                             JSONObject jsonParams = new JSONObject();
-
 
                             try {
 
@@ -865,20 +776,26 @@ public class ResponseFromChatbot {
                                     Log.e("DLA","exception create file send cmd "+e);
                                     e.printStackTrace();
                                 }
+                                new Thread(() -> {
+                                    try {
+                                        Map<String, String> headers = new HashMap<>();
+                                        headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"));
+                                        headers.put("Content-Type", "application/json; charset=utf-8");
 
-                                RequestBody requestBody = RequestBody.create( MediaType.parse( "application/json; charset=utf-8" ), jsonParams.toString() );
+                                        String apiUrl = teamChatBuddyApplication.getParamFromFile("ChatGPT_url","TeamChatBuddy.properties")+"/v1/chat/completions";
 
+                                        HttpResponse httpResponse = HttpClientUtils.sendPost(
+                                                apiUrl,
+                                                jsonParams.toString(),
+                                                headers,
+                                                50000
+                                        );
 
-                                Call call = api.getChatGPT( requestBody, "Bearer " + teamChatBuddyApplication.getparam( "openAI_API_Key" ), "application/json" );
-//                chatGPTRunning = true;
-                                call.enqueue( new Callback() {
-                                    @Override
-                                    public void onResponse(Call call, Response response) {
-                                        teamChatBuddyApplication.setGetResponseTime( System.currentTimeMillis() );
-                                        // Vérifie si la réponse est réussie
-                                        if (response.isSuccessful()) {
+                                        teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
+                                        Log.e("HHO","response :  "+httpResponse.responseCode+" body : "+httpResponse.body);
 
-                                            //logger CMD-recv.json
+                                        if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300 && httpResponse.body != null) {
+                                            // logger CMD-recv.json
                                             try {
                                                 File file_CMD_RECV = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/CMD-recv.json");
                                                 if (file_CMD_RECV.exists() && file_CMD_RECV.isFile()) {
@@ -886,142 +803,113 @@ public class ResponseFromChatbot {
                                                 }
                                                 FileWriter fileWriter = new FileWriter(file_CMD_RECV);
                                                 Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                                                String jsonString=gson.toJson(new JSONObject(response.body().toString()));
+                                                String jsonString = gson.toJson(new JSONObject(httpResponse.body));
                                                 fileWriter.write(jsonString);
                                                 fileWriter.close();
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
 
-                                            if (response.body().toString().contains("Failed to find bot")) {
+                                            if (httpResponse.body.contains("Failed to find bot")) {
                                                 teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                                                 if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_en)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                }
-                                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_fr)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                }
-                                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_es)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                }
-                                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_de)+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                }
-                                                else {
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_en) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_fr) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_es) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBotNoFound_de) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                } else {
                                                     teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBotNoFound_en)).addOnSuccessListener(new OnSuccessListener<String>() {
                                                         @Override
                                                         public void onSuccess(String translatedText) {
-
-                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
                                                         }
-
                                                     }).addOnFailureListener(new OnFailureListener() {
                                                         @Override
                                                         public void onFailure(@NonNull Exception e) {
-                                                            Log.e(tag,"translatedText exception  "+e);
+                                                            Log.e(tag, "translatedText exception  " + e);
                                                         }
                                                     });
-
                                                 }
-
-                                            }
-                                            else if (response.body().toString().contains("NoResponseServer")) {
+                                            } else if (httpResponse.body.contains("NoResponseServer")) {
                                                 teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                                                 if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+chatBotServerNoResponce_en+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                }
-                                                else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+chatBotServerNoResponce_fr+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
-                                                }
-                                                else {
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_en + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + chatBotServerNoResponce_fr + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                } else {
                                                     teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(chatBotServerNoResponce_en).addOnSuccessListener(new OnSuccessListener<String>() {
                                                         @Override
                                                         public void onSuccess(String translatedText) {
-
-                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;"+translatedText+";SPLIT;"+String.valueOf(numberOfQuestion)+";SPLIT;onError");
+                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
                                                         }
-
                                                     }).addOnFailureListener(new OnFailureListener() {
                                                         @Override
                                                         public void onFailure(@NonNull Exception e) {
-                                                            Log.e(tag,"translatedText exception  "+e);
+                                                            Log.e(tag, "translatedText exception  " + e);
                                                         }
                                                     });
-
                                                 }
-
                                             }
                                             // Traitement de la réponse :
                                             else {
                                                 try {
+                                                    JSONObject jsonObj = new JSONObject(httpResponse.body);
+                                                    JSONArray choicesArray = jsonObj.getJSONArray("choices");
+                                                    JSONObject choiceObject = choicesArray.getJSONObject(0);
+                                                    JSONObject messageObject = choiceObject.getJSONObject("message");
 
-                                                    JSONObject jsonObj = new JSONObject(response.body().toString());
-                                                    // récupérer la réponse
-                                                    JSONArray choicesArray = jsonObj.getJSONArray( "choices" );
-                                                    JSONObject choiceObject = choicesArray.getJSONObject( 0 );
-                                                    JSONObject messageObject = choiceObject.getJSONObject( "message" );
+                                                    result = messageObject.getString(content);
 
-                                                    result = messageObject.getString( content );
-
-                                                    Log.i("DLA", "Commande : Réponse "+ result);
-                                                    if (teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("COMMAND_histo","TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")) {
-                                                        // Géerer le cas où la réponse est vide
+                                                    Log.i("DLA", "Commande : Réponse " + result);
+                                                    if (teamChatBuddyApplication.getParamFromFile("COMMAND_histo", "TeamChatBuddy.properties") != null && teamChatBuddyApplication.getParamFromFile("COMMAND_histo", "TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")) {
                                                         JSONObject history1 = new JSONObject();
                                                         history1.put("role", "assistant");
                                                         history1.put(content, result);
 
                                                         existingHistoryArray.put(history1);
-                                                        // Stocker la nouvelle version de l'historique
                                                         Log.i("DLA", "Commande : Réponse existingHistoryArray.length()= " + existingHistoryArray.length());
                                                         if (existingHistoryArray.length() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("COMMAND_maxdialog", "TeamChatBuddy.properties"))) {
-
                                                             existingHistoryArray.remove(1);
                                                             existingHistoryArray.remove(1);
-
                                                             teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
-
                                                         } else {
                                                             teamChatBuddyApplication.setparam("commandes", existingHistoryArray.toString());
                                                         }
                                                     }
-                                                    if (result.equals( "" )) {
+                                                    if (result.equals("")) {
                                                         activity.runOnUiThread(new Runnable() {
                                                             @Override
                                                             public void run() {
                                                                 getEmotionResponseFromChatGTP(texte, numberOfQuestion);
                                                                 if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                                                    if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                                        getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties"),numberOfQuestion);
-                                                                    }
-                                                                    else {
+                                                                    if (teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties").trim())) {
+                                                                        getResponseFromChatGPT(texte + " " + teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties"), numberOfQuestion);
+                                                                    } else {
                                                                         getResponseFromChatGPT(texte, numberOfQuestion);
                                                                     }
-                                                                }
-                                                                else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                                                    if (teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties").trim())){
-                                                                        getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties"),numberOfQuestion);
-                                                                    }
-                                                                    else {
+                                                                } else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")) {
+                                                                    if (teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties").trim())) {
+                                                                        getResponseFromChatGPT(texte + " " + teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties"), numberOfQuestion);
+                                                                    } else {
                                                                         getResponseFromChatGPT(texte, numberOfQuestion);
                                                                     }
-                                                                }
-                                                                else {
-                                                                    if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
+                                                                } else {
+                                                                    if (teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties").trim())) {
+                                                                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
                                                                             @Override
                                                                             public void onSuccess(String translatedText) {
-
-                                                                                getResponseFromChatGPT(texte+" "+translatedText,numberOfQuestion);
+                                                                                getResponseFromChatGPT(texte + " " + translatedText, numberOfQuestion);
                                                                             }
                                                                         }).addOnFailureListener(new OnFailureListener() {
                                                                             @Override
                                                                             public void onFailure(@NonNull Exception e) {
-                                                                                Log.e(tag,"translatedText exception  "+e);
+                                                                                Log.e(tag, "translatedText exception  " + e);
                                                                             }
                                                                         });
-
-                                                                    }
-                                                                    else {
+                                                                    } else {
                                                                         getResponseFromChatGPT(texte, numberOfQuestion);
                                                                     }
                                                                 }
@@ -1030,250 +918,203 @@ public class ResponseFromChatbot {
                                                     }
                                                     // Play la suite de la réponse.
                                                     else {
-                                                        if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed()!=null){
+                                                        if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed() != null) {
                                                             teamChatBuddyApplication.getListOfCommandmustToHavePlayed().clear();
                                                         }
-                                                        List<String> commandes = commande.regex( result );
-                                                        for (String c:commandes){
-                                                            Log.e("Commande","commande= "+c);
+                                                        List<String> commandes = commande.regex(result);
+                                                        for (String c : commandes) {
+                                                            Log.e("Commande", "commande= " + c);
                                                         }
                                                         teamChatBuddyApplication.setListOfCommandmustToHavePlayed(commandes);
                                                         teamChatBuddyApplication.setTimeToExecuteNextCommande(false);
-                                                        String firstCommandToExecute =commandes.get(0);
-                                                        if (commandes.size()>1){
+                                                        String firstCommandToExecute = commandes.get(0);
+                                                        if (commandes.size() > 1) {
                                                             teamChatBuddyApplication.setMultiCommandsDetected(true);
-                                                        }
-                                                        else {
+                                                        } else {
                                                             teamChatBuddyApplication.setMultiCommandsDetected(false);
                                                         }
                                                         teamChatBuddyApplication.getListOfCommandmustToHavePlayed().remove(0);
-                                                            if(!commande.start_action( firstCommandToExecute,numberOfQuestion, texte)) {
-//                                                            returnCommand = false;
-                                                                Log.e(tag, "COMMANDE NON RECONNUE : Start Emotion + ReponseFromChatGPT");
-                                                                activity.runOnUiThread(new Runnable() {
-                                                                    @Override
-                                                                    public void run() {
-                                                                        getEmotionResponseFromChatGTP(texte, numberOfQuestion);
-                                                                        if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                                                            if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                                                getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties"),numberOfQuestion);
-                                                                            }
-                                                                            else {
-                                                                                getResponseFromChatGPT(texte, numberOfQuestion);
-                                                                            }
+                                                        if (!commande.start_action(firstCommandToExecute, numberOfQuestion, texte)) {
+                                                            Log.e(tag, "COMMANDE NON RECONNUE : Start Emotion + ReponseFromChatGPT");
+                                                            activity.runOnUiThread(new Runnable() {
+                                                                @Override
+                                                                public void run() {
+                                                                    getEmotionResponseFromChatGTP(texte, numberOfQuestion);
+                                                                    if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
+                                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties").trim())) {
+                                                                            getResponseFromChatGPT(texte + " " + teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties"), numberOfQuestion);
+                                                                        } else {
+                                                                            getResponseFromChatGPT(texte, numberOfQuestion);
                                                                         }
-                                                                        else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                                                            if (teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties").trim())){
-                                                                                getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties"),numberOfQuestion);
-                                                                            }
-                                                                            else {
-                                                                                getResponseFromChatGPT(texte, numberOfQuestion);
-                                                                            }
+                                                                    } else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")) {
+                                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties").trim())) {
+                                                                            getResponseFromChatGPT(texte + " " + teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties"), numberOfQuestion);
+                                                                        } else {
+                                                                            getResponseFromChatGPT(texte, numberOfQuestion);
                                                                         }
-                                                                        else {
-                                                                            if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                                                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
-                                                                                    @Override
-                                                                                    public void onSuccess(String translatedText) {
-
-                                                                                        getResponseFromChatGPT(texte+" "+translatedText,numberOfQuestion);
-                                                                                    }
-                                                                                }).addOnFailureListener(new OnFailureListener() {
-                                                                                    @Override
-                                                                                    public void onFailure(@NonNull Exception e) {
-                                                                                        Log.e(tag,"translatedText exception  "+e);
-                                                                                    }
-                                                                                });
-
-                                                                            }
-                                                                            else {
-                                                                                getResponseFromChatGPT(texte, numberOfQuestion);
-                                                                            }
+                                                                    } else {
+                                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties").trim())) {
+                                                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
+                                                                                @Override
+                                                                                public void onSuccess(String translatedText) {
+                                                                                    getResponseFromChatGPT(texte + " " + translatedText, numberOfQuestion);
+                                                                                }
+                                                                            }).addOnFailureListener(new OnFailureListener() {
+                                                                                @Override
+                                                                                public void onFailure(@NonNull Exception e) {
+                                                                                    Log.e(tag, "translatedText exception  " + e);
+                                                                                }
+                                                                            });
+                                                                        } else {
+                                                                            getResponseFromChatGPT(texte, numberOfQuestion);
                                                                         }
                                                                     }
-                                                                });
-                                                            }
-                                                            else if(!firstCommandToExecute.split( " " )[0].equals("CMD_PROMPT")) {
-                                                                // get the historic commandes :
+                                                                }
+                                                            });
+                                                        } else if (!firstCommandToExecute.split(" ")[0].equals("CMD_PROMPT")) {
+                                                            String jsonArrayString1 = teamChatBuddyApplication.getparam(historicMessages);
+                                                            JSONArray existingHistoryArray1 = new JSONArray(jsonArrayString1);
 
-                                                                String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
-
-                                                                JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
-
-                                                                JSONObject Question = new JSONObject();
-                                                                Question.put( "role", "user" );
-                                                                Question.put( content, texte );
-                                                                existingHistoryArray.put( Question );
-                                                                teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
-                                                            }
-
+                                                            JSONObject Question1 = new JSONObject();
+                                                            Question1.put("role", "user");
+                                                            Question1.put(content, texte);
+                                                            existingHistoryArray1.put(Question1);
+                                                            teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray1.toString());
+                                                        }
                                                     }
-
-
                                                 } catch (Exception e) {
                                                     teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                                                     e.printStackTrace();
-                                                    if (teamChatBuddyApplication.getLangue().getNom().equals( langueEn )) {
-                                                        teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBot_ERROR_en ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
-                                                    } else if (teamChatBuddyApplication.getLangue().getNom().equals( langueFr )) {
-                                                        teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBot_ERROR_fr ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
-                                                    } else if (teamChatBuddyApplication.getLangue().getNom().equals( langueEs )) {
-                                                        teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBot_ERROR_es ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
-                                                    } else if (teamChatBuddyApplication.getLangue().getNom().equals( langueDe )) {
-                                                        teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBot_ERROR_de ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
+                                                    if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
+                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                    } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_fr) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                    } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
+                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_es) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                                    } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
+                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_de) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
                                                     } else {
-                                                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate( teamChatBuddyApplication.getString( R.string.chatBot_ERROR_en ) ).addOnSuccessListener( new OnSuccessListener<String>() {
+                                                        teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en)).addOnSuccessListener(new OnSuccessListener<String>() {
                                                             @Override
                                                             public void onSuccess(String translatedText) {
-
-                                                                teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
+                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
                                                             }
-
-                                                        } ).addOnFailureListener( new OnFailureListener() {
+                                                        }).addOnFailureListener(new OnFailureListener() {
                                                             @Override
                                                             public void onFailure(@NonNull Exception e) {
-                                                                Log.e( tag, "translatedText exception  " + e );
+                                                                Log.e(tag, "translatedText exception  " + e);
                                                             }
-                                                        } );
-
+                                                        });
                                                     }
-
                                                 }
-
                                             }
-                                        }
-
-
-                                        else {
-
+                                        } else {
                                             try {
-
-                                                //logger CMD-ERROR-LOG.json et CMD-ERROR-History.json
-                                                if (response.errorBody()!= null){
-
-                                                    //logger CMD-ERROR-LOG.json
+                                                // logger CMD-ERROR-LOG.json et CMD-ERROR-History.json
+                                                if (httpResponse.body != null) {
                                                     JsonObject errorLOG = new JsonObject();
                                                     JsonObject errorCode = new JsonObject();
                                                     JsonObject reformErrorJson = new JsonObject();
-                                                    errorCode.addProperty("ERROR CODE", response.code());
-                                                    JSONObject jsonErrorContent = new JSONObject(response.errorBody().string());
+                                                    errorCode.addProperty("ERROR CODE", httpResponse.responseCode);
+                                                    JSONObject jsonErrorContent = new JSONObject(httpResponse.body);
                                                     JSONObject errorObject = jsonErrorContent.getJSONObject("error");
-                                                    reformErrorJson.addProperty("message",errorObject.getString("message"));
-                                                    reformErrorJson.addProperty("type",errorObject.getString("type"));
-                                                    reformErrorJson.addProperty("param",errorObject.getString("param"));
-                                                    reformErrorJson.addProperty("code",errorObject.getString("code"));
-                                                    errorCode.add("ERROR Body",reformErrorJson);
-                                                    errorLOG.add("OpenAIERROR",errorCode);
+                                                    reformErrorJson.addProperty("message", errorObject.getString("message"));
+                                                    reformErrorJson.addProperty("type", errorObject.getString("type"));
+                                                    reformErrorJson.addProperty("param", errorObject.getString("param"));
+                                                    reformErrorJson.addProperty("code", errorObject.getString("code"));
+                                                    errorCode.add("ERROR Body", reformErrorJson);
+                                                    errorLOG.add("OpenAIERROR", errorCode);
                                                     File file_CMD_ERROR_LOG = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/CMD-ERROR-LOG.json");
                                                     if (file_CMD_ERROR_LOG.exists() && file_CMD_ERROR_LOG.isFile()) {
                                                         file_CMD_ERROR_LOG.delete();
                                                     }
                                                     FileWriter fileWriter = new FileWriter(file_CMD_ERROR_LOG);
                                                     Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                                                    String jsonStringF=gson.toJson(errorLOG);
+                                                    String jsonStringF = gson.toJson(errorLOG);
                                                     fileWriter.write(jsonStringF);
                                                     fileWriter.close();
 
                                                     //logger CMD-ERROR-History.json
                                                     File file_CMD_ERROR_History = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/CMD-ERROR-History.txt");
-                                                    FileWriter fileWriter2 = new FileWriter(file_CMD_ERROR_History,true);
-                                                    fileWriter2.write(new Date().toString()+
-                                                            ", OpenAIERROR,ERROR CODE= "+response.code()+
-                                                            ", ERROR Body{ message= "+errorObject.getString("message")+
-                                                            ", type= "+errorObject.getString("type")+
-                                                            ", param= "+errorObject.getString("param")+
-                                                            ", code= "+errorObject.getString("code")+
+                                                    FileWriter fileWriter2 = new FileWriter(file_CMD_ERROR_History, true);
+                                                    fileWriter2.write(new Date().toString() +
+                                                            ", OpenAIERROR,ERROR CODE= " + httpResponse.responseCode +
+                                                            ", ERROR Body{ message= " + errorObject.getString("message") +
+                                                            ", type= " + errorObject.getString("type") +
+                                                            ", param= " + errorObject.getString("param") +
+                                                            ", code= " + errorObject.getString("code") +
                                                             "}"
-                                                            +System.getProperty("line.separator"));
+                                                            + System.getProperty("line.separator"));
                                                     fileWriter2.close();
-
                                                 }
-                                            }
-                                            catch (Exception e){
+                                            } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
 
-//                            returnCommand = false;
                                             activity.runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
                                                     getEmotionResponseFromChatGTP(texte, numberOfQuestion);
                                                     if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                            getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties"),numberOfQuestion);
-                                                        }
-                                                        else {
+                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties").trim())) {
+                                                            getResponseFromChatGPT(texte + " " + teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties"), numberOfQuestion);
+                                                        } else {
                                                             getResponseFromChatGPT(texte, numberOfQuestion);
                                                         }
-                                                    }
-                                                    else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties").trim())){
-                                                            getResponseFromChatGPT(texte+" "+teamChatBuddyApplication.getParamFromFile("Response_format_fr","TeamChatBuddy.properties"),numberOfQuestion);
-                                                        }
-                                                        else {
+                                                    } else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")) {
+                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties").trim())) {
+                                                            getResponseFromChatGPT(texte + " " + teamChatBuddyApplication.getParamFromFile("Response_format_fr", "TeamChatBuddy.properties"), numberOfQuestion);
+                                                        } else {
                                                             getResponseFromChatGPT(texte, numberOfQuestion);
                                                         }
-                                                    }
-                                                    else {
-                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties").trim())){
-                                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en","TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
+                                                    } else {
+                                                        if (teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.isStringEmptyOrNoWords(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties").trim())) {
+                                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Response_format_en", "TeamChatBuddy.properties")).addOnSuccessListener(new OnSuccessListener<String>() {
                                                                 @Override
                                                                 public void onSuccess(String translatedText) {
-
-                                                                    getResponseFromChatGPT(texte+" "+translatedText,numberOfQuestion);
+                                                                    getResponseFromChatGPT(texte + " " + translatedText, numberOfQuestion);
                                                                 }
                                                             }).addOnFailureListener(new OnFailureListener() {
                                                                 @Override
                                                                 public void onFailure(@NonNull Exception e) {
-                                                                    Log.e(tag,"translatedText exception  "+e);
+                                                                    Log.e(tag, "translatedText exception  " + e);
                                                                 }
                                                             });
-
-                                                        }
-                                                        else {
+                                                        } else {
                                                             getResponseFromChatGPT(texte, numberOfQuestion);
                                                         }
                                                     }
                                                 }
                                             });
                                         }
-//                        chatGPTRunning = false;
-                                    }
-
-                                    @Override
-                                    public void onFailure(Call call, Throwable t) {
+                                    } catch (Exception e) {
                                         teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-                                        logErrorAPIHealysa("OpenAIGetCommandName",t.getMessage(),"onFailure");
-                                        teamChatBuddyApplication.setGetResponseTime( System.currentTimeMillis() );
-                                        Log.e( tag, "Réponse ChatGPT [Failure] : " + t );
-
-                                        if (teamChatBuddyApplication.getLangue().getNom().equals( langueEn )) {
-                                            teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBotNoFound_en ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
-                                        } else if (teamChatBuddyApplication.getLangue().getNom().equals( langueFr )) {
-                                            teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBotNoFound_fr ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
-                                        } else if (teamChatBuddyApplication.getLangue().getNom().equals( langueEs )) {
-                                            teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBotNoFound_es ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
-                                        } else if (teamChatBuddyApplication.getLangue().getNom().equals( langueDe )) {
-                                            teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString( R.string.chatBotNoFound_de ) + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
+                                        teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
+                                        Log.e(tag, "Exception pendant la récupération de la réponse ChatGPT : " + e);
+                                        e.printStackTrace();
+                                        if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
+                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr)) {
+                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_fr) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueEs)) {
+                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_es) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
+                                        } else if (teamChatBuddyApplication.getLangue().getNom().equals(langueDe)) {
+                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + teamChatBuddyApplication.getString(R.string.chatBot_ERROR_de) + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
                                         } else {
-                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate( teamChatBuddyApplication.getString( R.string.chatBotNoFound_en ) ).addOnSuccessListener( new OnSuccessListener<String>() {
+                                            teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getString(R.string.chatBot_ERROR_en)).addOnSuccessListener(new OnSuccessListener<String>() {
                                                 @Override
                                                 public void onSuccess(String translatedText) {
-
-                                                    teamChatBuddyApplication.notifyObservers( "CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf( numberOfQuestion ) + ";SPLIT;onError" );
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;speak;SPLIT;" + translatedText + ";SPLIT;" + String.valueOf(numberOfQuestion) + ";SPLIT;onError");
                                                 }
-
-                                            } ).addOnFailureListener( new OnFailureListener() {
+                                            }).addOnFailureListener(new OnFailureListener() {
                                                 @Override
                                                 public void onFailure(@NonNull Exception e) {
-                                                    Log.e( tag, "translatedText exception  " + e );
+                                                    Log.e(tag, "translatedText exception  " + e);
                                                 }
-                                            } );
-
+                                            });
                                         }
-//                        chatGPTRunning = false;
                                     }
-                                } );
+                                }).start();
                             } catch (Exception e) {
                                 Log.e("DLA","get the historic commandes exception "+e);
                                 teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
@@ -1422,8 +1263,6 @@ public class ResponseFromChatbot {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getParamFromFile("Picture_Description_URL","TeamChatBuddy.properties"), 50);
-                ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
 
                 try {
                     String base64Image = encodeImageToBase64(bitmap);
@@ -1509,84 +1348,80 @@ public class ResponseFromChatbot {
                             }
                         }
                     }, 3000);
+                    new Thread(() -> {
+                        try {
+                            Map<String, String> headers = new HashMap<>();
+                            headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"));
+                            headers.put("Content-Type", "application/json; charset=utf-8");
 
-                    RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
+                            String apiUrl = teamChatBuddyApplication.getParamFromFile("ChatGPT_url","TeamChatBuddy.properties")+"/v1/chat/completions";
 
-                    Call<JsonObject> call = api.getChatGPT(requestBody, "Bearer " + teamChatBuddyApplication.getparam( "openAI_API_Key" ), "application/json");
-                    call.enqueue(new Callback<JsonObject>() {
-                        @Override
-                        public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                            teamChatBuddyApplication.setGetResponseTime( System.currentTimeMillis() );
-                            if (response.isSuccessful()) {
-                                JsonObject responseBody = response.body();
+                            HttpResponse httpResponse = HttpClientUtils.sendPost(apiUrl, jsonParams.toString(), headers, 50000);
+
+                            teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
+                            if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300 && httpResponse.body != null) {
                                 File fileImageDescription_recv = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/ImageDescription-recv.json");
-
                                 try {
                                     if (fileImageDescription_recv.exists() && fileImageDescription_recv.isFile()) {
                                         fileImageDescription_recv.delete();
                                     }
                                     FileWriter fileWriter = new FileWriter(fileImageDescription_recv);
                                     Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                                    String jsonString=gson.toJson(responseBody);
+                                    String jsonString = gson.toJson(new JSONObject(httpResponse.body));
                                     fileWriter.write(jsonString);
                                     fileWriter.close();
-
-                                } catch (IOException e) {
+                                } catch (IOException | JSONException e) {
                                     e.printStackTrace();
                                 }
-                                String chatgptResponse = responseBody.getAsJsonArray("choices")
-                                        .get(0).getAsJsonObject()
-                                        .getAsJsonObject("message")
-                                        .get("content").getAsString();
-                                if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
-                                    chatgptResponse = teamChatBuddyApplication.applyFilters(teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties"),chatgptResponse);
+                                String chatgptResponse = "";
+                                try {
+                                    JSONObject responseBody = new JSONObject(httpResponse.body);
+                                    chatgptResponse = responseBody.getJSONArray("choices")
+                                            .getJSONObject(0)
+                                            .getJSONObject("message")
+                                            .getString("content");
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties") != null
+                                        && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")) {
+                                    chatgptResponse = teamChatBuddyApplication.applyFilters(
+                                            teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties"),
+                                            chatgptResponse
+                                    );
                                 }
                                 Log.d("CameraX", "Response: " + chatgptResponse);
-                                    try {
-
-
-                                        String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
-
-                                        JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
-
-                                        JSONObject history1 = new JSONObject();
-                                        history1.put("role", "assistant");
-                                        history1.put(content, chatgptResponse);
-
-                                        existingHistoryArray.put(history1);
-                                        // Stocker la nouvelle version de l'historique
-
-                                        teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
-                                    }
+                                try {
+                                    String jsonArrayString = teamChatBuddyApplication.getparam(historicMessages);
+                                    JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
+                                    JSONObject history1 = new JSONObject();
+                                    history1.put("role", "assistant");
+                                    history1.put(content, chatgptResponse);
+                                    existingHistoryArray.put(history1);
+                                    teamChatBuddyApplication.setparam(historicMessages, existingHistoryArray.toString());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + chatgptResponse);
-                                Log.e("ChatGPT_Picture_Description", "Réponse ChatGPT photoDescription: "+chatgptResponse);
-                                //Toast.makeText(getApplicationContext(), chatgptResponse, Toast.LENGTH_LONG).show();
+                                Log.e("ChatGPT_Picture_Description", "Réponse ChatGPT photoDescription: " + chatgptResponse);
                             } else {
-                                if (response != null && response.errorBody() != null) {
+                                if (httpResponse.body != null) {
                                     Log.e("ChatGPT_Picture_Description", "Réponse ChatGPT photoDescription [not successful] ");
-                                    String jsonString = null;
                                     try {
-                                        jsonString = response.errorBody().string();
-                                        JSONObject jsonErrorContent = new JSONObject(jsonString);
-
+                                        JSONObject jsonErrorContent = new JSONObject(httpResponse.body);
                                         String errorTXT = new Date().toString() + ", COMMANDERRORAPI, Commande= CMD_TAKE_PHOTO, ERROR Body= " + jsonErrorContent + System.getProperty("line.separator");
                                         logErrorAPIHealysa("CMD_TAKE_PHOTO", errorTXT, "notOnFailure");
-                                    } catch (IOException | JSONException e) {
+                                    } catch (JSONException e) {
                                         e.printStackTrace();
                                         Log.e("ChatGPT_Picture_Description", "Réponse ChatGPT photoDescription [not successful]1 catch" + e);
                                     }
                                 }
                             }
+                        } catch (Exception e) {
+                            Log.e("ChatGPT_Picture_Description", "Error: " + e.getMessage(), e);
+                            logErrorAPIHealysa("CMD_TAKE_PHOTO", e.getMessage(), "onFailure");
                         }
-
-                        @Override
-                        public void onFailure(Call<JsonObject> call, Throwable t) {
-                            Log.e("ChatGPT_Picture_Description", "Error: " + t.getMessage(), t);
-                            logErrorAPIHealysa("CMD_TAKE_PHOTO",t.getMessage(),"onFailure");
-                        }
-                    });
+                    }).start();
 
                 } catch (Exception e) {
                     Log.e("ChatGPT_Picture_Description", "Error creating JSON request", e);
@@ -1630,8 +1465,6 @@ public class ResponseFromChatbot {
     public void getEmotionResponseFromChatGTP(String texte,int numberOfQuestion){
         if (teamChatBuddyApplication.getparam("switch_emotion").contains("yes")) {
             teamChatBuddyApplication.setUsingEmotions( true );
-            Retrofit retrofit = NetworkClient.getRetrofitClient( teamChatBuddyApplication, teamChatBuddyApplication.getparam( "ChatGPT_url" ), 50 );
-            ApiEndpointInterface api = retrofit.create( ApiEndpointInterface.class );
             JSONObject jsonParams = new JSONObject();
 
             try {
@@ -1695,40 +1528,40 @@ public class ResponseFromChatbot {
                     e.printStackTrace();
                 }
 
-                RequestBody requestBody = RequestBody.create( MediaType.parse( "application/json; charset=utf-8" ), jsonParams.toString() );
-                Call<JsonObject> call = api.getChatGPT( requestBody, "Bearer " + teamChatBuddyApplication.getparam( "openAI_API_Key" ), "application/json" );
+                new Thread(() -> {
+                    try {
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"));
+                        headers.put("Content-Type", "application/json; charset=utf-8");
 
-                call.enqueue( new Callback<JsonObject>() {
-                    @Override
-                    public void onResponse(Call<JsonObject> call, retrofit2.Response<JsonObject> response) {
-                        Log.i( "responseTimeout", "Réponse ChatGPT emotion  ");
+                        String apiUrl = teamChatBuddyApplication.getParamFromFile("ChatGPT_url", "TeamChatBuddy.properties") + "/v1/chat/completions";
 
-                        // teamChatTabletteApplication.setGetResponseTime(System.currentTimeMillis());
-                        // teamChatTabletteApplication.setAlreadyGetAnswer(true);
-                        // Vérifie si la réponse est réussie
-                        Log.e( "MEHDI", "REponse ChatGPT " + response );
-                        Log.e( "MEHDI", "REponse ChatGPT body " + response.body() );
-                        Log.e( "MEHDI", "REponse ChatGPT successful " + response.isSuccessful() );
-                        if (response.isSuccessful()) {
+                        HttpResponse httpResponse = HttpClientUtils.sendPost(apiUrl, jsonParams.toString(), headers, 50000);
+
+                        Log.i("responseTimeout", "Réponse ChatGPT emotion  ");
+                        teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
+                        Log.e("MEHDI", "Réponse ChatGPT code " + httpResponse.responseCode);
+                        Log.e("MEHDI", "Réponse ChatGPT body " + httpResponse.body);
+
+                        if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300 && httpResponse.body != null) {
                             JSONObject jsonObj = null;
                             try {
-                                jsonObj = new JSONObject( response.body().toString() );
-                                JSONArray choicesArray = jsonObj.getJSONArray( "choices" );
-                                JSONObject choiceObject = choicesArray.getJSONObject( 0 );
-                                JSONObject messageObject = choiceObject.getJSONObject( "message" );
-                                Log.e( "MEHDI", "Emotion detected------------------- " + messageObject.getString( "content" ) );
+                                jsonObj = new JSONObject(httpResponse.body);
+                                JSONArray choicesArray = jsonObj.getJSONArray("choices");
+                                JSONObject choiceObject = choicesArray.getJSONObject(0);
+                                JSONObject messageObject = choiceObject.getJSONObject("message");
+                                Log.e("MEHDI", "Emotion detected------------------- " + messageObject.getString("content"));
 
                                 //Calcul de la consommation d'openai cas des commandes
                                 JSONObject usages = jsonObj.getJSONObject("usage");
                                 int inputTokens = Integer.parseInt(usages.getString("prompt_tokens"));
                                 int outputTokens = Integer.parseInt(usages.getString("completion_tokens"));
-                                Log.i("tokens", "result: "+result + "\ninputTokens: "+inputTokens + "\noutputTokens: "+outputTokens);
+                                Log.i("tokens", "result: " + result + "\ninputTokens: " + inputTokens + "\noutputTokens: " + outputTokens);
 
-                                teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getParamFromFile("emotion_Model","TeamChatBuddy.properties"),inputTokens,outputTokens);
+                                teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getParamFromFile("emotion_Model", "TeamChatBuddy.properties"), inputTokens, outputTokens);
 
-
-                                if (messageObject.getString( "content" ).contains( "(" )) {
-                                    String content = messageObject.getString( "content" );
+                                if (messageObject.getString("content").contains("(")) {
+                                    String content = messageObject.getString("content");
                                     String emotion = null;
                                     int startIndex = content.indexOf("(");
                                     int endIndex = content.indexOf(")");
@@ -1736,59 +1569,49 @@ public class ResponseFromChatbot {
                                         emotion = content.substring(startIndex + 1, endIndex);
                                     }
                                     if (emotion != null) {
-                                        Log.e( "MEHDI", "Emotion detected after------------------- " + emotion );
-                                        teamChatBuddyApplication.notifyObservers( "getResponseF;SPLIT;gpt;SPLIT;" + emotion.trim().toLowerCase() + ";SPLIT;" + numberOfQuestion );
+                                        Log.e("MEHDI", "Emotion detected after------------------- " + emotion);
+                                        teamChatBuddyApplication.notifyObservers("getResponseF;SPLIT;gpt;SPLIT;" + emotion.trim().toLowerCase() + ";SPLIT;" + numberOfQuestion);
                                     } else {
-                                        teamChatBuddyApplication.notifyObservers( "getResponseF;SPLIT;gpt;SPLIT;" + messageObject.getString( "content" ).trim().toLowerCase() + ";SPLIT;" + numberOfQuestion );
+                                        teamChatBuddyApplication.notifyObservers("getResponseF;SPLIT;gpt;SPLIT;" + messageObject.getString("content").trim().toLowerCase() + ";SPLIT;" + numberOfQuestion);
                                     }
                                 } else {
-                                    teamChatBuddyApplication.notifyObservers( "getResponseF;SPLIT;gpt;SPLIT;" + messageObject.getString( "content" ).trim().toLowerCase() + ";SPLIT;" + numberOfQuestion );
+                                    teamChatBuddyApplication.notifyObservers("getResponseF;SPLIT;gpt;SPLIT;" + messageObject.getString("content").trim().toLowerCase() + ";SPLIT;" + numberOfQuestion);
                                 }
 
                                 //Mettre  le dernier fichier json reçu à l’API
-
-
-                                File file2 = new File( Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + "OpenAI-recv" + ".json" );
-
+                                File file2 = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/" + "OpenAI-recv" + ".json");
                                 try {
-                                    if (file2.exists() && file1.isFile()) {
+                                    if (file2.exists() && file2.isFile()) {
                                         file2.delete();
-                                        Log.v( "Json_API", "file deleted" );
+                                        Log.v("Json_API", "file deleted");
                                     }
-
-                                    FileWriter fileWriter = new FileWriter( file2 );
+                                    FileWriter fileWriter = new FileWriter(file2);
                                     Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                                    String jsonString = gson.toJson( jsonObj );
-                                    fileWriter.write( jsonString );
+                                    String jsonString = gson.toJson(jsonObj);
+                                    fileWriter.write(jsonString);
                                     fileWriter.close();
-                                    Log.v( "Json_API", "new file added" );
-
+                                    Log.v("Json_API", "new file added");
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                        }
-                        else {
-
-                            if (response.errorBody() != null) {
-                                int checkErrorCode = response.code();
+                        } else {
+                            if (httpResponse.body != null) {
+                                int checkErrorCode = httpResponse.responseCode;
                                 // Calcul de la consommation openai de le cas d'echec
                                 if (checkErrorCode == 500 || checkErrorCode == 503 || checkErrorCode == 504) {
-                                    int inputTokens = teamChatBuddyApplication.getRequestTotalTokens(requestBody);
-                                    teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getParamFromFile("emotion_Model","TeamChatBuddy.properties"),inputTokens,0);
+                                    int inputTokens = teamChatBuddyApplication.getRequestTotalTokens(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString()));
+                                    teamChatBuddyApplication.calcul_consommation(teamChatBuddyApplication.getParamFromFile("emotion_Model", "TeamChatBuddy.properties"), inputTokens, 0);
                                 }
                             }
                         }
-                    }
-
-                    @Override
-                    public void onFailure(Call<JsonObject> call, Throwable t) {
+                    } catch (Exception e) {
                         teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
-                        Log.e( "MEHDI", "Onfailure pendant la récupération de la réponse dataChatGPT : " + t );
+                        Log.e("MEHDI", "Onfailure pendant la récupération de la réponse dataChatGPT : " + e);
                     }
-                } );
+                }).start();
             } catch (Exception e) {
                 teamChatBuddyApplication.notifyObservers("CANCEL_RESPONSE_TIMEOUT");
                 Log.e( "MEHDI", "Exception pendant la récupération de la réponse dataChatGPT : " + e );
@@ -1800,9 +1623,6 @@ public class ResponseFromChatbot {
     public void getSessionId(String question)  {
         teamChatBuddyApplication.setAlreadyChatting(true);
 
-        //setLangugeAppAndRole(setting);
-        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication,teamChatBuddyApplication.getParamFromFile("CustomGPT_url","TeamChatBuddy.properties"), 50);
-        ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
         JSONObject jsonParams = new JSONObject();
 
 
@@ -1814,7 +1634,7 @@ public class ResponseFromChatbot {
                 teamChatBuddyApplication.getCustomGPTStreamMode().reset();
             }
             teamChatBuddyApplication.setCustomGPTStreamMode(new CustomGPTStreamMode(activity));
-            teamChatBuddyApplication.getCustomGPTStreamMode().sendRequestToGetSessionID(api,requestBody,question);
+            teamChatBuddyApplication.getCustomGPTStreamMode().sendRequestToGetSessionID(jsonParams,question);
             Log.e("MEHDI","init CustomGPT");
         } catch (JSONException e) {
             e.printStackTrace();
@@ -1841,8 +1661,6 @@ public class ResponseFromChatbot {
             RoleBuddy = teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete");
         }
 
-        Retrofit retrofit = NetworkClient.getRetrofitClient(teamChatBuddyApplication, teamChatBuddyApplication.getparam("ChatGPT_url"),50);
-        ApiEndpointInterface api = retrofit.create(ApiEndpointInterface.class);
         JSONObject jsonParams = new JSONObject();
         try {
 
@@ -1876,16 +1694,19 @@ public class ResponseFromChatbot {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            new Thread(() -> {
+                try {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"));
+                    headers.put("Content-Type", "application/json; charset=utf-8");
 
-            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonParams.toString());
-            Call call = api.getChatGPT( requestBody, "Bearer " + teamChatBuddyApplication.getparam("openAI_API_Key"), "application/json");
-            call.enqueue(new Callback() {
-                @Override
-                public void onResponse(Call call, Response response) {
+                    String apiUrl = teamChatBuddyApplication.getParamFromFile("ChatGPT_url", "TeamChatBuddy.properties") + "/v1/chat/completions";
+
+                    HttpResponse httpResponse = HttpClientUtils.sendPost(apiUrl, jsonParams.toString(), headers, 50000);
+
                     teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
 
-                    if(response.isSuccessful()) {
-
+                    if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300 && httpResponse.body != null) {
                         //logger Invit-recv.json
                         try {
                             File file_INVIT_RECV = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Invit-recv.json");
@@ -1894,7 +1715,7 @@ public class ResponseFromChatbot {
                             }
                             FileWriter fileWriter = new FileWriter(file_INVIT_RECV);
                             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                            String jsonString=gson.toJson(new JSONObject(response.body().toString()));
+                            String jsonString = gson.toJson(new JSONObject(httpResponse.body));
                             fileWriter.write(jsonString);
                             fileWriter.close();
                         } catch (Exception e) {
@@ -1902,19 +1723,16 @@ public class ResponseFromChatbot {
                         }
 
                         try {
-
-                            JSONObject jsonObj = new JSONObject(response.body().toString());
+                            JSONObject jsonObj = new JSONObject(httpResponse.body);
                             // récupérer la réponse
-                            JSONArray choicesArray = jsonObj.getJSONArray( "choices" );
-                            JSONObject choiceObject = choicesArray.getJSONObject( 0 );
-                            JSONObject messageObject = choiceObject.getJSONObject( "message" );
+                            JSONArray choicesArray = jsonObj.getJSONArray("choices");
+                            JSONObject choiceObject = choicesArray.getJSONObject(0);
+                            JSONObject messageObject = choiceObject.getJSONObject("message");
 
-                            result = messageObject.getString( content );
+                            result = messageObject.getString(content);
 
                             // Gérer le cas où la réponse est vide
-
-                            if (result.equals("")){
-
+                            if (result.equals("")) {
                                 Log.e("TEAMCHAT_BUDDY_TRACKING", "Réponse ChatGPT [error] : la réponse est vide");
 
                                 if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
@@ -1934,71 +1752,65 @@ public class ResponseFromChatbot {
                                             .addOnSuccessListener(new OnSuccessListener<String>() {
                                                 @Override
                                                 public void onSuccess(String translatedText) {
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" +translatedText);
+                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + translatedText);
                                                 }
                                             })
                                             .addOnFailureListener(new OnFailureListener() {
                                                 @Override
                                                 public void onFailure(@NonNull Exception e) {
-                                                    Log.e("TEAMCHAT_BUDDY_TRACKING","translatedText exception  "+e);
+                                                    Log.e("TEAMCHAT_BUDDY_TRACKING", "translatedText exception  " + e);
                                                 }
                                             });
                                 }
-
                             }
                             // Play la suite de la réponse.
-                            else{
-                                Log.e("TEAMCHAT_BUDDY_TRACKING","Detection_de_langue  -----"+teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes"));
-                                Log.e("TEAMCHAT_BUDDY_TRACKING","nombreDeMotsCheck(result) -------"+teamChatBuddyApplication.nombreDeMotsCheck(result));
+                            else {
+                                Log.e("TEAMCHAT_BUDDY_TRACKING", "Detection_de_langue  -----" + teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes"));
+                                Log.e("TEAMCHAT_BUDDY_TRACKING", "nombreDeMotsCheck(result) -------" + teamChatBuddyApplication.nombreDeMotsCheck(result));
                                 if (teamChatBuddyApplication.getparam("Detection_de_langue").contains("yes") && teamChatBuddyApplication.nombreDeMotsCheck(result)) {
-
                                     LanguageIdentifier languageIdentifier = LanguageIdentification.getClient();
                                     languageIdentifier.identifyPossibleLanguages(result)
                                             .addOnSuccessListener(
-                                    new OnSuccessListener<List<IdentifiedLanguage>>() {
-                                        @Override
-                                        public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
-                                            if (identifiedLanguages.isEmpty()) {
-                                                Log.i("MRA_idetifyLanguage", "Can't identify language.");
-                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
-                                            } else {
-                                                // Utiliser la première langue identifiée
-                                                IdentifiedLanguage language = identifiedLanguages.get(0);
-                                                String languageCode = language.getLanguageTag();
-                                                float confidence = language.getConfidence();
+                                                    new OnSuccessListener<List<IdentifiedLanguage>>() {
+                                                        @Override
+                                                        public void onSuccess(List<IdentifiedLanguage> identifiedLanguages) {
+                                                            if (identifiedLanguages.isEmpty()) {
+                                                                Log.i("MRA_idetifyLanguage", "Can't identify language.");
+                                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + result);
+                                                            } else {
+                                                                // Utiliser la première langue identifiée
+                                                                IdentifiedLanguage language = identifiedLanguages.get(0);
+                                                                String languageCode = language.getLanguageTag();
+                                                                float confidence = language.getConfidence();
 
-                                                Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
-                                                if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("") && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate","TeamChatBuddy.properties").trim().equals("0")) {
-                                                    if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
-                                                        teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
-                                                    } else {
-                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
-                                                    }
-                                                }
-                                                else {
-                                                    teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
-                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
-                                                }
-                                            }
-                                        }
-                                    })
+                                                                Log.i("MRA_idetifyLanguage", "Language: " + languageCode + ", Confidence: " + confidence);
+                                                                if (teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties") != null && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties").trim().equals("") && !teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties").trim().equals("0")) {
+                                                                    if (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Detection_confidence_rate", "TeamChatBuddy.properties")) <= (confidence * 100)) {
+                                                                        teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
+                                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + result);
+                                                                    } else {
+                                                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + result);
+                                                                    }
+                                                                } else {
+                                                                    teamChatBuddyApplication.setLanguageDetected(languageCode.trim());
+                                                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + result);
+                                                                }
+                                                            }
+                                                        }
+                                                    })
                                             .addOnFailureListener(
                                                     new OnFailureListener() {
                                                         @Override
                                                         public void onFailure(@NonNull Exception e) {
-                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
+                                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + result);
                                                         }
                                                     });
+                                } else {
+                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + result);
                                 }
-                                else{
-                                    teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;"+result);
-                                }
-
                             }
 
                         } catch (Exception e) {
-
                             Log.e("TEAMCHAT_BUDDY_TRACKING", "Réponse ChatGPT [Exception] : " + e);
 
                             if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
@@ -2018,68 +1830,60 @@ public class ResponseFromChatbot {
                                         .addOnSuccessListener(new OnSuccessListener<String>() {
                                             @Override
                                             public void onSuccess(String translatedText) {
-                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" +translatedText);
+                                                teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + translatedText);
                                             }
                                         })
                                         .addOnFailureListener(new OnFailureListener() {
                                             @Override
                                             public void onFailure(@NonNull Exception e) {
-                                                Log.e("TEAMCHAT_BUDDY_TRACKING","translatedText exception  "+e);
+                                                Log.e("TEAMCHAT_BUDDY_TRACKING", "translatedText exception  " + e);
                                             }
                                         });
                             }
-
                         }
 
-                    }
-                    else{
+                    } else {
                         try {
-
                             //logger Invit-ERROR-LOG.json et Invit-ERROR-History.json
-                            if (response.errorBody()!= null){
-
-                                //logger Invit-ERROR-LOG.json
+                            if (httpResponse.body != null) {
                                 JsonObject errorLOG = new JsonObject();
                                 JsonObject errorCode = new JsonObject();
                                 JsonObject reformErrorJson = new JsonObject();
-                                errorCode.addProperty("ERROR CODE", response.code());
-                                JSONObject jsonErrorContent = new JSONObject(response.errorBody().string());
+                                errorCode.addProperty("ERROR CODE", httpResponse.responseCode);
+                                JSONObject jsonErrorContent = new JSONObject(httpResponse.body);
                                 JSONObject errorObject = jsonErrorContent.getJSONObject("error");
-                                reformErrorJson.addProperty("message",errorObject.getString("message"));
-                                reformErrorJson.addProperty("type",errorObject.getString("type"));
-                                reformErrorJson.addProperty("param",errorObject.getString("param"));
-                                reformErrorJson.addProperty("code",errorObject.getString("code"));
-                                errorCode.add("ERROR Body",reformErrorJson);
-                                errorLOG.add("OpenAIERROR",errorCode);
+                                reformErrorJson.addProperty("message", errorObject.getString("message"));
+                                reformErrorJson.addProperty("type", errorObject.getString("type"));
+                                reformErrorJson.addProperty("param", errorObject.getString("param"));
+                                reformErrorJson.addProperty("code", errorObject.getString("code"));
+                                errorCode.add("ERROR Body", reformErrorJson);
+                                errorLOG.add("OpenAIERROR", errorCode);
                                 File file_INVIT_ERROR_LOG = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Invit-ERROR-LOG.json");
                                 if (file_INVIT_ERROR_LOG.exists() && file_INVIT_ERROR_LOG.isFile()) {
                                     file_INVIT_ERROR_LOG.delete();
                                 }
                                 FileWriter fileWriter = new FileWriter(file_INVIT_ERROR_LOG);
                                 Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-                                String jsonStringF=gson.toJson(errorLOG);
+                                String jsonStringF = gson.toJson(errorLOG);
                                 fileWriter.write(jsonStringF);
                                 fileWriter.close();
 
                                 //logger Invit-ERROR-History.json
                                 File file_INVIT_ERROR_History = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Invit-ERROR-History.txt");
-                                FileWriter fileWriter2 = new FileWriter(file_INVIT_ERROR_History,true);
-                                fileWriter2.write(new Date().toString()+
-                                        ", OpenAIERROR,ERROR CODE= "+response.code()+
-                                        ", ERROR Body{ message= "+errorObject.getString("message")+
-                                        ", type= "+errorObject.getString("type")+
-                                        ", param= "+errorObject.getString("param")+
-                                        ", code= "+errorObject.getString("code")+
+                                FileWriter fileWriter2 = new FileWriter(file_INVIT_ERROR_History, true);
+                                fileWriter2.write(new Date().toString() +
+                                        ", OpenAIERROR,ERROR CODE= " + httpResponse.responseCode +
+                                        ", ERROR Body{ message= " + errorObject.getString("message") +
+                                        ", type= " + errorObject.getString("type") +
+                                        ", param= " + errorObject.getString("param") +
+                                        ", code= " + errorObject.getString("code") +
                                         "}"
-                                        +System.getProperty("line.separator"));
+                                        + System.getProperty("line.separator"));
                                 fileWriter2.close();
-
                             }
-                        }
-                        catch (Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-
 
                         Log.e("TEAMCHAT_BUDDY_TRACKING", "Réponse ChatGPT [ERROR] response is not Successful");
 
@@ -2100,24 +1904,20 @@ public class ResponseFromChatbot {
                                     .addOnSuccessListener(new OnSuccessListener<String>() {
                                         @Override
                                         public void onSuccess(String translatedText) {
-                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" +translatedText);
+                                            teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + translatedText);
                                         }
                                     })
                                     .addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
-                                            Log.e("TEAMCHAT_BUDDY_TRACKING","translatedText exception  "+e);
+                                            Log.e("TEAMCHAT_BUDDY_TRACKING", "translatedText exception  " + e);
                                         }
                                     });
                         }
-
                     }
-                }
-                @Override
-                public void onFailure(Call call, Throwable t) {
+                } catch (Exception e) {
                     teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
-
-                    Log.e("TEAMCHAT_BUDDY_TRACKING", "Réponse ChatGPT [Failure] : " + t);
+                    Log.e("TEAMCHAT_BUDDY_TRACKING", "Réponse ChatGPT [Exception] : " + e);
 
                     if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
                         teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + "Hello, how can I help you?");
@@ -2136,18 +1936,18 @@ public class ResponseFromChatbot {
                                 .addOnSuccessListener(new OnSuccessListener<String>() {
                                     @Override
                                     public void onSuccess(String translatedText) {
-                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" +translatedText);
+                                        teamChatBuddyApplication.notifyObservers("CHATBOTS_RETURN;SPLIT;INVITATION;SPLIT;" + translatedText);
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        Log.e("TEAMCHAT_BUDDY_TRACKING","translatedText exception  "+e);
+                                        Log.e("TEAMCHAT_BUDDY_TRACKING", "translatedText exception  " + e);
                                     }
                                 });
                     }
                 }
-            });
+            }).start();
         } catch (Exception e) {
             teamChatBuddyApplication.setGetResponseTime(System.currentTimeMillis());
 
