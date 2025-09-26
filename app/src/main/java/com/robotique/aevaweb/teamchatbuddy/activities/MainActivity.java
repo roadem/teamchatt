@@ -2811,7 +2811,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(() -> {
                     String fill = String.valueOf(buddy_texte_resp.getText());
 
-                    if(fill!="")buddy_texte_resp.setText(fill+"\n" + segment.trim());
+                    if(fill!="")buddy_texte_resp.setText(fill+"\n"+"\n" + segment.trim());
                     else buddy_texte_resp.setText(title+" : "+segment.trim());
 
                     lyt_open_menu_settings.setVisibility(View.INVISIBLE);

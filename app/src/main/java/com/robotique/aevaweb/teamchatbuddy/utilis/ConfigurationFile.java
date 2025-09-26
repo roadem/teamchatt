@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 48; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 49; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -688,6 +688,9 @@ public class ConfigurationFile {
             setProperty("JOKE_Model", "gpt-3.5-turbo");
             setProperty("JOKE_X_points","20");
 
+            props.addPropertyComment("NEWS_ARTICLE_BBC_id", " HTML selector of the news web page https://www.bbc.com/");
+            setProperty("NEWS_ARTICLE_BBC_id","div.sc-666b6d83-0");
+
             props.addPropertyComment("mail_pierre-paul", "");
             setProperty("mail_pierre-paul","b.fache@teamnet.fr");
             setProperty("CMD_MAIL_subject_en","Email from TeamChatBuddy");
@@ -745,9 +748,6 @@ public class ConfigurationFile {
             setProperty("WELCOME_prompt_EN","say an invitation to dialogue");
             props.addPropertyComment("TRACKING_welcome_maxtoken", "Welcome max token");
             setProperty("WELCOME_maxtoken","100");
-
-            props.addPropertyComment("NEWS_ARTICLE_BBC_id ", " HTML selector of the web page https://www.bbc.com/");
-            setProperty("NEWS_ARTICLE_BBC_id","div.sc-666b6d83-0");
 
             FileOutputStream fileOut = new FileOutputStream(configFile);
             props.store(fileOut, "TeamChatBuddy configuration file - Compatible with "+app_version);

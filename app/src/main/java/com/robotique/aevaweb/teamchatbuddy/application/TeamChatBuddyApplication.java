@@ -3841,12 +3841,38 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             versionBuddyOS = version[0];
             String versionKey = getBuddyOSVersionMajorMinor(versionBuddyOS); // ex: "1.5"
             String voiceKey = "BuddyOS_" + versionKey + "_voices";
-            Log.d("TEST_voix", "App found version BuddyOS: " + versionBuddyOS + " -> using key: " + voiceKey);
+            Log.d("TEST_voix", "App found version BuddyOS: " + versionBuddyOS + " -> try using key: " + voiceKey);
 
             String voicesParam = getParamFromFile(voiceKey, configurationFilePseudo);
+
+            // decide fallback target based on version comparator (major.minor)
+            boolean isAtLeast14 = false;
+            try {
+                String[] parts = versionKey.split("\\.");
+                int major = Integer.parseInt(parts[0]);
+                int minor = (parts.length > 1) ? Integer.parseInt(parts[1]) : 0;
+                isAtLeast14 = (major > 1) || (major == 1 && minor >= 4);
+            } catch (Exception ignored) {
+                // if parsing fails, keep isAtLeast14=false by default (treat as < 1.4)
+            }
+
             if (voicesParam == null || voicesParam.trim().isEmpty()) {
-                Log.w("TEST_voix", "No voices found for key: " + voiceKey);
-                return null;
+                String fallbackKey = isAtLeast14 ? "BuddyOS_1.4_voices" : "BuddyOS_1.3_voices";
+                String fallbackVoices = getParamFromFile(fallbackKey, configurationFilePseudo);
+
+                if (fallbackVoices != null && !fallbackVoices.trim().isEmpty()) {
+                    Log.i("TEST_voix", "No voices for key: " + voiceKey +
+                            " -> falling back to: " + fallbackKey);
+                    voiceKey = fallbackKey;
+                    voicesParam = fallbackVoices;
+                } else {
+                    Log.w("TEST_voix", "No voices found for key: " + voiceKey +
+                            " and no fallback available (" + fallbackKey + ").");
+                    return null;
+                }
+            } else {
+                Log.d("TEST_voix", "Using voices for exact key: " + voiceKey +
+                        " (BuddyOS=" + versionBuddyOS + ")");
             }
 
             voicesParam = voicesParam
