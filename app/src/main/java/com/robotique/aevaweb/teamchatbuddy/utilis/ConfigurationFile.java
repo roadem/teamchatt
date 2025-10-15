@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 49; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 50; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -283,6 +283,10 @@ public class ConfigurationFile {
             setProperty("mail.smtp.host", "in-v3.mailjet.com");
             setProperty("mail.smtp.port", "587");
 
+            props.addPropertyComment("OVH_USER", "");
+            setProperty("OVH_USER", "");
+            setProperty("OVH_PASSWORD", "");
+
             props.addPropertyComment("BlueMic_Disponibility", "");
             props.addPropertyComment("BlueMic_Disponibility", "BlueMic Availability (Yes/No)");
             setProperty("BlueMic_Disponibility","No");
@@ -395,6 +399,34 @@ public class ConfigurationFile {
             props.addPropertyComment("MLkit_timeout_in_seconds", "");
             props.addPropertyComment("MLkit_timeout_in_seconds", "Maximum waiting time (in seconds) for MLkit download before timing out");
             setProperty("MLkit_timeout_in_seconds","60");
+
+
+            //-------------------------- Alert & Tracking ---------------------------
+            props.addPropertyComment("ALERT_ACTIVITY","");
+            props.addPropertyComment("ALERT_ACTIVITY","Alert parameters");
+            props.addPropertyComment("ALERT_ACTIVITY", "Enable or disable inactivity alerts (Yes/No)");
+            setProperty("ALERT_ACTIVITY", "No");
+
+            props.addPropertyComment("ALERT_DURATION", "Alert duration threshold in minutes before triggering inactivity alert");
+            setProperty("ALERT_DURATION", "120");
+
+            props.addPropertyComment("ALERT_DAYS", "Days when alerts are active");
+            setProperty("ALERT_DAYS", "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday");
+
+            props.addPropertyComment("ALERT_HOURS", "Time range for activating alerts (must be continuous within the same day, between 00:00 and 23:59, e.g. 08:00-20:00)");
+            setProperty("ALERT_HOURS", "08:00-20:00");
+
+            setProperty("ALERT_REPETITIONS", "1");
+            setProperty("ALERT_MAIL", "");
+            setProperty("ALERT_SMS", "");
+
+            props.addPropertyComment("ALERT_TOOL", "Alert sending method: SMS, MAIL, or both (SMS/MAIL)");
+            setProperty("ALERT_TOOL", "SMS/MAIL");
+
+            props.addPropertyComment("ALERT_MSG", "Message template for inactivity alerts.");
+            setProperty("ALERT_MSG", "Hello from TeamChatBuddy,\n you have been inactive since [1] for [2] minutes");
+
+            setProperty("TRACKING_MIN_DETECTION_DURATION", "3");
 
             //-------------------------- COMMAND PARAMETERS ---------------------------
 

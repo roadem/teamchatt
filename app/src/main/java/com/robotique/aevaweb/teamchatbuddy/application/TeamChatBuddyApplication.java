@@ -290,6 +290,36 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public void setShouldDisplayQRCode(boolean shouldDisplayQRCode) {
         this.shouldDisplayQRCode = shouldDisplayQRCode;
     }
+    public String isAlertActivated = "No";
+
+    public boolean isOnApp = true;
+    private int counterTouch = 0;
+    private int counterHotword = 0;
+    private int counterTracking = 0;
+
+    public int getCounterTouch() {
+        return counterTouch;
+    }
+
+    public void setCounterTouch(int counterTouch) {
+        this.counterTouch = counterTouch;
+    }
+
+    public int getCounterHotword() {
+        return counterHotword;
+    }
+
+    public void setCounterHotword(int counterHotword) {
+        this.counterHotword = counterHotword;
+    }
+
+    public int getCounterTracking() {
+        return counterTracking;
+    }
+
+    public void setCounterTracking(int counterTracking) {
+        this.counterTracking = counterTracking;
+    }
 
     public boolean isAlreadyChatting() {
         return alreadyChatting;
@@ -939,6 +969,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             e.printStackTrace();
         }
     }
+
     public void init() {
         Log.e("MRAA","init");
 
@@ -975,16 +1006,76 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         initTracking();
         Log.e("MRAA","init google api");
 
-            Log.e("MRAA","init google api out if");
-            if (getparam("STT_chosen").equalsIgnoreCase("Google")){
-                Log.e("MRAA","init google api inside if");
-                alreadyCalled = true;
-                releaseGoogleAPI();
-                initGoogleAPI();
-            }
-
+        Log.e("MRAA","init google api out if");
+        if (getparam("STT_chosen").equalsIgnoreCase("Google")){
+            Log.e("MRAA","init google api inside if");
+            alreadyCalled = true;
+            releaseGoogleAPI();
+            initGoogleAPI();
+        }
         notifyObservers("properties file done");
     }
+
+    public void initAlert(){
+        isAlertActivated = getParamFromFile("ALERT_ACTIVITY", "TeamChatBuddy.properties");
+        if (isAlertActivated == null)isAlertActivated="";
+        String tool = getParamFromFile("ALERT_TOOL", "TeamChatBuddy.properties");
+        if(isAlertActivated.equals("Yes") && !tool.isEmpty()){
+            String phoneNumber = getParamFromFile("ALERT_SMS", "TeamChatBuddy.properties");
+            String mailTo = getParamFromFile("ALERT_MAIL", "TeamChatBuddy.properties");
+
+            if ((tool.contains("SMS") && phoneNumber.isEmpty()) && (tool.contains("MAIL") && mailTo.isEmpty())) {
+                Log.i("AlertManager_App", "ALERT_SMS ou ALERT_MAIL est vide. Aucune alerte ne sera envoyée.");
+                getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via email/sms will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        isAlertActivated = "No";
+                        notifyObservers("STOP_ALERT");
+                        Toast.makeText(getApplicationContext(), translatedText, Toast.LENGTH_LONG).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("AlertManager_App", "translatedText exception  " + e);
+                    }
+                });
+            }
+            else if (tool.equals("SMS") && phoneNumber.isEmpty()) {
+                Log.i("AlertManager_App", "ALERT_SMS est vide. Aucune alerte ne sera envoyée.");
+                getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via sms will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        isAlertActivated = "No";
+                        notifyObservers("STOP_ALERT");
+                        Toast.makeText(getApplicationContext(), translatedText, Toast.LENGTH_LONG).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("AlertManager_App", "translatedText exception  " + e);
+                    }
+                });
+
+            }
+            else if (tool.contains("MAIL") && mailTo.isEmpty()) {
+                Log.i("AlertManager_App", "ALERT_MAIL est vide. Aucune alerte ne sera envoyée.");
+                getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via email will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        isAlertActivated = "No";
+                        notifyObservers("STOP_ALERT");
+                        Toast.makeText(getApplicationContext(), translatedText, Toast.LENGTH_LONG).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("AlertManager_App", "translatedText exception  " + e);
+                    }
+                });
+            }
+        }
+    }
+
 
     private void initOpenAiSettings() {
         double totalConsumption = 0;

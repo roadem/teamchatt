@@ -1,10 +1,7 @@
 package com.robotique.aevaweb.teamchatbuddy.activities;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Rect;
@@ -19,13 +16,10 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -59,13 +53,13 @@ import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.Setting;
 import com.robotique.aevaweb.teamchatbuddy.models.SttModel;
 import com.robotique.aevaweb.teamchatbuddy.observers.IDBObserver;
+import com.robotique.aevaweb.teamchatbuddy.utilis.AlertManager;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IMLKitDownloadCallback;
 import com.robotique.aevaweb.teamchatbuddy.utilis.LanguageDetailsChecker;
 import com.robotique.aevaweb.teamchatbuddy.utilis.WifiBroadcastReceiver;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -720,6 +714,13 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
         };
 
+        teamChatBuddyApplication.isOnApp = true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        teamChatBuddyApplication.isOnApp = false;
     }
 
     private Runnable runnableProgressBar = new Runnable() {
@@ -1639,6 +1640,9 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.equals("Yes")){
+            AlertManager.getInstance(this).stop();
+        }
         if (!teamChatBuddyApplication.getInitSharedpreferences()){
             teamChatBuddyApplication.setparam("firstLaunch","true");
             teamChatBuddyApplication.notifyObservers("ChatDestroy");
@@ -1919,6 +1923,9 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+                AlertManager.getInstance(this).incremente("touch", this);
+            }
             View v = getCurrentFocus();
             if ( v instanceof EditText) {
                 Rect outRect = new Rect();

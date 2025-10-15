@@ -2,8 +2,8 @@
     <string name="app_name">TeamChatBuddy</string>
     <string name="path">/storage/emulated/0/</string>
     <string name="pathConfig">/storage/emulated/0/TeamChatBuddy/</string>
-    <string name="copyright">[Ver. 2.2.40] 2025©Teamnet - info@teamnet.fr</string>
-    <string name="version_app">Ver. 2.2.40</string>
+    <string name="copyright">[Ver. 2.3.1] 2025©Teamnet - info@teamnet.fr</string>
+    <string name="version_app">Ver. 2.3.1</string>
     <!-- Menu de paramètres -->
     <!-- Menu de paramètres french-->
     <string name="menu_title_fr">PARAMETRES</string>
