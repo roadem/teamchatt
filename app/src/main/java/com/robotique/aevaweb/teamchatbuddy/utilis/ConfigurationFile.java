@@ -177,7 +177,6 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Start_Message","");
             props.addPropertyComment("Start_Message","Activates or deactivates the message spoken at the app's startup (Yes/No)");
-            setProperty("Start_Message","No");
             setProperty("Start_Message_fr","Bonjour je suis le robot Buddy de Blue Frog Robotics.");
             setProperty("Start_Message_en","Hello, I am Buddy, the robot from Blue Frog Robotics.");
             props.addPropertyComment("Listening_time","");
@@ -220,13 +219,15 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Display_of_speech","");
             props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No)");
-            setProperty("Display_of_speech","Yes");
+            //todo replace: Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No/YesHid/NoHid)
+            setProperty("Display_of_speech","Yes"); //yesh
             setProperty("Activation_of_emotions","Yes");
             setProperty("Language_detection","Yes");
             setProperty("Stream_mode","Yes");
             setProperty("Stimulis","No");
             setProperty("Commands", "No");
             setProperty("Tracking","No");
+            setProperty("TRACKING_timeout","No");
 
             props.addPropertyComment("Number_of_words","");
             props.addPropertyComment("Number_of_words","Minimum number of words in the response for activating language detection");
@@ -372,8 +373,8 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Chatgpt_header", "");
             props.addPropertyComment("Chatgpt_header","Customization of ChatGPT dialogues");
-            setProperty("Chatgpt_header","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
-            setProperty("Chatgpt_entete","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
+            setProperty("Chatgpt_Header_en","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
+            setProperty("Chatgpt_Header_fr","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
 
             props.addPropertyComment("CustomGPT_url","");
             props.addPropertyComment("CustomGPT_url","CustomGPT parameters");
@@ -384,8 +385,8 @@ public class ConfigurationFile {
 
             props.addPropertyComment("CustomGPT_header", "");
             props.addPropertyComment("CustomGPT_header","Customization of CustomGPT dialogues");
-            setProperty("CustomGPT_header","" );
-            setProperty("CustomGPT_entete","");
+            setProperty("CustomGPT_header_en","" );  //todo CustomGPT_header_en
+            setProperty("CustomGPT_header_fr","");  //todo CustomGPT_header_fr
 
             props.addPropertyComment("Response_format_fr","");
             props.addPropertyComment("Response_format_fr","Response_format_fr and Response_format_en specify response formats in French and English.");
@@ -732,12 +733,17 @@ public class ConfigurationFile {
             //-------------------------- Tracking ---------------------------
             props.addPropertyComment("TRACKING_Camera","");
             props.addPropertyComment("TRACKING_Camera", "Tracking parameters");
-            props.addPropertyComment("TRACKING_Camera", "Enabling tracking with/without the camera, head, body or Tracking timeout.");
+            props.addPropertyComment("TRACKING_Camera", "Enabling tracking with/without the camera.");
             setProperty("TRACKING_Camera","No");
+            props.addPropertyComment("TRACKING_Head", "Enabling tracking with/without head.");
             setProperty("TRACKING_Head","No");
+            props.addPropertyComment("TRACKING_Body", "Enabling tracking with/without body.");
             setProperty("TRACKING_Body","No");
+            props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
+            props.addPropertyComment("TRACKING_Welcome", "Enabling Welcome hotword");
             setProperty("WELCOME_hotword","No");
-            setProperty("TRACKING_timeout_Switch","No");
+            props.addPropertyComment("TRACKING_Welcome", "Enabling Welcome tracking");
+            setProperty("WELCOME_tracking","No");
 
             props.addPropertyComment("TRACKING_watch","");
             props.addPropertyComment("TRACKING_watch", "Tracking is performed only if the robot detects that the target is looking at it");
@@ -756,10 +762,6 @@ public class ConfigurationFile {
             setProperty("TRACKING_timeout","0");
             props.addPropertyComment("WATCHING_timeout","Time in seconds to close TeamChatBuddy if no person is watching Buddy within this duration ");
             setProperty("WATCHING_timeout","0");
-            props.addPropertyComment("TRACKING_Welcome","");
-            props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
-            props.addPropertyComment("TRACKING_Welcome", "Start Welcome");
-            setProperty("WELCOME_tracking","No");
             props.addPropertyComment("TRACKING_delay_welcome", "Delay in minuts to welcome after watching no one");
             setProperty("WELCOME_delay","10");
             props.addPropertyComment("TRACKING_duration_welcome", "the person looks at Buddy for 2 seconds to issue an invitation");

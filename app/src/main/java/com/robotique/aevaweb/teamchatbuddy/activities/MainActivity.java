@@ -421,7 +421,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             }
                         });
                     }
-                    else if (isFirstLaunch && teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties") !=null && !teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties").isEmpty() &&teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                    else if (isFirstLaunch && (!teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties").isEmpty() || !teamChatBuddyApplication.getParamFromFile("Start_Message_fr","TeamChatBuddy.properties").isEmpty())){
                        mlKitIsDownloading=true;
                         playStartMessage(new IStartMessageCallback() {
                             @Override
@@ -4091,7 +4091,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             //#region Timer to exit the application
             Log.i("Finiche"," currentTime : "+currentTime+" /personDetectedTimeToCloseApp "+personDetectedTimeToCloseApp );
             Log.i("Finiche"," currentTime - personDetectedTimeToCloseApp : "+(currentTime - personDetectedTimeToCloseApp));
-            if (teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").trim().equalsIgnoreCase("true") && TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - personDetectedTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
+            if (teamChatBuddyApplication.getparam("TRACKING_timeout").trim().contains("yes") && TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - personDetectedTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
                 Log.i("Finiche","closed app ");
                 finishAffinity();
                 if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
