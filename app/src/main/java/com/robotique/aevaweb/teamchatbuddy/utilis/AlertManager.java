@@ -187,7 +187,7 @@ public class AlertManager {
 
                 subject =  translatedText.split("#")[0];
                 msg = translatedText.split("#")[1];
-                String tool = app.getParamFromFile("ALERT_TOOL", "TeamChatBuddy.properties").toUpperCase(Locale.ROOT);
+                String tool = app.getParamFromFile("ALERT_TOOL", "TeamChatBuddy.properties").trim().toUpperCase(Locale.ROOT);
                 Log.i("AlertManager", "Déclenchement alerte (" + tool + ") : " + subject + "\n" + msg);
 
                 // Envoi selon le mode configuré
@@ -211,7 +211,7 @@ public class AlertManager {
 
                 Log.i("AlertManager","Alerte d’inactivité déclenchée : " + msg);
             }
-            }).addOnFailureListener(new OnFailureListener() {
+        }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.e("AlertManager", "translatedText exception  " + e);
@@ -243,7 +243,7 @@ public class AlertManager {
 
     /** -------------------- VÉRIFICATION DU JOUR ACTIF -------------------- **/
     private boolean isAlertDay() {
-        String activeDaysStr = app.getParamFromFile("ALERT_DAYS", "TeamChatBuddy.properties");
+        String activeDaysStr = app.getParamFromFile("ALERT_DAYS", "TeamChatBuddy.properties").trim();
         if (activeDaysStr == null || activeDaysStr.isEmpty()) return false;
 
         List<String> activeDays = Arrays.asList(activeDaysStr.split(","));
@@ -308,7 +308,7 @@ public class AlertManager {
 
     /** -------------------- MÉTHODE D’ENVOI MAIL -------------------- **/
     private void sendMailIfAvailable(Activity activity, String subject, String body) {
-        String mailTo = app.getParamFromFile("ALERT_MAIL", "TeamChatBuddy.properties");
+        String mailTo = app.getParamFromFile("ALERT_MAIL", "TeamChatBuddy.properties").trim();
         if (TextUtils.isEmpty(mailTo)) {
             Log.e("AlertManager", "ALERT_MAIL non défini — aucun e-mail ne sera envoyé.");
             Toast.makeText(activity, "ALERT_MAIL non défini — aucun e-mail ne sera envoyé.", Toast.LENGTH_LONG).show();
@@ -316,7 +316,7 @@ public class AlertManager {
         }
 
         try {
-            new MailSender(activity,String.join("\n", body.split("[,.]")), "meriemeyakine@gmail.com", subject).execute();
+            new MailSender(activity,String.join("\n", body.split("[,.]")), mailTo, subject).execute();
         } catch (Exception e) {
             Log.e("AlertManager", "Erreur lors de l'envoi du mail : " + e.getMessage());
         }
@@ -333,12 +333,7 @@ public class AlertManager {
         }
 
         try {
-            // Identifiants OVH
-            String smtpUser = app.getParamFromFile("OVH_USER", "TeamChatBuddy.properties");
-            String smtpPass = app.getParamFromFile("OVH_PASSWORD", "TeamChatBuddy.properties");
-
-
-            SmsSender smsSender = new SmsSender(activity, smtpUser, smtpPass);
+            SmsSender smsSender = new SmsSender(activity);
 
             smsSender.sendSmsOrEmailFallback(phoneNumber, msg, new SmsSender.MailCallback() {
                 @Override

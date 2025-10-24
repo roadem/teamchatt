@@ -205,7 +205,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         }
         Log.d(TAG," --- onDestroy() ---");
 
-        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.equals("Yes")){
+        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
             AlertManager.getInstance(this).stop();
         }
     }
@@ -347,7 +347,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                 AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
             }
             View v = getCurrentFocus();
@@ -789,7 +789,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                         else {
                             responseFromChatbot.getSessionId(detectedSTTMessage);
                         }
-                        if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+                        if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                             AlertManager.getInstance(ChatWindow.this).incremente("hotword", ChatWindow.this);
                         }
                     }

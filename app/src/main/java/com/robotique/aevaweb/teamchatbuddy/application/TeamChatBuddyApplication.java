@@ -1019,14 +1019,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         //fetchSupportedLanguages(this);
         loadLocalesFromFile();
+        notifyObservers("properties file done");
 
-        Log.e("YAKINE","------------------- START -------------------");
+        Log.e("NONO","------------------- START -------------------");
         // Vérifier si la locale nb-NO est supportée
         Locale norwegian = new Locale("nb", "NO");
         boolean availability = speechRecognizerAvailability(norwegian);
 //                speechRecognizerAvailability(norwegian) :
 //                SpeechRecognizer.ERROR_NO_MATCH;
-        Log.e("YAKINE", String.valueOf(availability));
+        Log.e("NONO", String.valueOf(availability));
         if (!availability) {
             Toast.makeText(this, "La reconnaissance vocale en Norvégien n’est pas disponible sur cet appareil", Toast.LENGTH_LONG).show();
             return;
@@ -1045,7 +1046,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         Log.e("YAKINE","------------------- END -------------------");
 
 
-        notifyObservers("properties file done");
     }
 
 
@@ -1064,7 +1064,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         isAlertActivated = getParamFromFile("ALERT_ACTIVITY", "TeamChatBuddy.properties");
         if (isAlertActivated == null)isAlertActivated="";
         String tool = getParamFromFile("ALERT_TOOL", "TeamChatBuddy.properties");
-        if(isAlertActivated.equals("Yes") && !tool.isEmpty()){
+        if(isAlertActivated.trim().equalsIgnoreCase("Yes") && !tool.isEmpty()){
             String phoneNumber = getParamFromFile("ALERT_SMS", "TeamChatBuddy.properties");
             String mailTo = getParamFromFile("ALERT_MAIL", "TeamChatBuddy.properties");
 
@@ -1586,12 +1586,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
         }
         //Tracking Timeout
-        if (getparam("TRACKING_timeout").equals("")) {
-            if (getParamFromFile("TRACKING_timeout",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam("TRACKING_timeout", "false");
+        if (getparam("TRACKING_timeout_Switch").equals("")) {
+            if (getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("No")){
+                setparam("TRACKING_timeout_Switch", "false");
             }
             else {
-                setparam("TRACKING_timeout", "true");
+                setparam("TRACKING_timeout_Switch", "true");
             }
         }
     }
@@ -2972,7 +2972,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 //    }
 //    public static Locale getLocale(String language){//todo : à corriger aussi changer le nom
 
-    public static Locale getLocale(String language){
+    public static Locale getLocale(String language){//todo
 
         Locale[] locales = Locale.getAvailableLocales();
         String normalizedLanguage = language.replace("-", "_").toLowerCase();

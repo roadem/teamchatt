@@ -1,10 +1,12 @@
 package com.robotique.aevaweb.teamchatbuddy.utilis;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
+import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 
 import java.util.Properties;
 
@@ -21,22 +23,21 @@ public class SmsSender {
 
     private static final String TAG = "SmsSender";
 
-    private final String smtpHost = "mail.aevaweb.com"; // OVH SMTP
-    private final int smtpPort = 587;
-    private final String smtpUser;
-    private final String smtpPassword;
+    private String smtpHost; // OVH SMTP
+    private String smtpPort;
+    private String smtpUser;
+    private String smtpPassword;
     private final Context context;
-    private String phoneNumberDevice;
+
+    private TeamChatBuddyApplication app;
 
     public interface MailCallback {
         void onSuccess();
         void onError(Exception e);
     }
 
-    public SmsSender(Context context, String user, String password) {
+    public SmsSender(Context context) {
         this.context = context;
-        this.smtpUser = user;
-        this.smtpPassword = password;
     }
 
     /**
@@ -45,37 +46,65 @@ public class SmsSender {
      *  - Sinon → envoi mail vers OVH email2sms
      */
     public void sendSmsOrEmailFallback(String phoneNumber, String smsText, final MailCallback callback) {
-        Log.i("AlertManager", "hasSimCard " + hasSimCard());
-        if (hasSimCard()) {
-            phoneNumberDevice = getDevicePhoneNumber();
+        Log.i("AlertManager", "hasSimCard " + hasSimCardValid());
+        if (hasSimCardValid() && isValidPhoneNumber(phoneNumber)) {
             try {
                 SmsManager smsManager = SmsManager.getDefault();
                 smsManager.sendTextMessage(phoneNumber, null, smsText, null, null);
-                Log.i("AlertManager", "SMS :"+smsText+"\nenvoyé via carte SIM numéro: " + phoneNumberDevice+"  envoyé via carte SIM vers " + phoneNumber);
+                Log.i(TAG, "SMS :"+smsText+"\n envoyé via carte SIM vers " + phoneNumber);
                 if (callback != null) callback.onSuccess();
             } catch (Exception e) {
-                Log.e("AlertManager", "Erreur lors de l’envoi du SMS: " + e.getMessage(), e);
+                Log.e(TAG, "Erreur lors de l’envoi du SMS: " + e.getMessage(), e);
                 if (callback != null) callback.onError(e);
             }
         } else {
-            Log.w("AlertManager", "Aucune carte SIM détectée — envoi via OVH email2sms");
-            sendEmailToSms("sms-fb3019-2:aeva:Aeva2025:" + phoneNumberDevice + ":" + phoneNumber, smsText, callback);
+            String ovh_identifier = app.getParamFromFile("ovh_identifier", "TeamChatBuddy.properties");
+            String ovh_login = app.getParamFromFile("ovh_login", "TeamChatBuddy.properties");
+            String ovh_customer_password = app.getParamFromFile("ovh_customer_password", "TeamChatBuddy.properties");
+            String phoneSender = app.getParamFromFile("OVH_NUM_SENDER", "TeamChatBuddy.properties");
+            Log.w("AlertManager", "Aucune carte SIM détectée — envoi via OVH email2sms to: "+ovh_identifier+":"+ovh_login+":"+ovh_customer_password+":" + phoneSender + ":" + phoneNumber);
+            sendEmailToSms(ovh_identifier+":"+ovh_login+":"+ovh_customer_password+":" + phoneSender + ":" + phoneNumber, smsText, callback);
         }
     }
 
     /**
      * Vérifie si le device possède une carte SIM active.
      */
-    private boolean hasSimCard() {
+    private boolean hasSimCardValid() {
         try {
             TelephonyManager telMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
             int simState = telMgr.getSimState();
-            return simState == TelephonyManager.SIM_STATE_READY;
+
+            // Step 1: Check if SIM is present and ready
+            boolean hasSim = (simState == TelephonyManager.SIM_STATE_READY
+                    || simState == TelephonyManager.SIM_STATE_NETWORK_LOCKED
+                    || simState == TelephonyManager.SIM_STATE_UNKNOWN);
+
+            if (!hasSim) {
+                Log.w(TAG, "Aucune carte SIM détectée ou non prête.");
+                return false;
+            }
+
+            // Step 2: Check airplane mode status
+            boolean isAirplaneModeOn = Settings.Global.getInt(
+                    context.getContentResolver(),
+                    Settings.Global.AIRPLANE_MODE_ON, 0
+            ) != 0;
+
+            if (isAirplaneModeOn) {
+                Log.w(TAG, "Mode avion activé — SIM détectée mais non fonctionnelle.");
+                return false;
+            }
+
+            // SIM present and airplane mode off → valid
+            return true;
+
         } catch (Exception e) {
-            Log.e("AlertManager", "Erreur lors de la vérification SIM: " + e.getMessage(), e);
+            Log.e(TAG, "Erreur lors de la vérification de la carte SIM: " + e.getMessage(), e);
             return false;
         }
     }
+
 
     /**
      * Envoi via OVH email2sms
@@ -83,12 +112,16 @@ public class SmsSender {
     private void sendEmailToSms(final String subject, final String body, final MailCallback callback) {
         new Thread(() -> {
             try {
+
+                smtpUser = app.getParamFromFile("username", "TeamChatBuddy.properties");
+                smtpPassword = app.getParamFromFile("username_Password", "TeamChatBuddy.properties");
+
                 Properties props = new Properties();
                 props.put("mail.smtp.auth", "true");
                 props.put("mail.smtp.starttls.enable", "true");
-                props.put("mail.smtp.host", smtpHost);
-                props.put("mail.smtp.port", String.valueOf(smtpPort));
-                props.put("mail.smtp.ssl.trust", smtpHost);
+                props.put("mail.smtp.host", app.getParamFromFile("mail.smtp.host","TeamChatBuddy.properties"));
+                props.put("mail.smtp.port", app.getParamFromFile("mail.smtp.port","TeamChatBuddy.properties"));
+                props.put("mail.smtp.ssl.trust", app.getParamFromFile("mail.smtp.host","TeamChatBuddy.properties"));
 
                 Session session = Session.getInstance(props, new Authenticator() {
                     @Override
@@ -100,38 +133,22 @@ public class SmsSender {
                 MimeMessage message = new MimeMessage(session);
                 message.setFrom(new InternetAddress(smtpUser));
                 message.setRecipients(Message.RecipientType.TO,
-                        InternetAddress.parse("email2sms@ovh.net", false));
+                        InternetAddress.parse(app.getParamFromFile("ovh_mail","TeamChatBuddy.properties"), false));
                 message.setSubject(subject);
                 message.setText(body, "UTF-8");
 
                 Transport.send(message);
-                Log.i("AlertManager", "Email envoyé vers OVH email2sms");
+                Log.i(TAG, "Email envoyé vers OVH email2sms");
                 if (callback != null) callback.onSuccess();
 
             } catch (Exception e) {
-                Log.e("AlertManager", "Erreur envoi OVH: " + e.getMessage(), e);
+                Log.e(TAG, "Erreur envoi OVH: " + e.getMessage(), e);
                 if (callback != null) callback.onError(e);
             }
         }).start();
     }
 
-    @SuppressLint("MissingPermission")
-    private String getDevicePhoneNumber() {
-        try {
-            TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-            if (telephonyManager == null) return null;
-
-            String phoneNumber = telephonyManager.getLine1Number();
-            if (phoneNumber != null && !phoneNumber.isEmpty()) {
-                Log.i(TAG, "Numéro de téléphone détecté : " + phoneNumber);
-            } else {
-                Log.w(TAG, "Numéro de téléphone non disponible (retourne null ou vide)");
-            }
-            return phoneNumber;
-        } catch (Exception e) {
-            Log.e(TAG, "Erreur récupération numéro téléphone: " + e.getMessage(), e);
-            return null;
-        }
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        return phoneNumber != null && phoneNumber.matches("^\\+?[0-9]{8,15}$");
     }
-
 }

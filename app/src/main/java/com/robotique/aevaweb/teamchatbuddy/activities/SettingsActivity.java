@@ -819,20 +819,52 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         else{
             switchTrackingActivation.setChecked(false);
         }
+        Log.i("YAKINE", "____________________________________Tracking_Activation____________________________________");
         switchTrackingActivation.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             if(b){
+                Log.i("YAKINE", "____________________________________if(b){____________________________________");
                 teamChatBuddyApplication.setparam("Tracking_Activation","yes");
             }
             else{
+                Log.i("YAKINE", "____________________________________else{____________________________________");
                 teamChatBuddyApplication.setparam("Tracking_Activation","no");
             }
+            Log.i("YAKINE", "Tracking_Activation: "+teamChatBuddyApplication.getparam("Tracking_Activation"));
             if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                 menu_option_tracking_camera_display_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_head_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_body_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
-                menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                Log.i("YAKINE", "TRACKING_timeout_Switch: "+teamChatBuddyApplication.getparam("TRACKING_timeout_Switch"));
+                if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").contains("yes")){
+                    Log.i("YAKINE", "TRACKING_timeout_Switch: yes...");
+                    if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("yeshid")){
+                        Log.i("YAKINE", "TRACKING_timeout_Switch: yeshid...");
+                        menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                        switchTrackingTimeout.setVisibility(View.GONE);
+                    }
+                    else{
+                        Log.i("YAKINE", "TRACKING_timeout_Switch: else yeshid/yes VISIBLE...");
+                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                        switchTrackingTimeout.setVisibility(View.VISIBLE);
+                    }
+                }
+                else{
+                    Log.i("YAKINE", "TRACKING_timeout_Switch: no...");
+                    if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("nohid")){
+                        Log.i("YAKINE", "TRACKING_timeout_Switch: nohid...");
+                        menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                        switchTrackingTimeout.setVisibility(View.GONE);
+                    }
+                    else{
+                        Log.i("YAKINE", "TRACKING_timeout_Switch: nohid/no VISIBLE...");
+                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                        switchTrackingTimeout.setVisibility(View.VISIBLE);
+                    }
+                }
+
+
                 option_tracking_lyt.setVisibility(View.VISIBLE);
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                     menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
@@ -898,31 +930,10 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             teamChatBuddyApplication.setparam("Tracking_Invitation_ChatGpt",String.valueOf(b));
         });
         //Tracking Timeout
-        switchTrackingTimeout.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam("TRACKING_timeout")));
+        switchTrackingTimeout.setChecked(Boolean.parseBoolean(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch")));
         switchTrackingTimeout.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
-            teamChatBuddyApplication.setparam("TRACKING_timeout",String.valueOf(b));
+            teamChatBuddyApplication.setparam("TRACKING_timeout_Switch",String.valueOf(b));
         });
-
-        if(teamChatBuddyApplication.getparam("TRACKING_timeout").contains("yes")){
-            switchTrackingTimeout.setChecked(true);
-            if(teamChatBuddyApplication.getparam(commandeString).equals("yeshid")){
-                menu_option_commande_lyt.setVisibility(View.GONE);
-            }else{
-                menu_option_commande_lyt.setVisibility(View.VISIBLE);
-            }
-        }
-        else {
-            switchCommande.setChecked(false);
-            set.setSwitchCommande("false");
-            setting.setSwitchCommande("false");
-            teamChatBuddyApplication.setSwitchCommande("false");
-            if(teamChatBuddyApplication.getparam(commandeString).equals("nohid")){
-                menu_option_commande_lyt.setVisibility(View.GONE);
-            }else{
-                menu_option_commande_lyt.setVisibility(View.VISIBLE);
-            }
-        }
-
 
     }
 
@@ -1660,7 +1671,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.equals("Yes")){
+        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
             AlertManager.getInstance(this).stop();
         }
         if (!teamChatBuddyApplication.getInitSharedpreferences()){
@@ -1943,7 +1954,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                 AlertManager.getInstance(this).incremente("touch", this);
             }
             View v = getCurrentFocus();

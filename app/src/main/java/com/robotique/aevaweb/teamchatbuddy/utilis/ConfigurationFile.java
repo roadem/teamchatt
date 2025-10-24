@@ -218,7 +218,7 @@ public class ConfigurationFile {
             setProperty("Message_Timeout_NotRespected_en","It takes a little time, the connection is a bit slow./ohh! The internet is not very fast today/Just a moment, I'm connecting my circuits.");
 
             props.addPropertyComment("Display_of_speech","");
-            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No)");
+            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No/YesHid/NoHid)");
             //todo replace: Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No/YesHid/NoHid)
             setProperty("Display_of_speech","Yes"); //yesh
             setProperty("Activation_of_emotions","Yes");
@@ -227,7 +227,7 @@ public class ConfigurationFile {
             setProperty("Stimulis","No");
             setProperty("Commands", "No");
             setProperty("Tracking","No");
-            setProperty("TRACKING_timeout","No");
+            setProperty("TRACKING_timeout_Switch","No");
 
             props.addPropertyComment("Number_of_words","");
             props.addPropertyComment("Number_of_words","Minimum number of words in the response for activating language detection");
@@ -284,9 +284,15 @@ public class ConfigurationFile {
             setProperty("mail.smtp.host", "in-v3.mailjet.com");
             setProperty("mail.smtp.port", "587");
 
-            props.addPropertyComment("OVH_USER", "");
-            setProperty("OVH_USER", "");
-            setProperty("OVH_PASSWORD", "");
+            props.addPropertyComment("ovh_identifier", "");
+            props.addPropertyComment("ovh_identifier", "Unique identifier for the OVH Mail-to-SMS service");
+            setProperty("ovh_identifier", "sms-fb3019-2");
+            props.addPropertyComment("ovh_login", "OVH SMS account identifier (login)");
+            setProperty("ovh_login", "aeva");
+            setProperty("ovh_customer_password", "Aeva2025");
+            setProperty("ovh_mail", "email2sms@ovh.net");
+            props.addPropertyComment("ovh_num_sender", "Sender's number (international format).");
+            setProperty("ovh_num_sender", "");
 
             props.addPropertyComment("BlueMic_Disponibility", "");
             props.addPropertyComment("BlueMic_Disponibility", "BlueMic Availability (Yes/No)");
@@ -402,6 +408,7 @@ public class ConfigurationFile {
             setProperty("MLkit_timeout_in_seconds","60");
 
 
+
             //-------------------------- Alert & Tracking ---------------------------
             props.addPropertyComment("ALERT_ACTIVITY","");
             props.addPropertyComment("ALERT_ACTIVITY","Alert parameters");
@@ -411,23 +418,27 @@ public class ConfigurationFile {
             props.addPropertyComment("ALERT_DURATION", "Alert duration threshold in minutes before triggering inactivity alert");
             setProperty("ALERT_DURATION", "120");
 
-            props.addPropertyComment("ALERT_DAYS", "Days when alerts are active");
+            props.addPropertyComment("ALERT_DAYS", "Days of the week when alerts are active (e.g. Monday,Tuesday,...)");
             setProperty("ALERT_DAYS", "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday");
 
             props.addPropertyComment("ALERT_HOURS", "Time range for activating alerts (must be continuous within the same day, between 00:00 and 23:59, e.g. 08:00-20:00)");
             setProperty("ALERT_HOURS", "08:00-20:00");
 
+            props.addPropertyComment("ALERT_REPETITIONS", "Number of detections required to consider a presence/activity detection as valid.");
             setProperty("ALERT_REPETITIONS", "1");
+            props.addPropertyComment("ALERT_MAIL", "Email address of the user receiving the alert");
             setProperty("ALERT_MAIL", "");
+            props.addPropertyComment("ALERT_SMS", "Phone number of the user receiving the SMS alert");
             setProperty("ALERT_SMS", "");
 
             props.addPropertyComment("ALERT_TOOL", "Alert sending method: SMS, MAIL, or both (SMS/MAIL)");
             setProperty("ALERT_TOOL", "SMS/MAIL");
 
             props.addPropertyComment("ALERT_MSG", "Message template for inactivity alerts.");
-            setProperty("ALERT_MSG", "Hello from TeamChatBuddy,\n you have been inactive since [1] for [2] minutes");
-
+            setProperty("ALERT_MSG", "Hello from TeamChatBuddy, you have been inactive since [1] for [2] minutes");
+            props.addPropertyComment("TRACKING_MIN_DETECTION_DURATION", "Minimum duration (in seconds) to consider a presence/activity detection as valid");
             setProperty("TRACKING_MIN_DETECTION_DURATION", "3");
+
 
             //-------------------------- COMMAND PARAMETERS ---------------------------
 
@@ -477,7 +488,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Change-moi la langue en « Anglais »  (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague de type « global » options : (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
@@ -488,6 +499,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_44=Supprime l’image « oiseau bleu » <CMD_DEL_IMAGE oiseau_bleu>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_45=Envoie à « Pierre paul » le mail « voici mon message » <CMD_MAIL [Pierre-paul] [voici mon message]>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_46= Donne-moi les dernières informations (depuis 3 heures) <CMD_NEWS 3>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_47=Envoie à « Pierre paul » le sms « voici mon message » <CMD_SMS [Pierre-paul] [voici mon message]>");
 
             setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding commands enclosed in <> if they exist, separated by spaces. If no command matches, do not respond. Do not add any explanations or additional text. ");
 
@@ -538,6 +550,7 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_44=Delete the « blue bird » image < CMD_DEL_IMAGE blue_bird>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_45=Send to « Pierre paul » the email « here is my message »  <CMD_MAIL [Pierre-Paul] [here is my message]>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_46=Give me the latest news (from the past 3 hours) <CMD_NEWS 3>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_47=Send to « Pierre paul » the sms « here is my message »  <CMD_SMS [Pierre-Paul] [here is my message]>");
 
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila // Je n’arrive pas à générer la musique[1]" );
@@ -661,6 +674,10 @@ public class ConfigurationFile {
             setProperty("CMD_NEWS_fr","// Problème lors de la récupération des actualités " );
             setProperty("CMD_NEWS_en","// Problem retrieving news");
 
+
+            setProperty("CMD_SMS_fr", "Ok, je vais envoyer le SMS // Le SMS est envoyé // Erreur lors de l’envoi du SMS [1]");
+            setProperty("CMD_SMS_en", "Ok, I will send the SMS // The SMS has been sent // Error while sending the SMS [1]");
+
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
             setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");
             setProperty("HEADER","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
@@ -717,9 +734,8 @@ public class ConfigurationFile {
             props.addPropertyComment("JOKE_URL", "");
             setProperty("JOKE_URL_fr", "https://blague-api.vercel.app/");
             setProperty("JOKE_URL","https://v2.jokeapi.dev/joke/");
-            setProperty("JOKE_PROMPT_en", "If the joke has two parts, put joke_x_points dots between them, and tell the joke in your own way");
-            setProperty("JOKE_Model", "gpt-3.5-turbo");
-            setProperty("JOKE_X_points","20");
+            setProperty("pause_JOKE","3");
+            setProperty("JOKE_fr","Yes");
 
             props.addPropertyComment("NEWS_ARTICLE_BBC_id", " HTML selector of the news web page https://www.bbc.com/");
             setProperty("NEWS_ARTICLE_BBC_id","div.sc-666b6d83-0");
@@ -728,6 +744,9 @@ public class ConfigurationFile {
             setProperty("mail_pierre-paul","b.fache@teamnet.fr");
             setProperty("CMD_MAIL_subject_en","Email from TeamChatBuddy");
             setProperty("CMD_MAIL_subject_fr","Mail de TeamChatBuddy");
+
+            props.addPropertyComment("sms_pierre-paul", "");
+            setProperty("sms_pierre-paul","0605040908");
 
 
             //-------------------------- Tracking ---------------------------

@@ -421,7 +421,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             }
                         });
                     }
-                    else if (isFirstLaunch && (!teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties").isEmpty() || !teamChatBuddyApplication.getParamFromFile("Start_Message_fr","TeamChatBuddy.properties").isEmpty())){
+                    else if (isFirstLaunch && teamChatBuddyApplication.getParamFromFile("Start_Message","TeamChatBuddy.properties") !=null && (!teamChatBuddyApplication.getParamFromFile("Start_Message_en","TeamChatBuddy.properties").isEmpty() || !teamChatBuddyApplication.getParamFromFile("Start_Message_fr","TeamChatBuddy.properties").isEmpty())){
                        mlKitIsDownloading=true;
                         playStartMessage(new IStartMessageCallback() {
                             @Override
@@ -511,7 +511,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     }
 
                     if(isFirstLaunch)teamChatBuddyApplication.initAlert();
-                    if(teamChatBuddyApplication.isAlertActivated.equals("Yes")){
+                    if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
                         AlertManager.getInstance(MainActivity.this).start();
                     }
                     teamChatBuddyApplication.setparam("previousLanguage",new Gson().toJson(teamChatBuddyApplication.getLangue()));
@@ -803,8 +803,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     checkSelfPermission(REQUESTED_PERMISSIONS[5], PERMISSION_REQ_ID)
 
             ){
+                Log.i("MARIA", "init() onResume ");
                 init();
             }
+            Log.i("MARIA", "NOT init() onSDKReady ");
         }
     }
 
@@ -876,7 +878,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG," --- onDestroy() ---");
-        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.equals("Yes")){
+        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
             AlertManager.getInstance(this).stop();
         }
         closeImage();
@@ -929,6 +931,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         if (timerPeriodToDisplayQRCode!=null){
             timerPeriodToDisplayQRCode.cancel();
         }
+
+        if (Commande.radioPlayer != null)commande.CMD_STOP_RADIO();
+        if (Commande.musicPlayer != null)commande.CMD_STOP_MUSIC();
+
     }
 
     /**
@@ -978,9 +984,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     checkSelfPermission(REQUESTED_PERMISSIONS[5], PERMISSION_REQ_ID)
 
             ){
+                Log.i("MARIA", "init() onSDKReady ");
                 init();
             }
         }
+        Log.i("MARIA", "NOT init() onSDKReady ");
         onSdkReadyIsAlreadyCalledOnce = true;
     }
 
@@ -1016,7 +1024,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private final IUIFaceTouchCallback iuiFaceTouchCallback = new IUIFaceTouchCallback.Stub() {
         @Override
         public void onTouch(FaceTouchData faceTouchData) throws RemoteException {
-            if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                 AlertManager.getInstance(MainActivity.this).incremente("touch", MainActivity.this);
             }
 
@@ -1335,6 +1343,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
      */
     @Override
     public void update(String message) throws IOException {
+        Log.i("JBE_CMD", "update: "+message);
         if (message != null) {
 
             if (message.contains("CANCEL_RESPONSE_TIMEOUT")) {
@@ -1406,7 +1415,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+                        if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                             AlertManager.getInstance(MainActivity.this).incremente("hotword", MainActivity.this);
                         }
                         Log.e("TEST_HOT","hotword Success");
@@ -1513,7 +1522,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
                             }
                         }
-                        if(teamChatBuddyApplication.isAlertActivated.equals("Yes")){
+                        if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
                             AlertManager.getInstance(MainActivity.this).incremente("hotword", MainActivity.this);
                         }
                     }
@@ -3320,7 +3329,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     public void btnOpenSettings(View view) {
-        if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+        if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
             AlertManager.getInstance(MainActivity.this).incremente("touch", MainActivity.this);
         }
         // Réinitialiser le timeout précédent
@@ -3391,7 +3400,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     }
 
     public void btnOpenChat(View view) {
-        if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+        if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
             AlertManager.getInstance(MainActivity.this).incremente("touch", MainActivity.this);
         }
         if (runnableforClickBouton!=null){
@@ -3888,7 +3897,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         Log.i("MYA_ALERTE", "Présence validée après " + visibleDuration + "s → incrémentation activité tracking");
 
                         try {
-                            if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+                            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                                 AlertManager.getInstance(MainActivity.this).incremente("tracking", MainActivity.this); // activité confirmée
                             }
                         } catch (Exception ex) {
@@ -4083,7 +4092,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             if ( WATCHING_timeout!=0 && !regarde_camera && currentTime - lastLookingAtCameraTimeToCloseApp >= WATCHING_timeout * 1000L){
                 Log.i("Finiche","closed app ");
                 finishAffinity();
-                if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+                if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                     AlertManager.getInstance(MainActivity.this).stop();
                 }
                 System.exit(0);
@@ -4091,10 +4100,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             //#region Timer to exit the application
             Log.i("Finiche"," currentTime : "+currentTime+" /personDetectedTimeToCloseApp "+personDetectedTimeToCloseApp );
             Log.i("Finiche"," currentTime - personDetectedTimeToCloseApp : "+(currentTime - personDetectedTimeToCloseApp));
-            if (teamChatBuddyApplication.getparam("TRACKING_timeout").trim().contains("yes") && TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - personDetectedTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
+            if (teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").trim().contains("yes") && TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - personDetectedTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
                 Log.i("Finiche","closed app ");
                 finishAffinity();
-                if(teamChatBuddyApplication.isAlertActivated.equals("Yes")) {
+                if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
                     AlertManager.getInstance(MainActivity.this).stop();
                 }
                 System.exit(0);
