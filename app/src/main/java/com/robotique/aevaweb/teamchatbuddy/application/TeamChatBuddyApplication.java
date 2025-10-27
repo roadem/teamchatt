@@ -943,6 +943,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         this.listOfCommandmustToHavePlayed = listOfCommandmustToHavePlayed;
     }
 
+    public static final HashMap<String, Locale> supportedLocales = new HashMap<>();
+
     /**
      * initialisations
      */
@@ -1017,47 +1019,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             releaseGoogleAPI();
             initGoogleAPI();
         }
-        //fetchSupportedLanguages(this);
-        loadLocalesFromFile();
+
         notifyObservers("properties file done");
 
-        Log.e("NONO","------------------- START -------------------");
-        // Vérifier si la locale nb-NO est supportée
-        Locale norwegian = new Locale("nb", "NO");
-        boolean availability = speechRecognizerAvailability(norwegian);
-//                speechRecognizerAvailability(norwegian) :
-//                SpeechRecognizer.ERROR_NO_MATCH;
-        Log.e("NONO", String.valueOf(availability));
-        if (!availability) {
-            Toast.makeText(this, "La reconnaissance vocale en Norvégien n’est pas disponible sur cet appareil", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        // Initialiser SpeechRecognizer
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-
-        // Intent pour lancer la reconnaissance en Norvégien Bokmål
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "nb-NO");
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Snakk nå…"); // "Parlez maintenant…"
-
-        speechRecognizer.startListening(intent);
-        Log.e("YAKINE","------------------- END -------------------");
-
-
     }
-
-
-    // Vérifier si une Locale est supportée
-    private boolean speechRecognizerAvailability(Locale locale) {
-        ArrayList<Locale> supportedLocales = new ArrayList<>();
-        for (Locale loc : Locale.getAvailableLocales()) {
-            supportedLocales.add(loc);
-        }
-        return supportedLocales.contains(locale);
-    }
-
 
 
     public void initAlert(){
@@ -1587,13 +1552,17 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         //Tracking Timeout
         if (getparam("TRACKING_timeout_Switch").equals("")) {
-            if (getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("No")){
-                setparam("TRACKING_timeout_Switch", "false");
-            }
-            else {
-                setparam("TRACKING_timeout_Switch", "true");
-            }
+            setparam("TRACKING_timeout_Switch", getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().toLowerCase());
         }
+//        if (getparam("TRACKING_timeout_Switch").equals("")) {
+//            Log.i("YAKINE-app", "initTracking: getParamFromFile(\"TRACKING_timeout_Switch\",configurationFilePseudo) : "+getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo));
+//            if (getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("Yes") || getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("Yeshid")){
+//                setparam("TRACKING_timeout_Switch", "true");
+//            }
+//            else {
+//                setparam("TRACKING_timeout_Switch", "false");
+//            }
+//        }
     }
 
     public List<String> separator(String hotword) {
@@ -2930,68 +2899,32 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
 
 
-//    // Méthode pour récupérer la liste des langues supportées de manière dynamique
-//    public static void fetchSupportedLanguages(Context context) {
-//        Intent intent = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
-//
-//        // Recevoir la liste des langues supportées
-//        BroadcastReceiver receiver = new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context context, Intent intent) {
-//                Bundle results = getResultExtras(true);
-//                if (results != null && results.containsKey(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES)) {
-//                    supportedLanguages = results.getStringArrayList(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES);
-//                    Log.d("MYA GoogleSTT", "Langues supportées : " + supportedLanguages);
-//                }
-//                context.unregisterReceiver(this);  // Se désinscrire après réception des résultats
-//            }
-//        };
-//
-//        // Enregistrer le receiver pour recevoir les résultats
-//        context.registerReceiver(receiver, new IntentFilter(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS));
-//
-//        // Envoyer l'Intent pour récupérer les langues
-//        context.sendOrderedBroadcast(intent, null);
-//    }
-//    public static Locale getLocale(String language){//todo : à corriger aussi changer le nom
-//        String normalizedLanguage = language.replace("-", "_").toLowerCase();
-//
-////        Locale[] locales = Locale.getAvailableLocales();  //vérifier seulement si supporter par device
-////        String normalizedLanguage = language.replace("-", "_").toLowerCase();
-//        for (String supportedLanguage  : supportedLanguages) {
-//            if (supportedLanguage.toString().toLowerCase().equals(normalizedLanguage)) {
-//                Log.w("MYA GoogleSTT", "getLocale(" + normalizedLanguage + ") result : " + supportedLanguage);
-//                // Extraire la langue et le pays (par exemple "en-US" => Locale("en", "US"))
-//                return new Locale(supportedLanguage.split("-")[0], supportedLanguage.split("-")[1]);
-//            }
-//        }
-//
-//        Log.e("MYA GoogleSTT","getLocale("+normalizedLanguage+") result : null");
-//
-//        return Locale.ENGLISH;
-//    }
-//    public static Locale getLocale(String language){//todo : à corriger aussi changer le nom
+    public Locale getGoogleSTTLang(String languageCode) {
+        if (languageCode == null || languageCode.isEmpty()) {
+            Log.e("MYA GoogleSTT", "getLocale() : languageCode est nul ou vide");
+            return Locale.ENGLISH;
+        }
+        String normalizedCode = languageCode;
 
-    public static Locale getLocale(String language){//todo
-
-        Locale[] locales = Locale.getAvailableLocales();
-        String normalizedLanguage = language.replace("-", "_").toLowerCase();
-        for (Locale locale : locales) {
-            if (locale.toString().toLowerCase().equals(normalizedLanguage)) {
-                Log.w("GoogleSTT","getLocale("+normalizedLanguage+") result : " + locale);
-                return locale;
+        Log.e("MYA GoogleSTT", "getLocale() : languageCode pas nul ni vide");
+        // Recherche exacte dans les locales supportées
+        for (Map.Entry<String, Locale> entry : supportedLocales.entrySet()) {
+            String key = entry.getKey();
+            if (key.equals(normalizedCode)) {
+                Log.w("MYA GoogleSTT", "getLocale(" + normalizedCode + ") result : " + entry.getValue());
+                return entry.getValue();
             }
         }
 
-        Log.e("GoogleSTT","getLocale("+normalizedLanguage+") result : null");
-
+        // Si non trouvée
+        Log.e("MYA GoogleSTT", "getLocale(" + normalizedCode + ") result : null");
         return Locale.ENGLISH;
     }
 
     public void initGoogleAPI() {
         Log.w("GoogleSTT","initGoogleAPI");
         try {
-
+            FetchLangGoogleCloudSTT();
             Locale localeLanguage;
             List<String> langueCode = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_STT");
             String language = langueCode.get(getLangue().getId()-1);
@@ -3000,14 +2933,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 localeLanguage= null;
             }
             else {
-                localeLanguage=getLocale(language);
-
-                //todo verify if supported by google api or not
+                localeLanguage=getGoogleSTTLang(language);
             }
             Log.e("MYA GoogleSTT","localeLanguage=  "+localeLanguage);
-            Log.e("MYA GoogleSTT","new Locale(\"fr\", \"FR\")=  "+new Locale("fr", "FR"));
             googleSTT = new GoogleSTT(getParamFromFile("ApiGoogle_Key",configurationFilePseudo), localeLanguage);
-            //googleSTT = new GoogleSTT(getParamFromFile("ApiGoogle_Key",configurationFilePseudo), new Locale("fr", "FR"));
 
             googleSTTCallbacks = new GoogleSTTCallbacks() {
                 @Override
@@ -5370,10 +5299,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
     }
 
-
-    public static final HashMap<String, Locale> supportedLocales = new HashMap<>();
-
-    public void loadLocalesFromFile() {
+    public void FetchLangGoogleCloudSTT() {
 
         try {
             // Open file from assets

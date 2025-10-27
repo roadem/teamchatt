@@ -55,6 +55,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Set;
 import java.util.HashSet;
@@ -3159,18 +3160,21 @@ public class Commande {
 
                     String finalUrl = joke_url + "api?mode=" + URLEncoder.encode(description, "UTF-8");
                     HttpResponse httpResponse = HttpClientUtils.sendGet(finalUrl, null, 50000);
-                    Log.i("joke_check", "Envoi Http ");
+                    Log.i("joke_check", "Envoi Http "+finalUrl);
+                    Log.i("joke_check", "httpResponse "+httpResponse);
+                    Log.i("joke_check", "httpResponse.responseCode "+httpResponse.responseCode);
+
 
                     if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300 && httpResponse.body != null) {
                         try {
-                            int x_points = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("JOKE_X_points", configFile));
+                            //int x_points = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("JOKE_X_points", configFile));
 
                             Log.i("joke_check", "pause_joke = "+ pause_joke);
                             // Parsing du JSON reçu
                             JsonObject jsonObject = JsonParser.parseString(httpResponse.body).getAsJsonObject();
                             String joke = jsonObject.get("blague").getAsString();
                             String jokeResponse = jsonObject.get("reponse").getAsString();
-                            String points = new String(new char[x_points]).replace("\0", ".");
+                            //String points = new String(new char[x_points]).replace("\0", ".");
 
                             Log.i("joke_check","joke "+ joke+" \n response "+jokeResponse);
                             teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;"+joke);
@@ -3211,7 +3215,7 @@ public class Commande {
 
                                     },2000);}
 
-                            },(1000 * pause_joke)+5000);
+                            },(1000 * pause_joke)+4000);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -3295,15 +3299,20 @@ public class Commande {
             String joke_url = teamChatBuddyApplication.getParamFromFile("JOKE_URL",configFile);
             if(joke_url == null || joke_url.isEmpty()) joke_url = "https://v2.jokeapi.dev/joke/";
 
-            if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
+            fullUrl = joke_url + description + "?lang=" + lang + "&blacklistFlags=" + blacklistFlags + "&type=twopart";
+
+            if(teamChatBuddyApplication.getLangue().getNom().equals("Français")) {
                 fullUrl = joke_url + "Any?lang=" + lang + "&blacklistFlags=" + blacklistFlags + "&type=twopart";
-            } else {
-                fullUrl = joke_url + description + "&lang=" + lang + "?blacklistFlags=" + blacklistFlags + "&type=twopart";
             }
+            if(teamChatBuddyApplication.getLangue().getNom().equals("Anglais")) {
+                fullUrl = joke_url + description +  "?blacklistFlags=" + blacklistFlags + "&type=twopart";
+            }
+
             Log.i("joke_check", "fullUrl : "+fullUrl);
+            String finalFullUrl = fullUrl;
             new Thread(() -> {
                 try {
-                    HttpResponse result = HttpClientUtils.sendGet(fullUrl, null, 50000);
+                    HttpResponse result = HttpClientUtils.sendGet(finalFullUrl, null, 50000);
 
                     int httpCode = result.responseCode;
                     String body = result.body;
@@ -3363,7 +3372,7 @@ public class Commande {
 
                                         },2000);}
 
-                                },(1000 * pause_joke)+5000);
+                                },(1000 * pause_joke)+4000);
 
                             } else {
                                 translate("CMD_JOKE", translatedText -> {

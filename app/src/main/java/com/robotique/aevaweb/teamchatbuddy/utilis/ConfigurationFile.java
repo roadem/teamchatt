@@ -175,8 +175,8 @@ public class ConfigurationFile {
             props.addPropertyComment("Number_clicks_options","Number of clicks to open options");
             setProperty("Number_clicks_options","1");
 
-            props.addPropertyComment("Start_Message","");
-            props.addPropertyComment("Start_Message","Activates or deactivates the message spoken at the app's startup (Yes/No)");
+            props.addPropertyComment("Start_Message_fr","");
+            props.addPropertyComment("Start_Message_fr","Activates or deactivates the message spoken at the app's startup (Yes/No)");
             setProperty("Start_Message_fr","Bonjour je suis le robot Buddy de Blue Frog Robotics.");
             setProperty("Start_Message_en","Hello, I am Buddy, the robot from Blue Frog Robotics.");
             props.addPropertyComment("Listening_time","");
@@ -198,8 +198,8 @@ public class ConfigurationFile {
             setProperty("Languages_available","Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
             setProperty("Language_Code_Used_In_STT_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/cmn-Hans-CN/da-DK/nl-NL/no-NO");
             setProperty("Language_Code_Used_In_TTS_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
-            setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh/da-DK/nl-NL/nb-NO");
-            setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/nb-NO");
+            setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh/da-DK/nl-NL/no-NO");
+            setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/no-NO");
             setProperty("Language_Code_Used_In_Whisper","fr/en/es/de/it/ja/ar/zh/da/nl/no");
             setProperty("Language_Code_Used_In_Mlkit","fr/en/es/de/it/ja/ar/zh/da/nl/no");
             setProperty("Readspeaker_voices","roxane/kate/manuel/max/elisa/show/amir/ / /guus/");
@@ -218,15 +218,22 @@ public class ConfigurationFile {
             setProperty("Message_Timeout_NotRespected_en","It takes a little time, the connection is a bit slow./ohh! The internet is not very fast today/Just a moment, I'm connecting my circuits.");
 
             props.addPropertyComment("Display_of_speech","");
-            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No/YesHid/NoHid)");
-            //todo replace: Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No/YesHid/NoHid)
-            setProperty("Display_of_speech","Yes"); //yesh
-            setProperty("Activation_of_emotions","Yes");
-            setProperty("Language_detection","Yes");
-            setProperty("Stream_mode","Yes");
-            setProperty("Stimulis","No");
+            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands , tracking and tracking timeout (Yes/No/YesHid/NoHid)");
+            props.addPropertyComment("Display_of_speech", "Activate visibility of the ongoing conversation in the user interface.");
+            setProperty("Display_of_speech", "Yes");
+            props.addPropertyComment("Activation_of_emotions", "Enables emotion recognition in user speech input for contextual responses.");
+            setProperty("Activation_of_emotions", "Yes");
+            props.addPropertyComment("Language_detection", "Activates automatic detection of the user’s spoken language.");
+            setProperty("Language_detection", "Yes");
+            props.addPropertyComment("Stream_mode", "Enables real-time response streaming during interaction.");
+            setProperty("Stream_mode", "Yes");
+            props.addPropertyComment("Stimulis", "Activates the Buddy stimulus engine for generating dynamic reactions.");
+            setProperty("Stimulis", "No");
+            props.addPropertyComment("Commands", "Enables recognition and execution of user command phrases.");
             setProperty("Commands", "No");
-            setProperty("Tracking","No");
+            props.addPropertyComment("Tracking", "Activates user tracking.");
+            setProperty("Tracking", "No");
+            props.addPropertyComment("TRACKING_timeout_Switch","Activates a timeout period when no user is detected.");
             setProperty("TRACKING_timeout_Switch","No");
 
             props.addPropertyComment("Number_of_words","");
@@ -377,8 +384,8 @@ public class ConfigurationFile {
             props.addPropertyComment("header", "gpt-3.5-turbo : maximum_tokens = 4096");
             props.addPropertyComment("header", "gpt-4 : maximum_tokens = 8192");
 
-            props.addPropertyComment("Chatgpt_header", "");
-            props.addPropertyComment("Chatgpt_header","Customization of ChatGPT dialogues");
+            props.addPropertyComment("Chatgpt_Header_en", "");
+            props.addPropertyComment("Chatgpt_Header_en","Customization of ChatGPT dialogues");
             setProperty("Chatgpt_Header_en","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
             setProperty("Chatgpt_Header_fr","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
 
@@ -389,10 +396,10 @@ public class ConfigurationFile {
             setProperty("CustomGPT_ApiEndpoint_SessionID","/api/v1/projects/{project_id}/conversations");
             setProperty("CustomGPT_model","gpt-4-turbo");
 
-            props.addPropertyComment("CustomGPT_header", "");
-            props.addPropertyComment("CustomGPT_header","Customization of CustomGPT dialogues");
-            setProperty("CustomGPT_header_en","" );  //todo CustomGPT_header_en
-            setProperty("CustomGPT_header_fr","");  //todo CustomGPT_header_fr
+            props.addPropertyComment("CustomGPT_header_en", "");
+            props.addPropertyComment("CustomGPT_header_en","Customization of CustomGPT dialogues");
+            setProperty("CustomGPT_header_en","" );
+            setProperty("CustomGPT_header_fr","");
 
             props.addPropertyComment("Response_format_fr","");
             props.addPropertyComment("Response_format_fr","Response_format_fr and Response_format_en specify response formats in French and English.");
@@ -418,7 +425,7 @@ public class ConfigurationFile {
             props.addPropertyComment("ALERT_DURATION", "Alert duration threshold in minutes before triggering inactivity alert");
             setProperty("ALERT_DURATION", "120");
 
-            props.addPropertyComment("ALERT_DAYS", "Days of the week when alerts are active (e.g. Monday,Tuesday,...)");
+            props.addPropertyComment("ALERT_DAYS", "Days of the week when alerts are active (Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday)");
             setProperty("ALERT_DAYS", "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday");
 
             props.addPropertyComment("ALERT_HOURS", "Time range for activating alerts (must be continuous within the same day, between 00:00 and 23:59, e.g. 08:00-20:00)");
@@ -428,7 +435,7 @@ public class ConfigurationFile {
             setProperty("ALERT_REPETITIONS", "1");
             props.addPropertyComment("ALERT_MAIL", "Email address of the user receiving the alert");
             setProperty("ALERT_MAIL", "");
-            props.addPropertyComment("ALERT_SMS", "Phone number of the user receiving the SMS alert");
+            props.addPropertyComment("ALERT_SMS", "Phone number of the user receiving the SMS alert (international format)");
             setProperty("ALERT_SMS", "");
 
             props.addPropertyComment("ALERT_TOOL", "Alert sending method: SMS, MAIL, or both (SMS/MAIL)");
@@ -488,7 +495,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Change-moi la langue en « Anglais »  (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague de type « global » options : (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte une blague (ou fais-moi rire) — options : (global/dev/limit/beauf/blondes) <CMD_JOKE global|dev|limit|beauf|blondes>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");

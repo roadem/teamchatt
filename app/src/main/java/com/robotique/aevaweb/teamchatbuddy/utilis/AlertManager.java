@@ -156,6 +156,8 @@ public class AlertManager {
                     Log.e("AlertManager_App", "translatedText exception  " + e);
                 }
             });
+            stop();
+            start();
             return;
         }
 
@@ -173,6 +175,8 @@ public class AlertManager {
                     Log.e("AlertManager_App", "translatedText exception  " + e);
                 }
             });
+            stop();
+            start();
             return;
         }
 
@@ -295,6 +299,7 @@ public class AlertManager {
             }
 
             Log.i("AlertManager_time", "Plage horaire effective : start=" + startTime + " end=" + endTime);
+            Log.i("AlertManager_time", String.valueOf(!now.isBefore(startTime) && !now.isAfter(endTime)));
 
             // Vérifie si l’heure actuelle est dans la plage
             return !now.isBefore(startTime) && !now.isAfter(endTime);

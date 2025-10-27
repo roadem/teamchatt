@@ -777,7 +777,20 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_activation_lyt.setVisibility(View.VISIBLE);
-                menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").contains("yes")){
+                    switchTrackingTimeout.setChecked(true);
+                    if(!teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("yeshid")){
+                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                    }
+                    else menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                }
+                else{
+                    switchTrackingTimeout.setChecked(false);
+                    if(!teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("nohid")){
+                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                    }
+                    else menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                }
                 option_tracking_lyt.setVisibility(View.VISIBLE);
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                     menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
@@ -822,46 +835,28 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         Log.i("YAKINE", "____________________________________Tracking_Activation____________________________________");
         switchTrackingActivation.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             if(b){
-                Log.i("YAKINE", "____________________________________if(b){____________________________________");
                 teamChatBuddyApplication.setparam("Tracking_Activation","yes");
             }
             else{
-                Log.i("YAKINE", "____________________________________else{____________________________________");
                 teamChatBuddyApplication.setparam("Tracking_Activation","no");
             }
-            Log.i("YAKINE", "Tracking_Activation: "+teamChatBuddyApplication.getparam("Tracking_Activation"));
             if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                 menu_option_tracking_camera_display_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_head_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_body_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
-                Log.i("YAKINE", "TRACKING_timeout_Switch: "+teamChatBuddyApplication.getparam("TRACKING_timeout_Switch"));
-                if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").contains("yes")){
-                    Log.i("YAKINE", "TRACKING_timeout_Switch: yes...");
-                    if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("yeshid")){
-                        Log.i("YAKINE", "TRACKING_timeout_Switch: yeshid...");
-                        menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
-                        switchTrackingTimeout.setVisibility(View.GONE);
-                    }
-                    else{
-                        Log.i("YAKINE", "TRACKING_timeout_Switch: else yeshid/yes VISIBLE...");
-                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
-                        switchTrackingTimeout.setVisibility(View.VISIBLE);
-                    }
+                Log.i("YAKINE", "TRACKING_timeout_Switch sharedpref: "+teamChatBuddyApplication.getparam("TRACKING_timeout_Switch"));
+                Log.i("YAKINE", "TRACKING_timeout_Switch config: "+teamChatBuddyApplication.getParamFromFile("TRACKING_timeout_Switch","TeamChatBuddy.properties"));
+                if(teamChatBuddyApplication.getParamFromFile("TRACKING_timeout_Switch","TeamChatBuddy.properties").trim().toLowerCase().contains("hid")){
+                    Log.i("YAKINE", "TRACKING_timeout_Switch: hid...");
+                    menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                    switchTrackingTimeout.setVisibility(View.GONE);
                 }
                 else{
-                    Log.i("YAKINE", "TRACKING_timeout_Switch: no...");
-                    if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("nohid")){
-                        Log.i("YAKINE", "TRACKING_timeout_Switch: nohid...");
-                        menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
-                        switchTrackingTimeout.setVisibility(View.GONE);
-                    }
-                    else{
-                        Log.i("YAKINE", "TRACKING_timeout_Switch: nohid/no VISIBLE...");
-                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
-                        switchTrackingTimeout.setVisibility(View.VISIBLE);
-                    }
+                    Log.i("YAKINE", "TRACKING_timeout_Switch: show...");
+                    menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                    switchTrackingTimeout.setVisibility(View.VISIBLE);
                 }
 
 
