@@ -38,7 +38,9 @@ public class SmsSender {
 
     public SmsSender(Context context) {
         this.context = context;
+        this.app = (TeamChatBuddyApplication) context.getApplicationContext();
     }
+
 
     /**
      * Méthode principale :
@@ -58,10 +60,10 @@ public class SmsSender {
                 if (callback != null) callback.onError(e);
             }
         } else {
-            String ovh_identifier = app.getParamFromFile("ovh_identifier", "TeamChatBuddy.properties");
-            String ovh_login = app.getParamFromFile("ovh_login", "TeamChatBuddy.properties");
-            String ovh_customer_password = app.getParamFromFile("ovh_customer_password", "TeamChatBuddy.properties");
-            String phoneSender = app.getParamFromFile("OVH_NUM_SENDER", "TeamChatBuddy.properties");
+            String ovh_identifier = app.getParamFromFile("ovh_identifier", "TeamChatBuddy.properties").trim();
+            String ovh_login = app.getParamFromFile("ovh_login", "TeamChatBuddy.properties").trim();
+            String ovh_customer_password = app.getParamFromFile("ovh_customer_password", "TeamChatBuddy.properties").trim();
+            String phoneSender = app.getParamFromFile("OVH_NUM_SENDER", "TeamChatBuddy.properties").trim();
             Log.w("AlertManager", "Aucune carte SIM détectée — envoi via OVH email2sms to: "+ovh_identifier+":"+ovh_login+":"+ovh_customer_password+":" + phoneSender + ":" + phoneNumber);
             sendEmailToSms(ovh_identifier+":"+ovh_login+":"+ovh_customer_password+":" + phoneSender + ":" + phoneNumber, smsText, callback);
         }
@@ -119,9 +121,9 @@ public class SmsSender {
                 Properties props = new Properties();
                 props.put("mail.smtp.auth", "true");
                 props.put("mail.smtp.starttls.enable", "true");
-                props.put("mail.smtp.host", app.getParamFromFile("mail.smtp.host","TeamChatBuddy.properties"));
-                props.put("mail.smtp.port", app.getParamFromFile("mail.smtp.port","TeamChatBuddy.properties"));
-                props.put("mail.smtp.ssl.trust", app.getParamFromFile("mail.smtp.host","TeamChatBuddy.properties"));
+                props.put("mail.smtp.host", app.getParamFromFile("mail.smtp.host","TeamChatBuddy.properties").trim());
+                props.put("mail.smtp.port", app.getParamFromFile("mail.smtp.port","TeamChatBuddy.properties").trim());
+                props.put("mail.smtp.ssl.trust", app.getParamFromFile("mail.smtp.host","TeamChatBuddy.properties").trim());
 
                 Session session = Session.getInstance(props, new Authenticator() {
                     @Override
@@ -138,8 +140,10 @@ public class SmsSender {
                 message.setText(body, "UTF-8");
 
                 Transport.send(message);
-                Log.i(TAG, "Email envoyé vers OVH email2sms");
-                if (callback != null) callback.onSuccess();
+                if (callback != null) {
+                    callback.onSuccess();
+                    Log.i(TAG, "Email envoyé vers OVH email2sms");
+                }
 
             } catch (Exception e) {
                 Log.e(TAG, "Erreur envoi OVH: " + e.getMessage(), e);
