@@ -169,11 +169,9 @@ public class ConfigurationFile {
             setProperty("hotword_fr", "ok buddy/hello/bonjour/salut/bonsoir/écoute/écoute-moi");
             setProperty("hotword_en","okay buddy/hello/good morning/good evening/listen/listen to me");
 
-            props.addPropertyComment("Options_Access", "");
-            props.addPropertyComment("Options_Access","Options Access (Yes/No)");
-            setProperty("Options_Access","Yes");
+            props.addPropertyComment("Number_clicks_options", "");
             props.addPropertyComment("Number_clicks_options","Number of clicks to open options (0 invisible)");
-            setProperty("Number_clicks_options","1");
+            setProperty("Number_clicks_options","0");
 
             props.addPropertyComment("Start_Message_fr","");
             props.addPropertyComment("Start_Message_fr","Activates or deactivates the message spoken at the app's startup (Yes/No)");
@@ -182,7 +180,7 @@ public class ConfigurationFile {
             props.addPropertyComment("Listening_time","");
             props.addPropertyComment("Listening_time","Maximum listening time (seconds) and number of successive listens");
             setProperty("Listening_time","10");
-            setProperty("Number_listens","1");
+            setProperty("Number_listens","0");
 
             props.addPropertyComment("Displaying_QRCode_period","");
             props.addPropertyComment("Displaying_QRCode_period","Period for displaying the QRCode in seconds");

@@ -1173,17 +1173,18 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     buddy_texte_qst.setMovementMethod(null);
                                     buddy_texte_resp.setMovementMethod(null);
                                 }
-                                if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null &&
-                                        teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
-                                    if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null &&
-                                    Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties"))!=0){
+                                if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null ){
+                                    String Number_clicks_options = teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties");
+                                    if(Number_clicks_options.equals("")||Integer.parseInt(Number_clicks_options)<=0){
+                                        lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+                                    }
+                                    else{
                                         lyt_open_menu_settings.setVisibility(View.VISIBLE);
                                     }
-                                    else if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")==null){
-                                        lyt_open_menu_settings.setVisibility(View.VISIBLE);
-                                    }
-
+                                }else {
+                                    lyt_open_menu_settings.setVisibility(View.INVISIBLE);
                                 }
+
                                 lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                 try {
                                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
@@ -1544,13 +1545,16 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
                         buddy_texte_qst.setMovementMethod(null);
                         buddy_texte_resp.setMovementMethod(null);
-                        if (teamChatBuddyApplication.getParamFromFile("Options_Access", "TeamChatBuddy.properties") != null && teamChatBuddyApplication.getParamFromFile("Options_Access", "TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")) {
-                            if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options", "TeamChatBuddy.properties") != null &&
-                                    Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options", "TeamChatBuddy.properties")) != 0) {
-                                lyt_open_menu_settings.setVisibility(View.VISIBLE);
-                            } else if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options", "TeamChatBuddy.properties") == null) {
+                        if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null ){
+                            String Number_clicks_options = teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties");
+                            if(Number_clicks_options.equals("")||Integer.parseInt(Number_clicks_options)<=0){
+                                lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+                            }
+                            else{
                                 lyt_open_menu_settings.setVisibility(View.VISIBLE);
                             }
+                        }else {
+                            lyt_open_menu_settings.setVisibility(View.INVISIBLE);
                         }
                         lyt_open_menu_chat.setVisibility(View.VISIBLE);
                         isSpeaking = false;
@@ -1634,15 +1638,18 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
                                             buddy_texte_qst.setMovementMethod(null);
                                             buddy_texte_resp.setMovementMethod(null);
-                                            if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
-                                                if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null &&
-                                                        Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties"))!=0){
+                                            if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null ){
+                                                String Number_clicks_options = teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties");
+                                                if(Number_clicks_options.equals("")||Integer.parseInt(Number_clicks_options)<=0){
+                                                    lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+                                                }
+                                                else{
                                                     lyt_open_menu_settings.setVisibility(View.VISIBLE);
                                                 }
-                                                else if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")==null){
-                                                    lyt_open_menu_settings.setVisibility(View.VISIBLE);
-                                                }
+                                            }else {
+                                                lyt_open_menu_settings.setVisibility(View.INVISIBLE);
                                             }
+
                                             lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                             isSpeaking =false;
                                             if(iInvitationCallback != null) iInvitationCallback.onEnd("INVITATION_END");
@@ -1730,14 +1737,16 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                     buddy_texte_resp_lyt.setVisibility(View.INVISIBLE);
                                                     buddy_texte_qst.setMovementMethod(null);
                                                     buddy_texte_resp.setMovementMethod(null);
-                                                    if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
-                                                        if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null &&
-                                                                Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties"))!=0){
+                                                    if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null ){
+                                                        String Number_clicks_options = teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties");
+                                                        if(Number_clicks_options.equals("")||Integer.parseInt(Number_clicks_options)<=0){
+                                                            lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+                                                        }
+                                                        else{
                                                             lyt_open_menu_settings.setVisibility(View.VISIBLE);
                                                         }
-                                                        else if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")==null){
-                                                            lyt_open_menu_settings.setVisibility(View.VISIBLE);
-                                                        }
+                                                    }else {
+                                                        lyt_open_menu_settings.setVisibility(View.INVISIBLE);
                                                     }
                                                     lyt_open_menu_chat.setVisibility(View.VISIBLE);
                                                     isSpeaking =false;
@@ -1960,15 +1969,18 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     buddy_texte_qst.setMovementMethod(null);
                     buddy_texte_resp.setMovementMethod(null);
                 }
-                if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
-                    if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null &&
-                            Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties"))!=0){
+                if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null ){
+                    String Number_clicks_options = teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties");
+                    if(Number_clicks_options.equals("")||Integer.parseInt(Number_clicks_options)<=0){
+                        lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+                    }
+                    else{
                         lyt_open_menu_settings.setVisibility(View.VISIBLE);
                     }
-                    else if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")==null){
-                        lyt_open_menu_settings.setVisibility(View.VISIBLE);
-                    }
+                }else {
+                    lyt_open_menu_settings.setVisibility(View.INVISIBLE);
                 }
+
                 lyt_open_menu_chat.setVisibility(View.VISIBLE);
                 try {
                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
@@ -2512,16 +2524,15 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private void getData(){
 
         //Visibility of Settings button
-        if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
-            if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null &&
-                    Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties"))!=0){
+        if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null ){
+            String Number_clicks_options = teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties");
+            if(Number_clicks_options.equals("")||Integer.parseInt(Number_clicks_options)<=0){
+                lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+            }
+            else{
                 lyt_open_menu_settings.setVisibility(View.VISIBLE);
             }
-            else if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")==null){
-                lyt_open_menu_settings.setVisibility(View.VISIBLE);
-            }
-        }
-        else {
+        }else {
             lyt_open_menu_settings.setVisibility(View.INVISIBLE);
         }
         //init Settings
@@ -4620,14 +4631,16 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 buddy_texte_qst.setMovementMethod(null);
                                 buddy_texte_resp.setMovementMethod(null);
                             }
-                            if (teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties")!=null && teamChatBuddyApplication.getParamFromFile("Options_Access","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
-                                if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null &&
-                                        Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties"))!=0){
+                            if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")!=null ){
+                                String Number_clicks_options = teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties");
+                                if(Number_clicks_options.equals("")||Integer.parseInt(Number_clicks_options)<=0){
+                                    lyt_open_menu_settings.setVisibility(View.INVISIBLE);
+                                }
+                                else{
                                     lyt_open_menu_settings.setVisibility(View.VISIBLE);
                                 }
-                                else if (teamChatBuddyApplication.getParamFromFile("Number_clicks_options","TeamChatBuddy.properties")==null){
-                                    lyt_open_menu_settings.setVisibility(View.VISIBLE);
-                                }
+                            }else {
+                                lyt_open_menu_settings.setVisibility(View.INVISIBLE);
                             }
                             lyt_open_menu_chat.setVisibility(View.VISIBLE);
                             try {
