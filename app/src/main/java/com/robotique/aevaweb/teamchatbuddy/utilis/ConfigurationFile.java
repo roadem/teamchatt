@@ -745,6 +745,7 @@ public class ConfigurationFile {
             setProperty("CMD_MAIL_subject_fr","Mail de TeamChatBuddy");
 
             props.addPropertyComment("sms_pierre-paul", "");
+            props.addPropertyComment("sms_pierre-paul", "Phone number to receive sms (international format)");
             setProperty("sms_pierre-paul","0605040908");
 
 
