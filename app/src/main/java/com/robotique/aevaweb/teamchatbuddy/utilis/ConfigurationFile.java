@@ -174,7 +174,7 @@ public class ConfigurationFile {
             setProperty("Number_clicks_options","0");
 
             props.addPropertyComment("Start_Message_fr","");
-            props.addPropertyComment("Start_Message_fr","Activates or deactivates the message spoken at the app's startup (Yes/No)");
+            props.addPropertyComment("Start_Message_fr","Activates or deactivates the message spoken at the app's startup");
             setProperty("Start_Message_fr","Bonjour je suis le robot Buddy de Blue Frog Robotics.");
             setProperty("Start_Message_en","Hello, I am Buddy, the robot from Blue Frog Robotics.");
             props.addPropertyComment("Listening_time","");
