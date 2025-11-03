@@ -1551,18 +1551,15 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
         }
         //Tracking Timeout
-        if (getparam("TRACKING_timeout_Switch").equals("")) {
-            setparam("TRACKING_timeout_Switch", getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().toLowerCase());
+        if (!getparam("TRACKING_timeout_Switch").equals("")) {
+            if (getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("No")){
+                setparam("TRACKING_timeout_Switch", "false");
+            }
+            else {
+                setparam("TRACKING_timeout_Switch", "true");
+            }
         }
-//        if (getparam("TRACKING_timeout_Switch").equals("")) {
-//            Log.i("YAKINE-app", "initTracking: getParamFromFile(\"TRACKING_timeout_Switch\",configurationFilePseudo) : "+getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo));
-//            if (getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("Yes") || getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("Yeshid")){
-//                setparam("TRACKING_timeout_Switch", "true");
-//            }
-//            else {
-//                setparam("TRACKING_timeout_Switch", "false");
-//            }
-//        }
+        else setparam("TRACKING_timeout_Switch", "false");
     }
 
     public List<String> separator(String hotword) {
