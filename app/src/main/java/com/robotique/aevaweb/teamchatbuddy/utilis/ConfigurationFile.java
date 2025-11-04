@@ -171,16 +171,16 @@ public class ConfigurationFile {
 
             props.addPropertyComment("Number_clicks_options", "");
             props.addPropertyComment("Number_clicks_options","Number of clicks to open options (0 invisible)");
-            setProperty("Number_clicks_options","0");
+            setProperty("Number_clicks_options","1");
 
             props.addPropertyComment("Start_Message_fr","");
-            props.addPropertyComment("Start_Message_fr","Activates or deactivates the message spoken at the app's startup");
+            props.addPropertyComment("Start_Message_fr","Message spoken at the app's startup");
             setProperty("Start_Message_fr","Bonjour je suis le robot Buddy de Blue Frog Robotics.");
             setProperty("Start_Message_en","Hello, I am Buddy, the robot from Blue Frog Robotics.");
             props.addPropertyComment("Listening_time","");
             props.addPropertyComment("Listening_time","Maximum listening time (seconds) and number of successive listens");
             setProperty("Listening_time","10");
-            setProperty("Number_listens","0");
+            setProperty("Number_listens","1");
 
             props.addPropertyComment("Displaying_QRCode_period","");
             props.addPropertyComment("Displaying_QRCode_period","Period for displaying the QRCode in seconds");
@@ -216,7 +216,7 @@ public class ConfigurationFile {
             setProperty("Message_Timeout_NotRespected_en","It takes a little time, the connection is a bit slow./ohh! The internet is not very fast today/Just a moment, I'm connecting my circuits.");
 
             props.addPropertyComment("Display_of_speech","");
-            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands , tracking and tracking timeout (Yes/No/YesHid/NoHid)");
+            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No/YesHid/NoHid)");
             setProperty("Display_of_speech", "Yes");
             setProperty("Activation_of_emotions", "Yes");
             setProperty("Language_detection", "Yes");
@@ -225,7 +225,7 @@ public class ConfigurationFile {
             setProperty("Commands", "No");
             props.addPropertyComment("Tracking", "Activates user tracking.");
             setProperty("Tracking", "No");
-            props.addPropertyComment("TRACKING_timeout_Switch","Activates a timeout period when no user is detected.");
+            props.addPropertyComment("TRACKING_timeout_Switch","Enables or disables the automatic closing of the application when no person is detected");
             setProperty("TRACKING_timeout_Switch","No");
 
             props.addPropertyComment("Number_of_words","");
@@ -758,10 +758,9 @@ public class ConfigurationFile {
             setProperty("TRACKING_Head","No");
             props.addPropertyComment("TRACKING_Body", "Enabling tracking with/without body.");
             setProperty("TRACKING_Body","No");
-            props.addPropertyComment("WELCOME_hotword", "Welcome parameters");
-            props.addPropertyComment("WELCOME_hotword", "Enabling Welcome hotword");
+            props.addPropertyComment("WELCOME_hotword", "Enables/disables the invitation feature (via hotword)");
             setProperty("WELCOME_hotword","No");
-            props.addPropertyComment("WELCOME_tracking", "Enabling Welcome tracking");
+            props.addPropertyComment("WELCOME_tracking", "Enables/disables the invitation feature (via tracking)");
             setProperty("WELCOME_tracking","No");
 
             props.addPropertyComment("TRACKING_watch","");
@@ -781,7 +780,7 @@ public class ConfigurationFile {
             setProperty("TRACKING_timeout","0");
             props.addPropertyComment("WATCHING_timeout","Time in seconds to close TeamChatBuddy if no person is watching Buddy within this duration ");
             setProperty("WATCHING_timeout","0");
-            props.addPropertyComment("WELCOME_delay", "Delay in minuts to welcome after watching no one");
+            props.addPropertyComment("WELCOME_delay", "Delay in minutes to welcome after watching no one");
             setProperty("WELCOME_delay","10");
             props.addPropertyComment("WELCOME_duration_tracking", "the person looks at Buddy for 2 seconds to issue an invitation");
             setProperty("WELCOME_duration_tracking","2");
