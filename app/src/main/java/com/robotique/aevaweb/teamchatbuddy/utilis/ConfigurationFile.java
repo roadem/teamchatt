@@ -674,8 +674,8 @@ public class ConfigurationFile {
             setProperty("CMD_NEWS_en","// Problem retrieving news");
 
 
-            setProperty("CMD_SMS_fr", "Ok, je vais envoyer le SMS // Le SMS est envoyé // Erreur lors de l’envoi du SMS [1]");
-            setProperty("CMD_SMS_en", "Ok, I will send the SMS // The SMS has been sent // Error while sending the SMS [1]");
+            setProperty("CMD_SMS_fr", "Ok, je vais envoyer le SMS [1] à [2]// Le SMS [1] est envoyé à [2] // Erreur lors de l’envoi du SMS [1] à [2] : [3]");
+            setProperty("CMD_SMS_en", "Ok, I will send the sms [1] to [2]// The sms [1] has been sent to [2] //Error while sending the SMS [1] to [2] : [3]");
 
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
             setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");

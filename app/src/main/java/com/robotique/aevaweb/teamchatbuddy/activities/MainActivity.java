@@ -1582,7 +1582,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             } else {
                                 if (!teamChatBuddyApplication.isModeContinuousListeningON()) {
                                     if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                        if (teamChatBuddyApplication.getStartRecording() && (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties")))>0) {
+                                        String numberlis = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
+
+                                        int listening = 0; // valeur par défaut
+
+                                        if (numberlis != null) {
+                                            numberlis = numberlis.trim();
+                                            if (!numberlis.isEmpty()) {
+                                                try {
+                                                    listening = Integer.parseInt(numberlis);
+                                                } catch (NumberFormatException e) {
+                                                    // Optionnel : journaliser l’erreur ou ignorer selon la logique
+                                                    Log.e("MainActivity", "Valeur invalide pour Number_listens : " + numberlis, e);
+                                                }
+                                            }
+                                        }
+                                        if (teamChatBuddyApplication.getStartRecording() && (listening>0)) {
                                             Log.e(TAG, "startCycle TTS_success 2");
                                             teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                                             startCycle();
@@ -1672,7 +1687,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                     }
                                                     else {
                                                         if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                                            if (teamChatBuddyApplication.getStartRecording() && (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties")))>0) {
+                                                            String numberlis = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
+
+                                                            int listening = 0; // valeur par défaut
+
+                                                            if (numberlis != null) {
+                                                                numberlis = numberlis.trim();
+                                                                if (!numberlis.isEmpty()) {
+                                                                    try {
+                                                                        listening = Integer.parseInt(numberlis);
+                                                                    } catch (NumberFormatException e) {
+                                                                        // Optionnel : journaliser l’erreur ou ignorer selon la logique
+                                                                        Log.e("MainActivity", "Valeur invalide pour Number_listens : " + numberlis, e);
+                                                                    }
+                                                                }
+                                                            }
+                                                            if (teamChatBuddyApplication.getStartRecording() && (listening>0)) {
                                                                 Log.e(TAG, "startCycle TTS_success 2");
                                                                 teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                                                                 startCycle();
@@ -1770,7 +1800,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                             }
                                                             else {
                                                                 if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                                                    if (teamChatBuddyApplication.getStartRecording() && (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties")))>0) {
+                                                                    String numberlis = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
+
+                                                                    int listening = 0; // valeur par défaut
+
+                                                                    if (numberlis != null) {
+                                                                        numberlis = numberlis.trim();
+                                                                        if (!numberlis.isEmpty()) {
+                                                                            try {
+                                                                                listening = Integer.parseInt(numberlis);
+                                                                            } catch (NumberFormatException e) {
+                                                                                // Optionnel : journaliser l’erreur ou ignorer selon la logique
+                                                                                Log.e("MainActivity", "Valeur invalide pour Number_listens : " + numberlis, e);
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    if (teamChatBuddyApplication.getStartRecording() && (listening>0)) {
                                                                         Log.e(TAG, "startCycle TTS_success 2");
                                                                         teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                                                                         startCycle();
@@ -2354,8 +2399,23 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         else{
                 teamChatBuddyApplication.setModeContinuousListeningON(false);
                 isFirstResponse=true;
-                if (teamChatBuddyApplication.getStartRecording() && (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties")))>0) {
-                    Log.e(TAG, "startCycle TTS_success 2");
+            String numberlis = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
+
+            int listening = 0; // valeur par défaut
+
+            if (numberlis != null) {
+                numberlis = numberlis.trim();
+                if (!numberlis.isEmpty()) {
+                    try {
+                        listening = Integer.parseInt(numberlis);
+                    } catch (NumberFormatException e) {
+                        // Optionnel : journaliser l’erreur ou ignorer selon la logique
+                        Log.e("MainActivity", "Valeur invalide pour Number_listens : " + numberlis, e);
+                    }
+                }
+            }
+            if (teamChatBuddyApplication.getStartRecording() && (listening>0)) {
+                Log.e(TAG, "startCycle TTS_success 2");
                     teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                     startCycle();
                 }
@@ -3592,7 +3652,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     private void startNextCycle() {
         Log.e(TAG,"startNextCycle  remainingattempts= "+teamChatBuddyApplication.getRemainingAttempts());
-        if (teamChatBuddyApplication.getRemainingAttempts() > 0 && (Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties")))>0) {
+        String numberlis = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
+
+        int listening = 0; // valeur par défaut
+
+        if (numberlis != null) {
+            numberlis = numberlis.trim();
+            if (!numberlis.isEmpty()) {
+                try {
+                    listening = Integer.parseInt(numberlis);
+                } catch (NumberFormatException e) {
+                    // Optionnel : journaliser l’erreur ou ignorer selon la logique
+                    Log.e("MainActivity", "Valeur invalide pour Number_listens : " + numberlis, e);
+                }
+            }
+        }
+        if (teamChatBuddyApplication.getStartRecording() && (listening>0)) {
             teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getRemainingAttempts()-1);
             startCycle();
             Log.e(TAG,"startNextCycle  after handler ");

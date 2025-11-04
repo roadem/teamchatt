@@ -2163,7 +2163,8 @@ public class Commande {
                             }, 2000);
                         } else {
                             if (verifyMusicMessage.equals("CONTAIN_BOTH_PARTS") || verifyMusicMessage.equals("CONTAIN_ONLY_FIRST_PART")) {
-                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0]);
+                                Log.i("CMD_SMS_TEST", "verifyMusicMessage CONTAIN_BOTH_PARTS: "+getDescription(action));
+                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[0].replace("[1]", action.split("\\[")[2].split("]")[0]).replace("[2]", action.split("\\[")[1].split("]")[0]));
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -2171,6 +2172,7 @@ public class Commande {
                                     }
                                 }, 2000);
                             } else if (verifyMusicMessage.equals("DO_NOT_CONTAIN_SPLIT_CHARACTER")) {
+                                Log.i("CMD_SMS_TEST", "verifyMusicMessage else if : "+action);
                                 teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText);
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
@@ -2179,6 +2181,7 @@ public class Commande {
                                     }
                                 }, 2000);
                             } else {
+                                Log.i("CMD_SMS_TEST", "verifyMusicMessage else: "+action);
                                 new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -2877,6 +2880,9 @@ public class Commande {
         if (matcher.find()) {
             message = matcher.group(1); // Deuxième groupe capturé : message
         }
+
+        String finalRecipient = recipient;
+        String finalMessage = message;
         // Afficher les résultats
         if (recipient != null && message != null) {
             Log.d("CMD", "CMD_SMS: recipient != null && message != null ");
@@ -2933,7 +2939,7 @@ public class Commande {
                                                     JSONArray existingHistoryArray = new JSONArray(jsonArrayString);
                                                     JSONObject history1 = new JSONObject();
                                                     history1.put("role", "assistant");
-                                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                                                    history1.put("content", translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[2]", finalRecipient).replace("[1]", finalMessage));
                                                     existingHistoryArray.put(history1);
                                                     teamChatBuddyApplication.setparam("messages", existingHistoryArray.toString());
                                                 } catch (JSONException e) {
@@ -2942,7 +2948,7 @@ public class Commande {
                                                 teamChatBuddyApplication.setTimeToExecuteNextCommande(true);
 
                                                 Log.d("CMD_MYA", "mail sent here is the response");
-                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1]);
+                                                teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[1].replace("[2]", finalRecipient).replace("[1]", finalMessage));
                                             }
                                         }
                                     }
@@ -2962,7 +2968,7 @@ public class Commande {
                                                 public void onTranslated(String translatedMessage) {
                                                     Log.i(TAG, "Error Translated: " + translatedMessage);
                                                     teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +
-                                                            translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[1]", ": " + translatedMessage));
+                                                            translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[3]", translatedMessage).replace("[2]", finalRecipient).replace("[1]", finalMessage));
                                                 }
                                             });
                                         }
@@ -2990,7 +2996,7 @@ public class Commande {
                                     public void onTranslated(String translatedMessage) {
                                         Log.i(TAG, "Error Translated: " + translatedMessage);
                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +
-                                                translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[1]", ": " + translatedMessage));
+                                                translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[3]", translatedMessage).replace("[2]", finalRecipient).replace("[1]", finalMessage));
                                     }
                                 });
                             }
@@ -3017,7 +3023,7 @@ public class Commande {
                                     public void onTranslated(String translatedMessage) {
                                         Log.i(TAG, "Error Translated: " + translatedMessage);
                                         teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" +
-                                                translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[1]", ": " + translatedMessage));//this one
+                                                translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[3]", translatedMessage).replace("[2]", finalRecipient).replace("[1]", finalMessage));//this one
                                     }
                                 });
                             }
@@ -3044,7 +3050,7 @@ public class Commande {
                                     @Override
                                     public void onTranslated(String translatedMessage) {
                                         Log.i(TAG, "Error Translated: " + translatedMessage); // Check description translation
-                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[1]", ": " + translatedMessage));
+                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[3]", translatedMessage).replace("[2]", " ").replace("[1]", finalMessage));
                                     }
                                 });
                             }
@@ -3067,7 +3073,7 @@ public class Commande {
                                     @Override
                                     public void onTranslated(String translatedMessage) {
                                         Log.i(TAG, "Error Translated: " + translatedMessage); // Check description translation
-                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[1]", ": "+translatedMessage));
+                                        teamChatBuddyApplication.notifyObservers("commandResponse;SPLIT;" + translatedText.split("\\s*/\\s*(?:/\\s*)?")[2].replace("[3]", translatedMessage).replace("[2]", finalRecipient).replace("[1]", ""));
                                     }
                                 });
                             }
