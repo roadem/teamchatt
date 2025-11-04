@@ -1,10 +1,7 @@
 package com.robotique.aevaweb.teamchatbuddy.activities;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Rect;
@@ -19,13 +16,10 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -59,13 +53,13 @@ import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.Setting;
 import com.robotique.aevaweb.teamchatbuddy.models.SttModel;
 import com.robotique.aevaweb.teamchatbuddy.observers.IDBObserver;
+import com.robotique.aevaweb.teamchatbuddy.utilis.AlertManager;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IMLKitDownloadCallback;
 import com.robotique.aevaweb.teamchatbuddy.utilis.LanguageDetailsChecker;
 import com.robotique.aevaweb.teamchatbuddy.utilis.WifiBroadcastReceiver;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -720,6 +714,13 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
         };
 
+        teamChatBuddyApplication.isOnApp = true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        teamChatBuddyApplication.isOnApp = false;
     }
 
     private Runnable runnableProgressBar = new Runnable() {
@@ -776,7 +777,20 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_activation_lyt.setVisibility(View.VISIBLE);
-                menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").contains("yes")){
+                    switchTrackingTimeout.setChecked(true);
+                    if(!teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("yeshid")){
+                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                    }
+                    else menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                }
+                else{
+                    switchTrackingTimeout.setChecked(false);
+                    if(!teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("nohid")){
+                        menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                    }
+                    else menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                }
                 option_tracking_lyt.setVisibility(View.VISIBLE);
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                     menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
@@ -818,6 +832,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         else{
             switchTrackingActivation.setChecked(false);
         }
+        Log.i("YAKINE", "____________________________________Tracking_Activation____________________________________");
         switchTrackingActivation.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             if(b){
                 teamChatBuddyApplication.setparam("Tracking_Activation","yes");
@@ -831,7 +846,20 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_body_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
-                menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                Log.i("YAKINE", "TRACKING_timeout_Switch sharedpref: "+teamChatBuddyApplication.getparam("TRACKING_timeout_Switch"));
+                Log.i("YAKINE", "TRACKING_timeout_Switch config: "+teamChatBuddyApplication.getParamFromFile("TRACKING_timeout_Switch","TeamChatBuddy.properties"));
+                if(teamChatBuddyApplication.getParamFromFile("TRACKING_timeout_Switch","TeamChatBuddy.properties").trim().toLowerCase().contains("hid")){
+                    Log.i("YAKINE", "TRACKING_timeout_Switch: hid...");
+                    menu_option_tracking_timeout_lyt.setVisibility(View.GONE);
+                    switchTrackingTimeout.setVisibility(View.GONE);
+                }
+                else{
+                    Log.i("YAKINE", "TRACKING_timeout_Switch: show...");
+                    menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
+                    switchTrackingTimeout.setVisibility(View.VISIBLE);
+                }
+
+
                 option_tracking_lyt.setVisibility(View.VISIBLE);
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                     menu_option_tracking_invitation_chatGpt_lyt.setVisibility(View.VISIBLE);
@@ -901,7 +929,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         switchTrackingTimeout.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             teamChatBuddyApplication.setparam("TRACKING_timeout_Switch",String.valueOf(b));
         });
-
 
     }
 
@@ -1104,13 +1131,13 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                             switchModeStream.setEnabled(false);
                             switchModeStream.setAlpha(0.4f);
                             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
-                                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header"));
+                                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
                             }
                             else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-                                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_entete"));
+                                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
                             }
                             else{
-                                menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
+                                menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
                             }
 
                         }
@@ -1298,19 +1325,19 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         else{
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header"));
-                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header"));
-                setting.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
+                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
+                setting.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
             }
             else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_entete"));
-                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_entete"));
-                setting.setHeader(teamChatBuddyApplication.getparam("CustomGPT_entete"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
+                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
+                setting.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
             }
             else{
-                menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
-                set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
-                setting.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
+                set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
+                setting.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
             }
         }
 
@@ -1338,16 +1365,16 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 }
                 else{
                     if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
-                        teamChatBuddyApplication.setparam("CustomGPT_header",charSequence.toString());
-                        set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header"));
+                        teamChatBuddyApplication.setparam("CustomGPT_header_en",charSequence.toString());
+                        set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
                     }
                     else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-                        teamChatBuddyApplication.setparam("CustomGPT_entete",charSequence.toString());
-                        set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_entete"));
+                        teamChatBuddyApplication.setparam("CustomGPT_header_fr",charSequence.toString());
+                        set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
                     }
                     else {
-                        teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete",charSequence.toString());
-                        set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
+                        teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr",charSequence.toString());
+                        set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
                     }
                 }
                 menu_header_editText.post(() -> menu_header_editText.requestLayout());
@@ -1459,7 +1486,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_header_editText.setText(teamChatBuddyApplication.getparam(header));
             }
             else{
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
             }
             menu_header_editText.setEnabled(true);
         }
@@ -1492,7 +1519,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_header_editText.setText(teamChatBuddyApplication.getparam(entete));
             }
             else{
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_entete"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
             }
             menu_header_editText.setEnabled(true);
         }
@@ -1531,11 +1558,11 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                     }
                 }
                 else{
-                    if(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete").equals("")){
-                        translateAndSetTextView(0,menu_header_editText,teamChatBuddyApplication.getparam("CustomGPT_header"));
+                    if(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr").equals("")){
+                        translateAndSetTextView(0,menu_header_editText,teamChatBuddyApplication.getparam("CustomGPT_header_en"));
                     }
                     else{
-                        menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
+                        menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
                     }
                 }
             }
@@ -1567,8 +1594,8 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                                     set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete"));
                                 }
                                 else{
-                                    teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete",translatedText);
-                                    set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
+                                    teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr",translatedText);
+                                    set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
                                 }
                             }
                         } else  if (view instanceof TextView) {
@@ -1639,6 +1666,9 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
+            AlertManager.getInstance(this).stop();
+        }
         if (!teamChatBuddyApplication.getInitSharedpreferences()){
             teamChatBuddyApplication.setparam("firstLaunch","true");
             teamChatBuddyApplication.notifyObservers("ChatDestroy");
@@ -1771,17 +1801,17 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     public void btnRefreshHeader(View view){
         if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
-                teamChatBuddyApplication.setparam(header,teamChatBuddyApplication.getParamFromFile("Chatgpt_header","TeamChatBuddy.properties"));
+                teamChatBuddyApplication.setparam(header,teamChatBuddyApplication.getParamFromFile("Chatgpt_Header_en","TeamChatBuddy.properties"));
                 set.setHeader(teamChatBuddyApplication.getparam(header));
                 menu_header_editText.setText(teamChatBuddyApplication.getparam(header));
             }
             else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-                teamChatBuddyApplication.setparam(entete,teamChatBuddyApplication.getParamFromFile("Chatgpt_entete","TeamChatBuddy.properties"));
+                teamChatBuddyApplication.setparam(entete,teamChatBuddyApplication.getParamFromFile("Chatgpt_Header_fr","TeamChatBuddy.properties"));
                 set.setHeader(teamChatBuddyApplication.getparam(entete));
                 menu_header_editText.setText(teamChatBuddyApplication.getparam(entete));
             }
             else {
-                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Chatgpt_header","TeamChatBuddy.properties"))
+                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Chatgpt_Header_en","TeamChatBuddy.properties"))
                         .addOnSuccessListener(new OnSuccessListener<String>() {
                             @Override
                             public void onSuccess(String translatedText) {
@@ -1800,23 +1830,23 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         else{
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
-                teamChatBuddyApplication.setparam("CustomGPT_header",teamChatBuddyApplication.getParamFromFile("CustomGPT_header","TeamChatBuddy.properties"));
-                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header"));
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header"));
+                teamChatBuddyApplication.setparam("CustomGPT_header_en",teamChatBuddyApplication.getParamFromFile("CustomGPT_header_en","TeamChatBuddy.properties"));
+                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
             }
             else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-                teamChatBuddyApplication.setparam("CustomGPT_entete",teamChatBuddyApplication.getParamFromFile("CustomGPT_entete","TeamChatBuddy.properties"));
-                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_entete"));
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_entete"));
+                teamChatBuddyApplication.setparam("CustomGPT_header_fr",teamChatBuddyApplication.getParamFromFile("CustomGPT_header_fr","TeamChatBuddy.properties"));
+                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
             }
             else {
-                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("CustomGPT_header","TeamChatBuddy.properties"))
+                teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("CustomGPT_header_en","TeamChatBuddy.properties"))
                         .addOnSuccessListener(new OnSuccessListener<String>() {
                             @Override
                             public void onSuccess(String translatedText) {
-                                teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete",translatedText);
-                                set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
-                                menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
+                                teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr",translatedText);
+                                set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
+                                menu_header_editText.setText(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
@@ -1851,19 +1881,19 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         else{
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
-                teamChatBuddyApplication.setparam("CustomGPT_header","");
-                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header"));
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header"));
+                teamChatBuddyApplication.setparam("CustomGPT_header_en","");
+                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_en"));
             }
             else if(teamChatBuddyApplication.getLangue().getNom().equals("Français")){
-                teamChatBuddyApplication.setparam("CustomGPT_entete","");
-                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_entete"));
-                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_entete"));
+                teamChatBuddyApplication.setparam("CustomGPT_header_fr","");
+                set.setHeader(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
+                menu_header_editText.setText(teamChatBuddyApplication.getparam("CustomGPT_header_fr"));
             }
             else {
 
-                teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"," ");
-                set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete"));
+                teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"," ");
+                set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr"));
                 menu_header_editText.setText(" ");
             }
         }
@@ -1919,6 +1949,9 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
+                AlertManager.getInstance(this).incremente("touch", this);
+            }
             View v = getCurrentFocus();
             if ( v instanceof EditText) {
                 Rect outRect = new Rect();

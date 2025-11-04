@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 49; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 50; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -169,15 +169,12 @@ public class ConfigurationFile {
             setProperty("hotword_fr", "ok buddy/hello/bonjour/salut/bonsoir/écoute/écoute-moi");
             setProperty("hotword_en","okay buddy/hello/good morning/good evening/listen/listen to me");
 
-            props.addPropertyComment("Options_Access", "");
-            props.addPropertyComment("Options_Access","Options Access (Yes/No)");
-            setProperty("Options_Access","Yes");
-            props.addPropertyComment("Number_clicks_options","Number of clicks to open options");
+            props.addPropertyComment("Number_clicks_options", "");
+            props.addPropertyComment("Number_clicks_options","Number of clicks to open options (0 invisible)");
             setProperty("Number_clicks_options","1");
 
-            props.addPropertyComment("Start_Message","");
-            props.addPropertyComment("Start_Message","Activates or deactivates the message spoken at the app's startup (Yes/No)");
-            setProperty("Start_Message","No");
+            props.addPropertyComment("Start_Message_fr","");
+            props.addPropertyComment("Start_Message_fr","Message spoken at the app's startup");
             setProperty("Start_Message_fr","Bonjour je suis le robot Buddy de Blue Frog Robotics.");
             setProperty("Start_Message_en","Hello, I am Buddy, the robot from Blue Frog Robotics.");
             props.addPropertyComment("Listening_time","");
@@ -197,9 +194,9 @@ public class ConfigurationFile {
             props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
             setProperty("Language","Français");
             setProperty("Languages_available","Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
-            setProperty("Language_Code_Used_In_STT_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/cmn-Hans-CN/da-DK/nl-NL/no-NO");
-            setProperty("Language_Code_Used_In_TTS_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/no-NO");
-            setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh/da-DK/nl-NL/nb-NO");
+            setProperty("Language_Code_Used_In_STT_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/cmn-Hans-CN/da-DK/nl-NL/nb-NO");
+            setProperty("Language_Code_Used_In_TTS_Android","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh-CN/da-DK/nl-NL/nb-NO");
+            setProperty("Language_Code_Used_In_GoogleCloud_STT","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-DZ/zh/da-DK/nl-NL/no-NO");
             setProperty("Language_Code_Used_In_GoogleCloud_TTS","fr-FR/en-US/es-ES/de-DE/it-IT/ja-JP/ar-XA/cmn-CN/da-DK/nl-NL/nb-NO");
             setProperty("Language_Code_Used_In_Whisper","fr/en/es/de/it/ja/ar/zh/da/nl/no");
             setProperty("Language_Code_Used_In_Mlkit","fr/en/es/de/it/ja/ar/zh/da/nl/no");
@@ -219,14 +216,17 @@ public class ConfigurationFile {
             setProperty("Message_Timeout_NotRespected_en","It takes a little time, the connection is a bit slow./ohh! The internet is not very fast today/Just a moment, I'm connecting my circuits.");
 
             props.addPropertyComment("Display_of_speech","");
-            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No)");
-            setProperty("Display_of_speech","Yes");
-            setProperty("Activation_of_emotions","Yes");
-            setProperty("Language_detection","Yes");
-            setProperty("Stream_mode","Yes");
-            setProperty("Stimulis","No");
+            props.addPropertyComment("Display_of_speech","Speech display, Emotion activation, Language detection, Streaming mode, Activation stimulis, Commands and tracking (Yes/No/YesHid/NoHid)");
+            setProperty("Display_of_speech", "Yes");
+            setProperty("Activation_of_emotions", "Yes");
+            setProperty("Language_detection", "Yes");
+            setProperty("Stream_mode", "Yes");
+            setProperty("Stimulis", "No");
             setProperty("Commands", "No");
-            setProperty("Tracking","No");
+            props.addPropertyComment("Tracking", "Activates user tracking.");
+            setProperty("Tracking", "No");
+            props.addPropertyComment("TRACKING_timeout_Switch","Enables or disables the automatic closing of the application when no person is detected");
+            setProperty("TRACKING_timeout_Switch","No");
 
             props.addPropertyComment("Number_of_words","");
             props.addPropertyComment("Number_of_words","Minimum number of words in the response for activating language detection");
@@ -282,6 +282,16 @@ public class ConfigurationFile {
             setProperty("username_Password","1c15d6edab43d80dc53a30319c29364e");
             setProperty("mail.smtp.host", "in-v3.mailjet.com");
             setProperty("mail.smtp.port", "587");
+
+            props.addPropertyComment("ovh_identifier", "");
+            props.addPropertyComment("ovh_identifier", "Unique identifier for the OVH Mail-to-SMS service");
+            setProperty("ovh_identifier", "");
+            props.addPropertyComment("ovh_login", "OVH SMS account identifier (login)");
+            setProperty("ovh_login", "");
+            setProperty("ovh_customer_password", "");
+            setProperty("ovh_mail", "");
+            props.addPropertyComment("ovh_num_sender", "Sender's number (international format).");
+            setProperty("ovh_num_sender", "");
 
             props.addPropertyComment("BlueMic_Disponibility", "");
             props.addPropertyComment("BlueMic_Disponibility", "BlueMic Availability (Yes/No)");
@@ -366,10 +376,10 @@ public class ConfigurationFile {
             props.addPropertyComment("header", "gpt-3.5-turbo : maximum_tokens = 4096");
             props.addPropertyComment("header", "gpt-4 : maximum_tokens = 8192");
 
-            props.addPropertyComment("Chatgpt_header", "");
-            props.addPropertyComment("Chatgpt_header","Customization of ChatGPT dialogues");
-            setProperty("Chatgpt_header","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
-            setProperty("Chatgpt_entete","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
+            props.addPropertyComment("Chatgpt_Header_en", "");
+            props.addPropertyComment("Chatgpt_Header_en","Customization of ChatGPT dialogues");
+            setProperty("Chatgpt_Header_en","You are a humanoid robot called BUDDY, you are an emotional robot made by the company Blue Frog Robotics in Paris, answer with 20 words maximum." );
+            setProperty("Chatgpt_Header_fr","Tu es un robot humanoïde appelé BUDDY, tu es un robot émotionnel fabriqué par la société Blue Frog Robotics à paris, réponds avec 20 mots maximum.");
 
             props.addPropertyComment("CustomGPT_url","");
             props.addPropertyComment("CustomGPT_url","CustomGPT parameters");
@@ -378,10 +388,10 @@ public class ConfigurationFile {
             setProperty("CustomGPT_ApiEndpoint_SessionID","/api/v1/projects/{project_id}/conversations");
             setProperty("CustomGPT_model","gpt-4-turbo");
 
-            props.addPropertyComment("CustomGPT_header", "");
-            props.addPropertyComment("CustomGPT_header","Customization of CustomGPT dialogues");
-            setProperty("CustomGPT_header","" );
-            setProperty("CustomGPT_entete","");
+            props.addPropertyComment("CustomGPT_header_en", "");
+            props.addPropertyComment("CustomGPT_header_en","Customization of CustomGPT dialogues");
+            setProperty("CustomGPT_header_en","" );
+            setProperty("CustomGPT_header_fr","");
 
             props.addPropertyComment("Response_format_fr","");
             props.addPropertyComment("Response_format_fr","Response_format_fr and Response_format_en specify response formats in French and English.");
@@ -395,6 +405,39 @@ public class ConfigurationFile {
             props.addPropertyComment("MLkit_timeout_in_seconds", "");
             props.addPropertyComment("MLkit_timeout_in_seconds", "Maximum waiting time (in seconds) for MLkit download before timing out");
             setProperty("MLkit_timeout_in_seconds","60");
+
+
+
+            //-------------------------- Alert & Tracking ---------------------------
+            props.addPropertyComment("ALERT_ACTIVITY","");
+            props.addPropertyComment("ALERT_ACTIVITY","Alert parameters");
+            props.addPropertyComment("ALERT_ACTIVITY", "Enable or disable inactivity alerts (Yes/No)");
+            setProperty("ALERT_ACTIVITY", "No");
+
+            props.addPropertyComment("ALERT_DURATION", "Alert duration threshold in minutes before triggering inactivity alert");
+            setProperty("ALERT_DURATION", "120");
+
+            props.addPropertyComment("ALERT_DAYS", "Days of the week when alerts are active (Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday)");
+            setProperty("ALERT_DAYS", "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday");
+
+            props.addPropertyComment("ALERT_HOURS", "Time range for activating alerts (must be continuous within the same day, between 00:00 and 23:59, e.g. 08:00-20:00)");
+            setProperty("ALERT_HOURS", "08:00-20:00");
+
+            props.addPropertyComment("ALERT_REPETITIONS", "Number of detections required to consider a presence/activity detection as valid.");
+            setProperty("ALERT_REPETITIONS", "1");
+            props.addPropertyComment("ALERT_MAIL", "Email address of the user receiving the alert");
+            setProperty("ALERT_MAIL", "");
+            props.addPropertyComment("ALERT_SMS", "Phone number of the user receiving the SMS alert (international format)");
+            setProperty("ALERT_SMS", "");
+
+            props.addPropertyComment("ALERT_TOOL", "Alert sending method: SMS, MAIL, or both (SMS/MAIL)");
+            setProperty("ALERT_TOOL", "SMS/MAIL");
+
+            props.addPropertyComment("ALERT_MSG", "Message template for inactivity alerts.");
+            setProperty("ALERT_MSG", "Hello from TeamChatBuddy, you have been inactive since [1] for [2] minutes");
+            props.addPropertyComment("TRACKING_MIN_DETECTION_DURATION", "Minimum duration (in seconds) to consider a presence/activity detection as valid");
+            setProperty("TRACKING_MIN_DETECTION_DURATION", "3");
+
 
             //-------------------------- COMMAND PARAMETERS ---------------------------
 
@@ -444,7 +487,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Change-moi la langue en « Anglais »  (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte-moi une blague (global/dev/limit/beauf/blondes) <CMD_JOKE global>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte moi une blague — optionnelle : (global/dev/limit/beauf/blondes) <CMD_JOKE global|dev|limit|beauf|blondes>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
@@ -455,6 +498,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_44=Supprime l’image « oiseau bleu » <CMD_DEL_IMAGE oiseau_bleu>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_45=Envoie à « Pierre paul » le mail « voici mon message » <CMD_MAIL [Pierre-paul] [voici mon message]>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_46= Donne-moi les dernières informations (depuis 3 heures) <CMD_NEWS 3>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_47=Envoie à « Pierre paul » le sms « bonjour quoi de neuf  » <CMD_SMS [Pierre-paul] [bonjour quoi de neuf ]>");
 
             setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding commands enclosed in <> if they exist, separated by spaces. If no command matches, do not respond. Do not add any explanations or additional text. ");
 
@@ -505,6 +549,7 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_44=Delete the « blue bird » image < CMD_DEL_IMAGE blue_bird>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_45=Send to « Pierre paul » the email « here is my message »  <CMD_MAIL [Pierre-Paul] [here is my message]>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_46=Give me the latest news (from the past 3 hours) <CMD_NEWS 3>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_47=Send to « Pierre paul » the sms « hello how are you »  <CMD_SMS [Pierre-Paul] [hello how are you]>");
 
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila // Je n’arrive pas à générer la musique[1]" );
@@ -628,6 +673,10 @@ public class ConfigurationFile {
             setProperty("CMD_NEWS_fr","// Problème lors de la récupération des actualités " );
             setProperty("CMD_NEWS_en","// Problem retrieving news");
 
+
+            setProperty("CMD_SMS_fr", "Ok, je vais envoyer le SMS [1] à [2]// Le SMS [1] est envoyé à [2] // Erreur lors de l’envoi du SMS [1] à [2] : [3]");
+            setProperty("CMD_SMS_en", "Ok, I will send the sms [1] to [2]// The sms [1] has been sent to [2] //Error while sending the SMS [1] to [2] : [3]");
+
             setProperty("BFR","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
             setProperty("POURQUOI","Aidez-moi à explorer mon problème en utilisant la technique des « n Pourquoi ». Suivez ces étapes, mais ne les énumérez pas : 1. Demandez-moi de décrire le problème auquel je suis confronté. 2. Reconnaissez mon problème et demandez pourquoi je pense que cela se produit. 3. En vous basant sur ma réponse, demandez pourquoi cela se produit. 4. Continuez à demander pourquoi de la manière la plus optimale en fonction de chacune de mes réponses jusqu'à ce que vous ayez demandé « pourquoi » n (généralement 3 à 10) fois jusqu'à ce que nous atteignions la cause profonde. 5. Résumez en détail la cause profonde potentielle que vous avez identifiée sur la base de mes réponses. 6. Demandez-moi de réfléchir aux actions ou aux changements que je peux entreprendre pour remédier à cette cause profonde. 7. Proposez de recommencer le processus pour approfondir le problème. Assurez-vous d'ajuster les questions de manière dynamique en fonction de mes réponses. Ne soyez pas trivial et posez des questions de bas niveau, attaquez-vous vraiment au problème. Travaillez étape par étape.");
             setProperty("HEADER","Raconte l’histoire de la société Blue Frog Robotics depuis sa création en 2014 jusqu’à maintenant et ce que le robot Buddy qu’elle fabrique est capable de faire");
@@ -684,9 +733,8 @@ public class ConfigurationFile {
             props.addPropertyComment("JOKE_URL", "");
             setProperty("JOKE_URL_fr", "https://blague-api.vercel.app/");
             setProperty("JOKE_URL","https://v2.jokeapi.dev/joke/");
-            setProperty("JOKE_PROMPT_en", "If the joke has two parts, put joke_x_points dots between them, and tell the joke in your own way");
-            setProperty("JOKE_Model", "gpt-3.5-turbo");
-            setProperty("JOKE_X_points","20");
+            setProperty("pause_JOKE","3");
+            setProperty("JOKE_fr","Yes");
 
             props.addPropertyComment("NEWS_ARTICLE_BBC_id", " HTML selector of the news web page https://www.bbc.com/");
             setProperty("NEWS_ARTICLE_BBC_id","div.sc-666b6d83-0");
@@ -696,16 +744,24 @@ public class ConfigurationFile {
             setProperty("CMD_MAIL_subject_en","Email from TeamChatBuddy");
             setProperty("CMD_MAIL_subject_fr","Mail de TeamChatBuddy");
 
+            props.addPropertyComment("sms_pierre-paul", "");
+            props.addPropertyComment("sms_pierre-paul", "Phone number to receive sms (international format)");
+            setProperty("sms_pierre-paul","0605040908");
+
 
             //-------------------------- Tracking ---------------------------
             props.addPropertyComment("TRACKING_Camera","");
             props.addPropertyComment("TRACKING_Camera", "Tracking parameters");
-            props.addPropertyComment("TRACKING_Camera", "Enabling tracking with/without the camera, head, body or Tracking timeout.");
+            props.addPropertyComment("TRACKING_Camera", "Enabling tracking with/without the camera.");
             setProperty("TRACKING_Camera","No");
+            props.addPropertyComment("TRACKING_Head", "Enabling tracking with/without head.");
             setProperty("TRACKING_Head","No");
+            props.addPropertyComment("TRACKING_Body", "Enabling tracking with/without body.");
             setProperty("TRACKING_Body","No");
+            props.addPropertyComment("WELCOME_hotword", "Enables/disables the invitation feature (via hotword)");
             setProperty("WELCOME_hotword","No");
-            setProperty("TRACKING_timeout_Switch","No");
+            props.addPropertyComment("WELCOME_tracking", "Enables/disables the invitation feature (via tracking)");
+            setProperty("WELCOME_tracking","No");
 
             props.addPropertyComment("TRACKING_watch","");
             props.addPropertyComment("TRACKING_watch", "Tracking is performed only if the robot detects that the target is looking at it");
@@ -724,29 +780,25 @@ public class ConfigurationFile {
             setProperty("TRACKING_timeout","0");
             props.addPropertyComment("WATCHING_timeout","Time in seconds to close TeamChatBuddy if no person is watching Buddy within this duration ");
             setProperty("WATCHING_timeout","0");
-            props.addPropertyComment("TRACKING_Welcome","");
-            props.addPropertyComment("TRACKING_Welcome", "Welcome parameters");
-            props.addPropertyComment("TRACKING_Welcome", "Start Welcome");
-            setProperty("WELCOME_tracking","No");
-            props.addPropertyComment("TRACKING_delay_welcome", "Delay in minuts to welcome after watching no one");
+            props.addPropertyComment("WELCOME_delay", "Delay in minutes to welcome after watching no one");
             setProperty("WELCOME_delay","10");
-            props.addPropertyComment("TRACKING_duration_welcome", "the person looks at Buddy for 2 seconds to issue an invitation");
+            props.addPropertyComment("WELCOME_duration_tracking", "the person looks at Buddy for 2 seconds to issue an invitation");
             setProperty("WELCOME_duration_tracking","2");
-            props.addPropertyComment("TRACKING_welcome_FR", "Welcoming messages");
+            props.addPropertyComment("WELCOME_messages_FR", "Welcoming messages");
             String[] TRACKING_INVITATIONS_FR = {"Bonjour, comment puis-je vous aider?/Bonjour ! En quoi puis-je rendre votre journée plus agréable?/Bonjour, que puis-je faire pour vous aujourd'hui?"};
             setProperty("WELCOME_messages_FR", Arrays.toString(TRACKING_INVITATIONS_FR));
             String[] TRACKING_INVITATIONS_EN = {"Hello, how can I help you?/Hello! How can I make your day more enjoyable?/Hello, what can I do for you today?"};
             setProperty("WELCOME_messages_EN", Arrays.toString(TRACKING_INVITATIONS_EN));
-            props.addPropertyComment("TRACKING_welcome_CHATGPT", "Welcome message with ChatGPT");
+            props.addPropertyComment("WELCOME_CHATGPT", "Welcome message with ChatGPT");
             setProperty("WELCOME_CHATGPT","Yes");
-            props.addPropertyComment("TRACKING_welcome_model", "Welcome ChatGPT model");
+            props.addPropertyComment("WELCOME_model", "Welcome ChatGPT model");
             setProperty("WELCOME_model","gpt-4o-mini");
-            props.addPropertyComment("TRACKING_welcome_temperature", "Welcome Temperature");
+            props.addPropertyComment("WELCOME_temperature", "Welcome Temperature");
             setProperty("WELCOME_temperature","0.5");
-            props.addPropertyComment("TRACKING_welcome_prompt_FR", "Welcome Prompt for ChatGPT");
+            props.addPropertyComment("WELCOME_prompt_FR", "Welcome Prompt for ChatGPT");
             setProperty("WELCOME_prompt_FR","dis une invitation au dialogue");
             setProperty("WELCOME_prompt_EN","say an invitation to dialogue");
-            props.addPropertyComment("TRACKING_welcome_maxtoken", "Welcome max token");
+            props.addPropertyComment("WELCOME_maxtoken", "Welcome max token");
             setProperty("WELCOME_maxtoken","100");
 
             FileOutputStream fileOut = new FileOutputStream(configFile);

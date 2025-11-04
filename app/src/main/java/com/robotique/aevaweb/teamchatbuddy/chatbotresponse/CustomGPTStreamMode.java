@@ -1339,13 +1339,13 @@ public class CustomGPTStreamMode {
     }
     public String setRole(){
         if (teamChatBuddyApplication.getLangue().getNom().equals(langueEn) ){
-            return teamChatBuddyApplication.getparam("CustomGPT_header");
+            return teamChatBuddyApplication.getparam("CustomGPT_header_en");
         }
         else if (teamChatBuddyApplication.getLangue().getNom().equals(langueFr) ) {
-            return teamChatBuddyApplication.getparam("CustomGPT_entete");
+            return teamChatBuddyApplication.getparam("CustomGPT_header_fr");
         }
         else {
-            return teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_entete");
+            return teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"CustomGPT_header_fr");
         }
     }
 }

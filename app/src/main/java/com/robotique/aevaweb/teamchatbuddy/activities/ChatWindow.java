@@ -55,6 +55,7 @@ import com.robotique.aevaweb.teamchatbuddy.models.Replica;
 import com.robotique.aevaweb.teamchatbuddy.models.Session;
 import com.robotique.aevaweb.teamchatbuddy.models.Setting;
 import com.robotique.aevaweb.teamchatbuddy.observers.IDBObserver;
+import com.robotique.aevaweb.teamchatbuddy.utilis.AlertManager;
 import com.robotique.aevaweb.teamchatbuddy.utilis.CreationFile;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ITTSCallbacks;
 import com.robotique.aevaweb.teamchatbuddy.utilis.MailSender;
@@ -144,6 +145,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         editTextEmail = findViewById(R.id.editTextEmail);
         textEmail = findViewById(R.id.popup_add_mail_textView);
         popupAddMailContent = findViewById(R.id.popup_add_mail_linearLayout);
+        teamChatBuddyApplication.isOnApp = true;
         setAddMailDestinationText();
     }
     @Override
@@ -156,6 +158,9 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     @Override
     protected void onPause() {
         super.onPause();
+
+        teamChatBuddyApplication.isOnApp = false;
+
         if(ResponseFromChatbot.responseTimeout !=null){
             ResponseFromChatbot.responseTimeout.cancel();
         }
@@ -199,6 +204,10 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
         }
         Log.d(TAG," --- onDestroy() ---");
+
+        if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
+            AlertManager.getInstance(this).stop();
+        }
     }
     /**
      * ------------------ Register to the SDK callbacks ---------------------
@@ -338,6 +347,9 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
+                AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
+            }
             View v = getCurrentFocus();
             if ( v instanceof EditText) {
                 Rect outRect = new Rect();
@@ -545,12 +557,14 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      */
     public void onClickSend(View view){
         popupAddMail.setVisibility(View.VISIBLE);
+        //AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
 
     }
     /**
      * Gestion du clic sur l'icone Send depuis le popUP
      */
     public void onClickSendFromPopup(View view){
+        //AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
         if (!teamChatBuddyApplication.getparam("Mail_Destination").trim().isEmpty()){
             if(teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
                 smtpService = new MailSender(ChatWindow.this,writeMail(), teamChatBuddyApplication.getparam("Mail_Destination"), teamChatBuddyApplication.getParamFromFile("Mail_Subject_en",configFile));
@@ -650,6 +664,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      * Fermeture de la fenetre de discussion
      */
     public void btnCloseChat(View view) {
+        //AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
         if (runnable!=null){
             handler.removeCallbacks(runnable);
             runnable = null;
@@ -774,7 +789,9 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                         else {
                             responseFromChatbot.getSessionId(detectedSTTMessage);
                         }
-
+                        if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
+                            AlertManager.getInstance(ChatWindow.this).incremente("hotword", ChatWindow.this);
+                        }
                     }
                 });
             }

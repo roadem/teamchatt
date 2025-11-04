@@ -57,6 +57,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.Translation;
@@ -75,6 +76,7 @@ import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ChatGptStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.CustomGPTStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.models.History;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
+import com.robotique.aevaweb.teamchatbuddy.models.LocaleEntry;
 import com.robotique.aevaweb.teamchatbuddy.models.OpenAiInfo;
 import com.robotique.aevaweb.teamchatbuddy.models.Replica;
 import com.robotique.aevaweb.teamchatbuddy.models.Session;
@@ -104,7 +106,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -216,8 +220,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private GoogleSTT googleSTT;
     private GoogleSTTCallbacks googleSTTCallbacks;
     private Boolean SttGoogleCallbackCalledOnce =true;
-    private String header ="Chatgpt_header";
-    private String entete ="Chatgpt_entete";
+    private String header ="Chatgpt_Header_en";
+    private String entete ="Chatgpt_Header_fr";
     private String openAIKey = "openAI_API_Key";
     private String langueInconfigurationFilePseudo = "Language";
     private Boolean initSharedpreferences = true;
@@ -289,6 +293,36 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     public void setShouldDisplayQRCode(boolean shouldDisplayQRCode) {
         this.shouldDisplayQRCode = shouldDisplayQRCode;
+    }
+    public String isAlertActivated = "No";
+
+    public boolean isOnApp = true;
+    private int counterTouch = 0;
+    private int counterHotword = 0;
+    private int counterTracking = 0;
+
+    public int getCounterTouch() {
+        return counterTouch;
+    }
+
+    public void setCounterTouch(int counterTouch) {
+        this.counterTouch = counterTouch;
+    }
+
+    public int getCounterHotword() {
+        return counterHotword;
+    }
+
+    public void setCounterHotword(int counterHotword) {
+        this.counterHotword = counterHotword;
+    }
+
+    public int getCounterTracking() {
+        return counterTracking;
+    }
+
+    public void setCounterTracking(int counterTracking) {
+        this.counterTracking = counterTracking;
     }
 
     public boolean isAlreadyChatting() {
@@ -909,6 +943,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         this.listOfCommandmustToHavePlayed = listOfCommandmustToHavePlayed;
     }
 
+    public static final HashMap<String, Locale> supportedLocales = new HashMap<>();
+
     /**
      * initialisations
      */
@@ -939,6 +975,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             e.printStackTrace();
         }
     }
+
     public void init() {
         Log.e("MRAA","init");
 
@@ -975,15 +1012,77 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         initTracking();
         Log.e("MRAA","init google api");
 
-            Log.e("MRAA","init google api out if");
-            if (getparam("STT_chosen").equalsIgnoreCase("Google")){
-                Log.e("MRAA","init google api inside if");
-                alreadyCalled = true;
-                releaseGoogleAPI();
-                initGoogleAPI();
-            }
+        Log.e("MRAA","init google api out if");
+        if (getparam("STT_chosen").equalsIgnoreCase("Google")){
+            Log.e("MRAA","init google api inside if");
+            alreadyCalled = true;
+            releaseGoogleAPI();
+            initGoogleAPI();
+        }
 
         notifyObservers("properties file done");
+
+    }
+
+
+    public void initAlert(){
+        isAlertActivated = getParamFromFile("ALERT_ACTIVITY", "TeamChatBuddy.properties");
+        if (isAlertActivated == null)isAlertActivated="";
+        String tool = getParamFromFile("ALERT_TOOL", "TeamChatBuddy.properties");
+        if(isAlertActivated.trim().equalsIgnoreCase("Yes") && !tool.isEmpty()){
+            String phoneNumber = getParamFromFile("ALERT_SMS", "TeamChatBuddy.properties");
+            String mailTo = getParamFromFile("ALERT_MAIL", "TeamChatBuddy.properties");
+
+            if ((tool.contains("SMS") && phoneNumber.isEmpty()) && (tool.contains("MAIL") && mailTo.isEmpty())) {
+                Log.i("AlertManager_App", "ALERT_SMS ou ALERT_MAIL est vide. Aucune alerte ne sera envoyée.");
+                getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via email/sms will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        isAlertActivated = "No";
+                        notifyObservers("STOP_ALERT");
+                        Toast.makeText(getApplicationContext(), translatedText, Toast.LENGTH_LONG).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("AlertManager_App", "translatedText exception  " + e);
+                    }
+                });
+            }
+            else if (tool.equals("SMS") && phoneNumber.isEmpty()) {
+                Log.i("AlertManager_App", "ALERT_SMS est vide. Aucune alerte ne sera envoyée.");
+                getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via sms will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        isAlertActivated = "No";
+                        notifyObservers("STOP_ALERT");
+                        Toast.makeText(getApplicationContext(), translatedText, Toast.LENGTH_LONG).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("AlertManager_App", "translatedText exception  " + e);
+                    }
+                });
+
+            }
+            else if (tool.contains("MAIL") && mailTo.isEmpty()) {
+                Log.i("AlertManager_App", "ALERT_MAIL est vide. Aucune alerte ne sera envoyée.");
+                getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via email will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String translatedText) {
+                        isAlertActivated = "No";
+                        notifyObservers("STOP_ALERT");
+                        Toast.makeText(getApplicationContext(), translatedText, Toast.LENGTH_LONG).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("AlertManager_App", "translatedText exception  " + e);
+                    }
+                });
+            }
+        }
     }
 
     private void initOpenAiSettings() {
@@ -1035,11 +1134,11 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             if (getparam("entete").equals("")) {
                 setparam("entete", getParamFromFile(entete, configurationFilePseudo));
             }
-            if (getparam("CustomGPT_header").equals("")) {
-                setparam("CustomGPT_header", getParamFromFile("CustomGPT_header", configurationFilePseudo));
+            if (getparam("CustomGPT_header_en").equals("")) {
+                setparam("CustomGPT_header_en", getParamFromFile("CustomGPT_header_en", configurationFilePseudo));
             }
-            if (getparam("CustomGPT_entete").equals("")) {
-                setparam("CustomGPT_entete", getParamFromFile("CustomGPT_entete", configurationFilePseudo));
+            if (getparam("CustomGPT_header_fr").equals("")) {
+                setparam("CustomGPT_header_fr", getParamFromFile("CustomGPT_header_fr", configurationFilePseudo));
             }
             setparam("firstLaunch","false");
         }
@@ -1452,7 +1551,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
         }
         //Tracking Timeout
-        if (getparam("TRACKING_timeout_Switch").equals("")) {
+        if (!getparam("TRACKING_timeout_Switch").equals("")) {
             if (getParamFromFile("TRACKING_timeout_Switch",configurationFilePseudo).trim().equalsIgnoreCase("No")){
                 setparam("TRACKING_timeout_Switch", "false");
             }
@@ -1460,6 +1559,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 setparam("TRACKING_timeout_Switch", "true");
             }
         }
+        else setparam("TRACKING_timeout_Switch", "false");
     }
 
     public List<String> separator(String hotword) {
@@ -2795,26 +2895,33 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     }
 
-    public static Locale getLocale(String language){
 
-        Locale[] locales = Locale.getAvailableLocales();
-        String normalizedLanguage = language.replace("-", "_").toLowerCase();
-        for (Locale locale : locales) {
-            if (locale.toString().toLowerCase().equals(normalizedLanguage)) {
-                Log.w("GoogleSTT","getLocale("+normalizedLanguage+") result : " + locale);
-                return locale;
+    public Locale getGoogleSTTLang(String languageCode) {
+        if (languageCode == null || languageCode.isEmpty()) {
+            Log.e("MYA GoogleSTT", "getLocale() : languageCode est nul ou vide");
+            return Locale.ENGLISH;
+        }
+        String normalizedCode = languageCode;
+
+        Log.e("MYA GoogleSTT", "getLocale() : languageCode pas nul ni vide");
+        // Recherche exacte dans les locales supportées
+        for (Map.Entry<String, Locale> entry : supportedLocales.entrySet()) {
+            String key = entry.getKey();
+            if (key.equals(normalizedCode)) {
+                Log.w("MYA GoogleSTT", "getLocale(" + normalizedCode + ") result : " + entry.getValue());
+                return entry.getValue();
             }
         }
 
-        Log.e("GoogleSTT","getLocale("+normalizedLanguage+") result : null");
-
+        // Si non trouvée
+        Log.e("MYA GoogleSTT", "getLocale(" + normalizedCode + ") result : null");
         return Locale.ENGLISH;
     }
 
     public void initGoogleAPI() {
         Log.w("GoogleSTT","initGoogleAPI");
         try {
-
+            FetchLangGoogleCloudSTT();
             Locale localeLanguage;
             List<String> langueCode = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_GoogleCloud_STT");
             String language = langueCode.get(getLangue().getId()-1);
@@ -2823,10 +2930,11 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 localeLanguage= null;
             }
             else {
-                localeLanguage=getLocale(language);
+                localeLanguage=getGoogleSTTLang(language);
             }
-            Log.e("GoogleSTT","localeLanguage=  "+localeLanguage);
+            Log.e("MYA GoogleSTT","localeLanguage=  "+localeLanguage);
             googleSTT = new GoogleSTT(getParamFromFile("ApiGoogle_Key",configurationFilePseudo), localeLanguage);
+
             googleSTTCallbacks = new GoogleSTTCallbacks() {
                 @Override
                 public void onRequestSent() {
@@ -2835,7 +2943,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                 @Override
                 public void onResponse(String text) {
-                    Log.i("GoogleSTT","onResponse : "+text);
+                    Log.i("MYA GoogleSTT","onResponse mya: "+text);
                     if (text != null && !text.isEmpty()) {
                         notifyObservers("STTQuestion_success;"+text);
                         BuddySDK.UI.stopListenAnimation();
@@ -2847,7 +2955,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                 @Override
                 public void onResponseError(String error) {
-                    Log.e("GoogleSTT","onResponseError : "+error);
+                    Log.e("MYA GoogleSTT","onResponseError : "+error);
                     if(!error.equals("NO_ERROR")){
                         startListeningQuestionWithGoogleApi(activityTemp);
                     }
@@ -5188,6 +5296,38 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
     }
 
+    public void FetchLangGoogleCloudSTT() {
+
+        try {
+            // Open file from assets
+            InputStream is = this.getAssets().open("lang_stt_google.json");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+            StringBuilder jsonBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonBuilder.append(line);
+            }
+            reader.close();
+
+            // Parse JSON
+            Type listType = new TypeToken<List<LocaleEntry>>() {}.getType();
+            List<LocaleEntry> entries = new Gson().fromJson(jsonBuilder.toString(), listType);
+
+            // Store locales
+            supportedLocales.clear();
+            for (LocaleEntry entry : entries) {
+                //Log.i("GoogleSTT", "entry.code: " + entry.code+"\nentry.language: "+entry.language+"\nentry.country: "+entry.country);
+                supportedLocales.put(entry.code, new Locale(entry.language, entry.country));
+            }
+
+            Log.i("GoogleSTT", "Locales loaded: " + supportedLocales.size());
+
+        } catch (Exception e) {
+            Log.e("GoogleSTT", "Error loading locales", e);
+        }
+
+    }
 
     //#endregion ******************************************************* Fonctions utiles *********************************************************
 
