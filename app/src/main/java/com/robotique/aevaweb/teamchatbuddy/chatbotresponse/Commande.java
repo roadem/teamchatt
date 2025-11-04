@@ -32,7 +32,6 @@ import org.jsoup.nodes.Element;
 import com.google.gson.JsonParser;
 import com.robotique.aevaweb.teamchatbuddy.R;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
-import com.robotique.aevaweb.teamchatbuddy.utilis.ApiEndpointInterface;
 import com.robotique.aevaweb.teamchatbuddy.models.HttpResponse;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.Missions;
@@ -43,7 +42,6 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.IBehaviourCallBack;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ImageGenerator;
 import com.robotique.aevaweb.teamchatbuddy.utilis.MailSender;
 import com.google.gson.GsonBuilder;
-import com.robotique.aevaweb.teamchatbuddy.utilis.NetworkClient;
 import com.robotique.aevaweb.teamchatbuddy.utilis.SmsSender;
 
 import java.io.BufferedInputStream;
