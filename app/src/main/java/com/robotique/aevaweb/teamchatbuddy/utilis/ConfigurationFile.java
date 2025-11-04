@@ -487,7 +487,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_33=Change-moi la langue en « Anglais »  (Français/Anglais/Espagnol/Allemand/Italien) <CMD_LANGUE Anglais>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_34=J’ai un vrai problème peux-tu m’aider <CMD_PROMPT %POURQUOI%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_35=Parle-moi de Blue Frog <CMD_PROMPT %BFR%>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte une blague — options : (global/dev/limit/beauf/blondes) <CMD_JOKE global|dev|limit|beauf|blondes>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_36=Raconte moi une blague — optionnelle : (global/dev/limit/beauf/blondes) <CMD_JOKE global|dev|limit|beauf|blondes>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_37=Change l'entete  <CMD_HEADER %HEADER%>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_38=Arrête la radio <CMD_STOP_RADIO>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_39=Arrête la musique <CMD_STOP_MUSIC>");
@@ -498,7 +498,7 @@ public class ConfigurationFile {
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_44=Supprime l’image « oiseau bleu » <CMD_DEL_IMAGE oiseau_bleu>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_45=Envoie à « Pierre paul » le mail « voici mon message » <CMD_MAIL [Pierre-paul] [voici mon message]>");
             props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_46= Donne-moi les dernières informations (depuis 3 heures) <CMD_NEWS 3>");
-            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_47=Envoie à « Pierre paul » le sms « voici mon message » <CMD_SMS [Pierre-paul] [voici mon message]>");
+            props.addPropertyComment("COMMAND_Prompt_en","CMD_fr_47=Envoie à « Pierre paul » le sms « bonjour quoi de neuf  » <CMD_SMS [Pierre-paul] [bonjour quoi de neuf ]>");
 
             setProperty( "COMMAND_Prompt_en", "You are a voice command assistant. Based on the user's sentence, respond only with the corresponding commands enclosed in <> if they exist, separated by spaces. If no command matches, do not respond. Do not add any explanations or additional text. ");
 
@@ -549,7 +549,7 @@ public class ConfigurationFile {
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_44=Delete the « blue bird » image < CMD_DEL_IMAGE blue_bird>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_45=Send to « Pierre paul » the email « here is my message »  <CMD_MAIL [Pierre-Paul] [here is my message]>");
             props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_46=Give me the latest news (from the past 3 hours) <CMD_NEWS 3>");
-            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_47=Send to « Pierre paul » the sms « here is my message »  <CMD_SMS [Pierre-Paul] [here is my message]>");
+            props.addPropertyComment("CMD_MUSIC_fr", "CMD_en_47=Send to « Pierre paul » the sms « hello how are you »  <CMD_SMS [Pierre-Paul] [hello how are you]>");
 
 
             setProperty( "CMD_MUSIC_fr", "Ok, je vais lire une musique correspondant à votre demande // Voila // Je n’arrive pas à générer la musique[1]" );

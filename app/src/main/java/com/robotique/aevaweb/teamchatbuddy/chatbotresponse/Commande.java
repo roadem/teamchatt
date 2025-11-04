@@ -3376,9 +3376,20 @@ public class Commande {
     public void CMD_JOKE(String description){
         String fullUrl;
         Log.i("joke_check", "CMD JOKE '"+ description +"' début." );
+        String pauseJokeStr = teamChatBuddyApplication.getParamFromFile("pause_JOKE", configFile);
+        int pause_joke = 0; // valeur par défaut
+        if (pauseJokeStr != null && !pauseJokeStr.isEmpty()) {
+            try {
+                pause_joke = Integer.parseInt(pauseJokeStr);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Invalid pause_JOKE format in config, defaulting to 0", e);
+            }
+        }
+        int finalPause_joke = pause_joke;
+        String jokeFrParam = teamChatBuddyApplication.getParamFromFile("JOKE_fr", configFile);
+        boolean isJokeFr = (jokeFrParam == null || jokeFrParam.trim().isEmpty()) || jokeFrParam.trim().equalsIgnoreCase("yes");
 
-        int pause_joke = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("pause_JOKE",configFile));
-        if(teamChatBuddyApplication.getLangue().getNom().equals("Français") && teamChatBuddyApplication.getParamFromFile("JOKE_fr",configFile).trim().equalsIgnoreCase("yes")){
+        if(teamChatBuddyApplication.getLangue().getNom().equals("Français") && isJokeFr){
             new Thread(() -> {
                 try {
                     Log.i("joke_check", "C'est en français ");
@@ -3396,7 +3407,7 @@ public class Commande {
                         try {
                             //int x_points = Integer.parseInt(teamChatBuddyApplication.getParamFromFile("JOKE_X_points", configFile));
 
-                            Log.i("joke_check", "pause_joke = "+ pause_joke);
+                            Log.i("joke_check", "pause_joke = "+ finalPause_joke);
                             // Parsing du JSON reçu
                             JsonObject jsonObject = JsonParser.parseString(httpResponse.body).getAsJsonObject();
                             String joke = jsonObject.get("blague").getAsString();
@@ -3442,7 +3453,7 @@ public class Commande {
 
                                     },2000);}
 
-                            },(1000 * pause_joke)+4000);
+                            },(1000 * finalPause_joke)+4000);
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -3599,7 +3610,7 @@ public class Commande {
 
                                         },2000);}
 
-                                },(1000 * pause_joke)+4000);
+                                },(1000 * finalPause_joke)+4000);
 
                             } else {
                                 translate("CMD_JOKE", translatedText -> {
