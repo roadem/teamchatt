@@ -193,7 +193,10 @@ public class ChatGptStreamMode {
                             try {
                                 new Thread(() -> {
                                     try {
-                                        handleStreamingResponse(conn.getInputStream());
+                                        if(app.getParamFromFile("Pattern_End_Phrase", "TeamChatBuddy.properties").trim().equalsIgnoreCase("(?i)<\\/\\s*speak\\s*>")){
+                                            handleStreamingResponseSsml(conn.getInputStream());
+                                        }
+                                        else handleStreamingResponse(conn.getInputStream());
                                     } catch (IOException e) {
                                         throw new RuntimeException(e);
                                     }
@@ -390,6 +393,121 @@ public class ChatGptStreamMode {
         catch (Exception e) {
             e.printStackTrace();
             onErrorStreaming("EXCEPTION",null, null);
+        }
+    }
+
+    private void handleStreamingResponseSsml(InputStream inputStream) {
+        try {
+            onStartStreaming();
+
+            // --- Chargement du pattern de fin de bloc ---
+            String pattern_fin_phrase = app.getParamFromFile("Pattern_End_Phrase", "TeamChatBuddy.properties");
+            if (pattern_fin_phrase == null || pattern_fin_phrase.isEmpty()) {
+                pattern_fin_phrase = "</speak>"; // fallback SSML
+            }
+            Log.w(TAG_STREAM, "pattern_fin_phrase: " + pattern_fin_phrase);
+
+            Pattern patternFinPhrase = Pattern.compile(Pattern.quote(pattern_fin_phrase)); // littéral
+
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+            Log.i("MARIA_TEST", "handleStreamingResponseSsml, inputStream : " + inputStream);
+            BufferedReader reader = new BufferedReader(inputStreamReader);
+            String fileName = "ChatGPT-recv-stream";
+            StringBuilder formattedContent = new StringBuilder();
+            String line;
+            int responseTotalTokens = 0;
+
+            while ((line = reader.readLine()) != null && !isReset && !isError) {
+                if (line.trim().isEmpty()) continue;
+
+                if (line.contains("[DONE]")) {
+                    formattedContent.append(line);
+                    continue;
+                }
+
+                JSONObject jsonObject = new JSONObject(line.replace("data:", "").trim());
+                String formattedObject = jsonObject.toString(4);
+                formattedContent.append("data: ").append(formattedObject).append("\n\n");
+
+                // --- Traitement du flux texte ---
+                if (line.trim().startsWith("data:")) {
+                    String jsonData = line.substring("data:".length()).trim();
+
+                    if (jsonData.contains("[DONE]")) {
+                        Log.i("MYA_API_Google", "------------------ FULL RESPONSE RECEIVED -------------------");
+                        Log.i(TAG_STREAM, "Text  : " + text);
+                        isFullResponseReceived = true;
+                    } else if (!jsonData.isEmpty()) {
+                        JSONObject json = new JSONObject(jsonData);
+                        if (!json.isNull("choices")) {
+                            JSONArray choicesArray = json.getJSONArray("choices");
+                            for (int j = 0; j < choicesArray.length(); j++) {
+                                JSONObject choiceObject = choicesArray.getJSONObject(j);
+
+                                // Compter les tokens de réponse
+                                if (choiceObject.has("delta")) {
+                                    JSONObject deltaObject = choiceObject.getJSONObject("delta");
+                                    if (deltaObject.has("content") && !deltaObject.getString("content").isEmpty()) {
+                                        responseTotalTokens++;
+                                    }
+                                }
+
+                                // Si la réponse est terminée
+                                if (!choiceObject.isNull("finish_reason") &&
+                                        choiceObject.getString("finish_reason").equals("stop")) {
+                                    Log.d("MYA_API_Google", "Fin de génération détectée (stop)");
+                                    phrase += word;
+                                    text += word;
+                                    onNewPhrase();
+                                } else {
+                                    // --- Streaming normal ---
+                                    String resp = choiceObject.getJSONObject("delta").optString("content", "");
+                                    if (resp.isEmpty()) continue;
+
+                                    onNewWord(resp);
+                                    word = resp;
+                                    phrase += word;
+                                    text += word;
+
+                                    // --- Détection de fin de bloc SSML ---
+                                    Matcher matcher = patternFinPhrase.matcher(phrase);
+                                    if (matcher.find()) {
+                                        int endIdx = matcher.end(); // position du dernier caractère du match
+                                        String completeBlock = phrase.substring(0, endIdx); // bloc complet jusqu’à </speak>
+                                        Log.i("MYA_API_Google", "Bloc SSML complet détecté : " + completeBlock);
+                                        onNewPhrase();
+
+                                        // Supprime le bloc traité (y compris le pattern) du buffer
+                                        phrase = phrase.substring(endIdx).trim();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- Stocker l'historique ---
+            JSONObject history = new JSONObject();
+            history.put("role", "assistant");
+            history.put("content", text);
+            existingHistoryArray.put(history);
+
+            // --- Tokens ---
+            Log.d(TAG_STREAM_USAGE, "Response Total Tokens : " + responseTotalTokens);
+            int totalTokens = requestTotalTokens + responseTotalTokens;
+            Log.i(TAG_STREAM_USAGE, "-------> TOTAL Tokens : " + totalTokens);
+            verifyLimitTokens(totalTokens);
+
+            // --- Calcul de consommation ---
+            app.calcul_consommation(app.getparam("model"), requestTotalTokens, responseTotalTokens);
+
+            // --- Sauvegarde ---
+            storeStreamResponse(fileName, formattedContent.toString(), text);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            onErrorStreaming("EXCEPTION", null, null);
         }
     }
 
@@ -616,7 +734,7 @@ public class ChatGptStreamMode {
     }
 
     private void onNewPhrase() {
-        Log.w(TAG_STREAM, "Phrase: " + phrase);
+        Log.w("MARIA_TEST", "Phrase: " + phrase);
         if (app.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !app.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
             phrase = app.applyFilters(app.getParamFromFile("Response_filter","TeamChatBuddy.properties"),phrase);
         }

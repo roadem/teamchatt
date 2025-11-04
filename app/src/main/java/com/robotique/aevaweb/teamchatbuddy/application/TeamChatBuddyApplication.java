@@ -3436,7 +3436,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 protected Void doInBackground(Void... voids) {
                     try {
                         SystemClock.sleep(2000);
-                        getGoogleCloudTTS().start(article);
+                        getGoogleCloudTTS().start(getParamFromFile("ApiGoogle_Key", configurationFilePseudo), article);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -4361,7 +4361,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 Log.e("MRA", "speakGoogleCloudTTS  onError-----------  ");
                             }
                         });
-                        getGoogleCloudTTS().start(texteToSpeak);
+                        getGoogleCloudTTS().start(getParamFromFile("ApiGoogle_Key", configurationFilePseudo), texteToSpeak);
 
                     }
                 }

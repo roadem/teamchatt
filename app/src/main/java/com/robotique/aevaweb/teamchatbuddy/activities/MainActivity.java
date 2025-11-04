@@ -1582,7 +1582,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             } else {
                                 if (!teamChatBuddyApplication.isModeContinuousListeningON()) {
                                     if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                        String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
+                                        String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");//todo listenattempt
                                         int numberListens = 0; // valeur par défaut
                                         if (listensStr != null && !listensStr.isEmpty()) {
                                             try {
@@ -1596,6 +1596,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             Log.e(TAG, "startCycle TTS_success 2");
                                             teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                                             startCycle();
+                                        }
+                                        else if (teamChatBuddyApplication.getStartRecording() && numberListens==0){
+                                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                                         }
                                     } else {
 
@@ -4884,7 +4887,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             animatorSet.playTogether(animTexte, animQRCode);
             animatorSet.start();
 
-        
+
             new Handler().postDelayed(() -> startAnimateArrow(imageArrow), 1000);
             if(timerDisplayQRCode != null) timerDisplayQRCode.cancel();
             timerDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties").trim()) * 1000L,1000) {
