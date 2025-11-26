@@ -1359,7 +1359,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 }
             }
 
-            else if (message.contains("MODE_STREAM_TEXT;SPLIT;")) {
+            else if (message.contains("MODE_STREAM_TEXT;SPLIT;")) {//todo supprimer les balises ssml
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -2823,7 +2823,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     private void showStream(String responseTitle,String response) {
         if (!teamChatBuddyApplication.isActivityClosed()) {
-            buddy_texte_resp.setText(String.format(responseTitle + " :  %s ", response));
+            String stripSSML = teamChatBuddyApplication.stripSSML(response);
+            buddy_texte_resp.setText(String.format(responseTitle + " :  %s ", stripSSML));
             buddy_texte_resp_lyt.setVisibility(View.VISIBLE);
             buddy_texte_resp.setMovementMethod(new ScrollingMovementMethod());
             // Scroll to the end
@@ -3686,21 +3687,22 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 || ( teamChatBuddyApplication.getparam("Mode_Stream").contains("yes") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && teamChatBuddyApplication.getChatGptStreamMode() == null )
                         ){
                             if (settingClass.getSwitchVisibility().equals("true")) {
+                                String stripSSML = teamChatBuddyApplication.stripSSML(texte);
                                 if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
-                                    buddy_texte_resp.setText(String.format("Response :  %s ", texte));
+                                    buddy_texte_resp.setText(String.format("Response :  %s ", stripSSML));
                                 } else if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
-                                    buddy_texte_resp.setText(String.format("Réponse :  %s ", texte));
+                                    buddy_texte_resp.setText(String.format("Réponse :  %s ", stripSSML));
                                 }
                                 else if (teamChatBuddyApplication.getCurrentLanguage().equals("de")) {
-                                    buddy_texte_resp.setText(String.format("Antwort :  %s ", texte));
+                                    buddy_texte_resp.setText(String.format("Antwort :  %s ", stripSSML));
                                 } else if (teamChatBuddyApplication.getCurrentLanguage().equals("es")) {
-                                    buddy_texte_resp.setText(String.format("Respuesta :  %s ", texte));
+                                    buddy_texte_resp.setText(String.format("Respuesta :  %s ", stripSSML));
                                 }
                                 else{
                                     teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate("Response").addOnSuccessListener(new OnSuccessListener<String>() {
                                         @Override
                                         public void onSuccess(String translatedText) {
-                                            buddy_texte_resp.setText(String.format(translatedText+" :  %s ", texte));
+                                            buddy_texte_resp.setText(String.format(translatedText+" :  %s ", stripSSML));
                                         }
 
                                     }).addOnFailureListener(new OnFailureListener() {
@@ -3728,7 +3730,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 || ( teamChatBuddyApplication.getparam("Mode_Stream").contains("yes") && teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && teamChatBuddyApplication.getChatGptStreamMode() == null )
                         ){
                             Replica reponse = new Replica();
-                            reponse.setValue(texte);
+                            reponse.setValue(teamChatBuddyApplication.stripSSML(texte));
                             reponse.setTime(time);
                             long responseTime = teamChatBuddyApplication.getGetResponseTime()- teamChatBuddyApplication.getQuestionTime();
                             DecimalFormat df = new DecimalFormat("#,###");
@@ -3753,7 +3755,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if (!listRep.isEmpty()) {
                                 //--> this function is called right after a question : we should create a new Replica for the response
                                 Replica reponse = new Replica();
-                                reponse.setValue(texte);
+                                reponse.setValue(teamChatBuddyApplication.stripSSML(texte));
                                 reponse.setTime(time);
                                 long responseTime = teamChatBuddyApplication.getGetResponseTime() - teamChatBuddyApplication.getQuestionTime();
                                 DecimalFormat df = new DecimalFormat("#,###");
@@ -3836,7 +3838,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                         String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
                         Replica reponse = new Replica();
-                        reponse.setValue(displayText);
+                        reponse.setValue(teamChatBuddyApplication.stripSSML(displayText));
                         reponse.setTime(time);
                         long responseTime = teamChatBuddyApplication.getGetResponseTime()- teamChatBuddyApplication.getQuestionTime();
                         DecimalFormat df = new DecimalFormat("#,###");
@@ -3858,26 +3860,28 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         listRep.clear();
 
                         if(!texte.contains(";splitNews;")){
-                            buddy_texte_resp.setText(String.format("%s :  %s", respo[0], texte));
+                            String stripSSML = teamChatBuddyApplication.stripSSML(texte);
+                            buddy_texte_resp.setText(String.format("%s :  %s", respo[0], stripSSML));
                             teamChatBuddyApplication.speakTTS( texte, LabialExpression.SPEAK_NEUTRAL, type );
                         }
                     }
                     else if(type.equals("INVITATION")){
                         Log.e("TEAMCHAT_BUDDY_TRACKING"," --- speakTTS from speak Main");
                         if (settingClass.getSwitchVisibility().equals( "true" )) {
+                            String stripSSML = teamChatBuddyApplication.stripSSML(texte);
                             if (teamChatBuddyApplication.getCurrentLanguage().equals( "en" )) {
-                                buddy_texte_resp.setText( String.format( "Response :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Response :  %s ", stripSSML) );
                             } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "fr" )) {
-                                buddy_texte_resp.setText( String.format( "Réponse :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Réponse :  %s ", stripSSML) );
                             } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "de" )) {
-                                buddy_texte_resp.setText( String.format( "Antwort :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Antwort :  %s ", stripSSML) );
                             } else if (teamChatBuddyApplication.getCurrentLanguage().equals( "es" )) {
-                                buddy_texte_resp.setText( String.format( "Respuesta :  %s ", texte ) );
+                                buddy_texte_resp.setText( String.format( "Respuesta :  %s ", stripSSML) );
                             } else {
                                 teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate( "Response" ).addOnSuccessListener( new OnSuccessListener<String>() {
                                     @Override
                                     public void onSuccess(String translatedText) {
-                                        buddy_texte_resp.setText( String.format( translatedText + " :  %s ", texte ) );
+                                        buddy_texte_resp.setText( String.format( translatedText + " :  %s ", stripSSML) );
                                     }
 
                                 } ).addOnFailureListener( new OnFailureListener() {
