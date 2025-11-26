@@ -465,7 +465,7 @@ public class ChatGptStreamMode {
                                 String ssmlBlock = bufferStr.substring(0, endIndex + "</speak>".length());
 
                                 // Notifier l'arrivée d'un bloc complet
-                                onNewWord(ssmlBlock);    // appelle ton traitement mot/texte
+                                onNewWord(ssmlBlock);
                                 phrase = ssmlBlock;
                                 text += ssmlBlock;
 

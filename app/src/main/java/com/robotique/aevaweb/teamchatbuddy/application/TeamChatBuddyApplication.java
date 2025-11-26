@@ -3841,7 +3841,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 Log.i("OpenAITTS","SPEAK using TTS OpenAI");
 
                 usingReadSpeaker = false;
-                speakOpenAITTS(texteToSpeak, type, getparam(openAIKey));
+                speakOpenAITTS(texteToSpeak, type);
 
             }
 
@@ -4469,7 +4469,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }.execute();
     }
 
-    public void speakOpenAITTS(String texteToSpeak, String type, String apiKey) {
+    public void speakOpenAITTS(String texteToSpeak, String type) {
         TtsOpenAI ttsOpenAI = new TtsOpenAI(this, this);
         new AsyncTask<Void, Void, Void>() {
             @Override
@@ -4655,23 +4655,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }.execute();
     }
 
-
-    /**
-     * Exemple de gestion TTS terminée
-     */
-    private void handleTTSCompletion(String type, String texte) {
-        switch (type) {
-            case "timeOutExpired":
-                // relancer streaming ou jouer réponse stockée
-                break;
-            case "storedResponse":
-                notifyObservers("TTS_success;" + texte);
-                break;
-            default:
-                notifyObservers("TTS_success;" + texte);
-                break;
-        }
-    }
 
     /**
      * Exemple de gestion d'erreur TTS
