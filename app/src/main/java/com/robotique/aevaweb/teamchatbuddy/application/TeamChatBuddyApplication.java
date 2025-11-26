@@ -362,7 +362,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
     public String getChosenTTS() {
         return chosenTTS;
-    }//todo
+    }
 
     public void setChosenTTS(String chosenTTS) {
         this.chosenTTS = chosenTTS;
@@ -3478,7 +3478,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @param texteToSpeak : message à dire par Buddy.
      * @param expression : jouer un mouvement spécial de la bouche [SPEAK_ANGRY / NO_FACE / SPEAK_HAPPY / SPEAK_NEUTRAL]
      */
-    public void speakTTS(final String texteToSpeak, LabialExpression expression, String type) {//todo add tts openai
+    public void speakTTS(final String texteToSpeak, LabialExpression expression, String type) {
         Log.w("TEST_voix","text To Speak : "+texteToSpeak);
         Log.i("TEST_voix","Selected Language in app : "+getCurrentLanguage());
         setLed("speaking");
@@ -3539,7 +3539,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     if (!type.equals("timeOutExpired")) {
                         if (texteToSpeak_modified.contains(";splitNews;")) {
                             texteToSpeakSplitted = texteToSpeak_modified.split(";splitNews;");
-                            startSpeakingSplittedText(texteToSpeak, expression, type, texteToSpeakSplitted);//todo add tts openai : ReadSpeaker startSpeakingSplittedText
+                            startSpeakingSplittedText(texteToSpeak, expression, type, texteToSpeakSplitted);
                         } else {
                             // Split the text based on periods and commas
                             texteToSpeakSplitted = texteToSpeak_modified.split("[.,]");
@@ -3554,7 +3554,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                     @Override
                                     public void onSuccess(String iText) throws RemoteException {
                                         Log.i(TAG, "Succès de prononciation : " + iText);
-                                        allTextPronouced(texteToSpeak, type);//todo add tts openai : ReadSpeaker allTextPronouced
+                                        allTextPronouced(texteToSpeak, type);
                                     }
 
                                     @Override
@@ -3717,7 +3717,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     if (result == -1) {
                         notifyObservers("TTS_error;" + texteToSpeak);
                     } else {
-                        tts_android.setOnUtteranceProgressListener(new UtteranceProgressListener() {//todo add tts openai TTS Android
+                        tts_android.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                             @Override
                             public void onStart(String utteranceId) {
                                 try {
@@ -3835,7 +3835,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                 usingReadSpeaker = false;
                 Log.i("TEST_voix", "fullLangCode google : " + fullLangCode );
-                speakGoogleCloudTTS(fullLangCode, texteToSpeak, type);//todo add tts openai: TTS Google
+                speakGoogleCloudTTS(fullLangCode, texteToSpeak, type);
             }
             else if (getChosenTTS().trim().equalsIgnoreCase("OpenAI") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("OpenAI") && !usingReadSpeaker)) {
                 Log.i("OpenAITTS","SPEAK using TTS OpenAI");

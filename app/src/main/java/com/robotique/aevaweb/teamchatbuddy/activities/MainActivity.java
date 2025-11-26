@@ -1582,7 +1582,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             } else {
                                 if (!teamChatBuddyApplication.isModeContinuousListeningON()) {
                                     if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                        String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");//todo listenattempt
+                                        String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");//todo: listenattempt
                                         int numberListens = 0; // valeur par défaut
                                         if (listensStr != null && !listensStr.isEmpty()) {
                                             try {
