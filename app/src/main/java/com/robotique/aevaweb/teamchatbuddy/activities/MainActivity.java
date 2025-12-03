@@ -1176,8 +1176,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             Log.i("MYA_QR", "mouth click commencer l'écoute ");
                             List<String> types = teamChatBuddyApplication.listQRTypes;
                             //cameraUtils = new CameraUtils(this, teamChatBuddyApplication);
-                            initScaning(types);
-                            cameraUtils.readyCamera(types);
+                            if(teamChatBuddyApplication.getParamFromFile("Lecture_QR_Code","TeamChatBuddy.properties").trim().equalsIgnoreCase("yes")){
+                                initScaning(types);
+                                cameraUtils.readyCamera(types);
+                            }
                             teamChatBuddyApplication.setStartRecording(true);
                             teamChatBuddyApplication.setSpeaking(true);
                             teamChatBuddyApplication.setModeContinuousListeningON(false);
