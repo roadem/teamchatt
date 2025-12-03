@@ -195,6 +195,13 @@ public class ConfigurationFile {
             setProperty("QRcodeFileName","qrCode.png");
             setProperty("QR_Text","SCAN<br>FOR DRINKS<br>AND SNACKS");
 
+
+            props.addPropertyComment("Lecture_QR_Code ","");
+            props.addPropertyComment("Lecture_QR_Code ","Possibility of scanning Codes to communicate (Yes/No)");
+            setProperty("Lecture_QR_Code ","No");
+            props.addPropertyComment("QRCode_System  ","Possible codes : QRCode / DataMatrix / AprilTag");
+            setProperty("QRCode_System","QRCode/DataMatrix/AprilTag");
+
             props.addPropertyComment("Language","");
             props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
             setProperty("Language","Français");

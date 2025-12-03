@@ -8,9 +8,11 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
+import android.media.Image;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.ConnectivityManager;
@@ -32,6 +34,7 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -62,6 +65,8 @@ import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
+import com.google.mlkit.vision.barcode.common.Barcode;
 import com.ibm.icu.text.BreakIterator;
 import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
@@ -71,8 +76,10 @@ import com.konovalov.vad.VadConfig;
 import com.konovalov.vad.VadListener;
 import com.robotique.aevaweb.bluemicapp.callbacks.IBlueMicAudioDataListener;
 import com.robotique.aevaweb.teamchatbuddy.R;
+import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ChatGptStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.CustomGPTStreamMode;
+import com.robotique.aevaweb.teamchatbuddy.models.ApriltagDetection;
 import com.robotique.aevaweb.teamchatbuddy.models.History;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.LocaleEntry;
@@ -84,6 +91,7 @@ import com.robotique.aevaweb.teamchatbuddy.observers.IDBObserver;
 import com.robotique.aevaweb.teamchatbuddy.utilis.BlueMic;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ConfigurationFile;
 import com.robotique.aevaweb.teamchatbuddy.utilis.CustomProperties;
+import com.robotique.aevaweb.teamchatbuddy.utilis.DetectionCallback;
 import com.robotique.aevaweb.teamchatbuddy.utilis.GoogleSTT;
 import com.robotique.aevaweb.teamchatbuddy.utilis.GoogleSTTCallbacks;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IMLKitDownloadCallback;
@@ -95,6 +103,10 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.TtsGoogleApiListener;
 import com.robotique.aevaweb.teamchatbuddy.utilis.TtsGoogleC;
 import com.robotique.aevaweb.teamchatbuddy.utilis.TtsOpenAI;
 import com.robotique.aevaweb.teamchatbuddy.utilis.TtsOpenAIListener;
+import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.ApriltagNative;
+import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.BarcodeScannerProcessor;
+import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.BitmapUtils;
+import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.FrameProcessing;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -111,6 +123,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,6 +134,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import darren.googlecloudtts.model.VoicesList;
@@ -296,6 +310,11 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private int counterTouch = 0;
     private int counterHotword = 0;
     private int counterTracking = 0;
+    public List<String> listQRTypes = new ArrayList<>();
+
+    public String listeningState;
+
+    public boolean isStartMsg = false;
 
     public int getCounterTouch() {
         return counterTouch;
@@ -1006,6 +1025,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         initCommandeSetting();
         initBIDisplay();
         initTracking();
+        listQRTypes = getDisponibleScaningSystem();
         Log.e("MRAA","init google api");
 
         Log.e("MRAA","init google api out if");
@@ -1762,6 +1782,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @return : l'objet STTTask ou null si erreur
      */
     public void startListeningHotwor(Activity activity) {
+//        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+//            Log.e("MYA_YAKINE","listeningState = "+listeningState+"\nstartListeningHotwor ------ Delay");
+//                }, 2000);
+        listeningState = "hotword";
+        hotwordAlreadyHandled = false;
+        Log.e("MYA_YAKINE","listeningState = "+listeningState+"\nstartListeningHotwor");
+        Log.e("MYA_QR_H_","startListeningHotwor fct");
         getTranslateHotwordList();
         neutralAnimation();
         isSpeaking = false;
@@ -1835,7 +1862,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                                 @Override
                                 public void onRmsChanged(float v) {
-                                    //Log.e(TAG, "onRmsChanged");
+                                    Log.e(TAG, "onRmsChanged");
 
                                 }
 
@@ -3113,30 +3140,49 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 //            });
         }
     }
-    public void checkTheHotword(String word){
-        List<String> hotword =getHotwordList();
-        boolean rightHottwordDetected = false;
-        for (int i = 0; i < hotword.size(); i++) {
-            Log.i(TAG, "checkTheHotword :" + word);
-            if (word.trim().equalsIgnoreCase(hotword.get(i).trim())) {
-                try {
-                    rightHottwordDetected =true;
-                    isListeningHotw = false;
-                    notifyObservers("STTHotword_success");
 
+    private boolean hotwordAlreadyHandled = false;
+    public void checkTheHotword(String word) {
+        List<String> hotword = getHotwordList();
+        boolean rightHotwordDetected = false;
 
-                } catch (Resources.NotFoundException e) {
-                    Log.e(TAG, "Resources not Found " + e);
-                }
+        // Si on a déjà traité un hotword → on sort immédiatement
+        if (hotwordAlreadyHandled) {
+            return;
+        }
 
+        for (String hw : hotword) {
+
+            if (word.trim().equalsIgnoreCase(hw.trim())) {
+
+                rightHotwordDetected = true;
+
+                hotwordAlreadyHandled = true;
+
+                //listeningState = "qst";
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+
+                    // Vérification : toujours en mode hotword ?
+                    if (listeningState.equals("hotword")) {
+
+                        listeningState = "qst";
+                    }
+
+                }, 1500);
+
+                // On notifie UNE SEULE FOIS
+                notifyObservers("STTHotword_success");
+
+                return;
             }
         }
-        if (!rightHottwordDetected){
-            if (speechRecognizer!=null && speechRecognizerIntent2 !=null) {
+
+        // Si rien détecté et que le hotword n'a pas encore été traité
+        if (!rightHotwordDetected && !hotwordAlreadyHandled) {
+            if (speechRecognizer != null && speechRecognizerIntent2 != null) {
                 setLed("listening");
                 speechRecognizer.startListening(speechRecognizerIntent2);
             }
-
         }
     }
 
@@ -5584,6 +5630,330 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         return textContent.toString().trim();
     }
+
+
+    // region ------------------------------------------------------------ QR code scanner ------------------------------------------------------------
+
+    private FrameProcessing zoomFrameProcessor;
+    private DetectionCallback detectionZoomCallback;
+    private final AtomicBoolean isAprilTagProcessing = new AtomicBoolean(false);
+    private final AtomicBoolean isQRProcessing = new AtomicBoolean(false);
+
+    public void setupZoomQRCode(DetectionCallback detectionCallback) {
+        if (zoomFrameProcessor == null) {
+            zoomFrameProcessor = new FrameProcessing();
+        }
+        detectionZoomCallback = detectionCallback;
+    }
+
+
+    public List<String> getDisponibleScaningSystem(){
+        StringTokenizer st = new StringTokenizer(getParamFromFile("QRCode_System",configurationFilePseudo), "/", false);
+        List<String> list = new ArrayList<>();
+        while (st.hasMoreTokens()) {
+            String result = st.nextToken();
+            list.add(result.trim());
+        }
+        return list;
+    }
+
+    public void processImage_(Context context, Image image, List<String> types) {
+        boolean shouldProcessQR = types.contains("QRCode");
+        boolean shouldProcessDataMatrix = types.contains("DataMatrix");
+        boolean shouldProcessAprilTag = types.contains("AprilTag");
+
+        if ((shouldProcessQR || shouldProcessDataMatrix) && isQRProcessing.get()) {
+            image.close();
+            return;
+        }
+
+        if (shouldProcessAprilTag && isAprilTagProcessing.get()) {
+            image.close();
+            return;
+        }
+
+        Image.Plane[] planes = image.getPlanes();
+        int rowStrideY = planes[0].getRowStride();
+        int rowStrideUV = planes[1].getRowStride();
+        final ByteBuffer yBuffer = planes[0].getBuffer().duplicate();
+        final int width = image.getWidth();
+        final int height = image.getHeight();
+        final int rowStride = planes[0].getRowStride();
+        final Bitmap bitmap = BitmapUtils.getBitmap(image, rowStrideY, rowStrideUV);
+
+        ImageView zoom_iv = ((MainActivity) context).findViewById(R.id.previewViewQr);
+
+        // Traitement QR/DataMatrix via MLKit
+        if ((shouldProcessQR || shouldProcessDataMatrix) && !isQRProcessing.get()) {
+            isQRProcessing.set(true);
+            zoomFrameProcessor.setNextFrame(bitmap);
+            zoom_iv.setImageBitmap(bitmap);
+            isQRProcessing.set(false);
+
+        }
+
+        // Traitement AprilTag natif
+        if (shouldProcessAprilTag && !isAprilTagProcessing.get()) {
+            isAprilTagProcessing.set(true);
+            ArrayList<ApriltagDetection> detections = ApriltagNative.apriltag_detect_yuv_zoom(
+                    yBuffer, width, height, rowStride
+            );
+
+            ((MainActivity) context).runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // Render image
+                    zoom_iv.setImageBitmap(bitmap);
+                    // Display Detected AprilTags values
+                    ((MainActivity) context).runOnUiThread(() -> {
+
+                        for (ApriltagDetection aprilTag : detections) {
+                            if (listeningState.equals("hotword")) {
+
+                                if(getCurrentLanguage().equals("fr")){
+
+                                    checkTheHotword(getTxtfromTag(String.valueOf(aprilTag.id)));
+                                }
+                                else{
+                                    getFrenchLanguageSelectedTranslator().translate(getTxtfromTag(String.valueOf(aprilTag.id))).addOnSuccessListener(new OnSuccessListener<String>() {
+                                        @Override
+                                        public void onSuccess(String translatedText) {
+                                            checkTheHotword(translatedText);
+                                            Log.e("MYA_trans", "Translation = " + translatedText);
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.e(TAG, "translatedText exception  " + e);
+                                        }
+                                    });
+
+                                }
+
+                            } else if (listeningState.equals("qst")) {
+                                notifyObservers("AprilTagScan;SPLIT;" + aprilTag.id);
+                            }
+                        }
+
+                        isAprilTagProcessing.set(false);
+                    });
+                }
+            });
+        }
+    }
+
+    public void processImage(Context context, Image image, List<String> types) {
+        boolean shouldProcessQR = types.contains("QRCode");
+        boolean shouldProcessDataMatrix = types.contains("DataMatrix");
+        boolean shouldProcessAprilTag = types.contains("AprilTag");
+
+        if ((shouldProcessQR || shouldProcessDataMatrix) && isQRProcessing.get()) {
+            image.close();
+            return;
+        }
+
+        if (shouldProcessAprilTag && isAprilTagProcessing.get()) {
+            image.close();
+            return;
+        }
+
+        try {
+            final int width = image.getWidth();
+            final int height = image.getHeight();
+            final int rowStride = image.getPlanes()[0].getRowStride();
+            final ByteBuffer yBuffer = image.getPlanes()[0].getBuffer().duplicate();
+
+            if ((shouldProcessQR || shouldProcessDataMatrix) && isQRProcessing.compareAndSet(false, true)) {
+                final Bitmap bitmap = BitmapUtils.getBitmap(
+                        image,
+                        image.getPlanes()[0].getRowStride(),
+                        image.getPlanes()[1].getRowStride()
+                );
+
+                ImageView zoom_iv = ((MainActivity) context).findViewById(R.id.previewViewQr);
+                zoom_iv.setImageBitmap(bitmap);
+
+                zoomFrameProcessor.setNextFrame(bitmap);
+                isQRProcessing.set(false);
+            }
+            if (shouldProcessAprilTag && !isAprilTagProcessing.get()) {
+                isAprilTagProcessing.set(true);
+                ArrayList<ApriltagDetection> detections = ApriltagNative.apriltag_detect_yuv_zoom(
+                        yBuffer, width, height, rowStride
+                );
+
+                ((MainActivity) context).runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((MainActivity) context).runOnUiThread(() -> {
+
+                            for (ApriltagDetection aprilTag : detections) {
+                                if (listeningState.equals("hotword")) {
+
+                                    if(getCurrentLanguage().equals("fr")){
+
+                                        checkTheHotword(getTxtfromTag(String.valueOf(aprilTag.id)));
+                                    }
+                                    else{
+                                        getFrenchLanguageSelectedTranslator().translate(getTxtfromTag(String.valueOf(aprilTag.id))).addOnSuccessListener(new OnSuccessListener<String>() {
+                                            @Override
+                                            public void onSuccess(String translatedText) {
+                                                checkTheHotword(translatedText);
+                                                Log.e("MYA_trans", "Translation = " + translatedText);
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Log.e(TAG, "translatedText exception  " + e);
+                                            }
+                                        });
+
+                                    }
+
+                                } else if (listeningState.equals("qst")) {
+                                    notifyObservers("AprilTagScan;SPLIT;" + aprilTag.id);
+                                }
+                            }
+
+                            isAprilTagProcessing.set(false);
+                        });
+                    }
+                });
+            }
+        } finally {
+            image.close();
+        }
+    }
+
+
+    public void startBarcodeScanner(Context context, List<String> types) {
+        if (zoomFrameProcessor == null) {
+            zoomFrameProcessor = new FrameProcessing();
+            Log.i("MYA_QR", "zoomFrameProcessor initialized.");
+        }
+        BarcodeScannerOptions.Builder optionsBuilder = new BarcodeScannerOptions.Builder();
+
+        if (types.contains("QRCode") && types.contains("DataMatrix")) {
+            optionsBuilder.setBarcodeFormats(Barcode.FORMAT_QR_CODE, Barcode.FORMAT_DATA_MATRIX);
+        } else if (types.contains("DataMatrix")) {
+            optionsBuilder.setBarcodeFormats(Barcode.FORMAT_DATA_MATRIX);
+        } else if (types.contains("QRCode")) {
+            optionsBuilder.setBarcodeFormats(Barcode.FORMAT_QR_CODE);
+        } else {
+            // Aucun code supporté
+            if (zoomFrameProcessor != null) {
+                zoomFrameProcessor.setMachineLearningFrameProcessor(null);
+            }
+            return;
+        }
+
+        BarcodeScannerOptions options = optionsBuilder.build();
+
+        BarcodeScannerProcessor processor = new BarcodeScannerProcessor(context, new DetectionCallback() {
+            @Override
+            public void onDetection(String text) {
+                detectionZoomCallback.onDetection(text);
+
+                Log.i("MYA_QR_H", "run: QR/MATRIX " + text);
+                if(listeningState == "hotword"){
+                    Log.e("MYA_YAKINE","listeningState = hotword\ncheckTheHotword(text.split(\";\")[0]): "+ text.split(";")[0]);
+                    checkTheHotword(text.split(";")[0]);
+                }
+                else if (listeningState == "qst"){
+                    Log.e("MYA_YAKINE","listeningState = qst\n" +text.split(";")[1] +" = "+ text.split(";")[0]);
+                    notifyObservers("QRCodeScan;SPLIT;" + text.split(";")[1] + ";SPLIT;" + text.split(";")[0]);
+                }
+            }
+
+            @Override
+            public void onNoDetection() {
+                detectionZoomCallback.onNoDetection();
+            }
+        }, options);
+
+        zoomFrameProcessor.setMachineLearningFrameProcessor(processor);
+    }
+
+    public void stopQRCode() {
+        if (zoomFrameProcessor != null) {
+            zoomFrameProcessor.stop();
+        }
+//        if (cameraUtils != null) {
+//            cameraUtils.stopCamera(); // ceci va aussi cacher la vue
+//        }
+    }
+
+
+    public void createAndDeployDefaultAprilTagJson() {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("1", "Bonjour, comment tu t'appelles ?");
+            json.put("2", "Quel temps fait-il aujourd'hui ?");
+            json.put("3", "Raconte-moi une blague !");
+            json.put("4", "Exécute une danse.");
+            json.put("5", "C’est quoi ton jeu préféré ?");
+            json.put("6", "Répète après moi : Bonjour les amis !");
+            json.put("7", "Montre-moi une image de chien rouge.");
+            json.put("8", "Quelle est ta couleur préférée ?");
+            json.put("9", "Dis-moi une devinette.");
+
+
+            File dir = new File("/storage/emulated/0/", "TeamChatBuddy");
+            if (!dir.exists()) dir.mkdirs();
+
+            File jsonFile = new File(dir, "association_apriltag.json");
+
+            if (jsonFile.exists()) return;
+
+            FileOutputStream fos = new FileOutputStream(jsonFile);
+            fos.write(json.toString(4).getBytes());
+            fos.flush();
+            fos.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public String getTxtfromTag(String targetKey) {
+        try {
+            File directory = new File(getString(R.string.path), "TeamChatBuddy");
+            File jsonFile = new File(directory, "association_apriltag.json");
+            if (!jsonFile.exists()) {
+                Log.e("MYA_QR", "Fichier JSON introuvable : " + jsonFile.getAbsolutePath());
+                return "";
+            }
+
+
+            StringBuilder builder = new StringBuilder();
+            BufferedReader reader = new BufferedReader(new FileReader(jsonFile));
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+            }
+            reader.close();
+
+            // Parsing JSON
+            JSONObject jsonObject = new JSONObject(builder.toString());
+
+            final String[] result = new String[1];
+            // Recherche par key
+            if (jsonObject.has(targetKey)) {
+                return jsonObject.getString(targetKey);
+            }
+
+        } catch (IOException e) {
+            Log.e("MYA_QR", "Erreur de lecture du fichier : " + e.getMessage());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        return ""; // return empty if no valid value found
+    }
+
+    //#endregion ------------------------------------------------------------ QR code scanner ------------------------------------------------------------
 
     //#endregion ******************************************************* Fonctions utiles *********************************************************
 
