@@ -125,8 +125,8 @@ public class ConfigurationFile {
             setProperty("Whisper_prompt","Buddy");
 
             props.addPropertyComment("Text_To_Speech_List", "");
-            props.addPropertyComment("Text_To_Speech_List", "Text to Speech : ReadSpeaker/Android/ApiGoogle/OpenAI");
-            setProperty("Text_To_Speech_List","ReadSpeaker/Android/ApiGoogle/OpenAI");
+            props.addPropertyComment("Text_To_Speech_List", "Text to Speech : ReadSpeaker/Android/ApiGoogle");
+            setProperty("Text_To_Speech_List","ReadSpeaker/Android/ApiGoogle");
             props.addPropertyComment("ReadSpeaker_pitch_fr","Pitch and speed for TTS");
             props.addPropertyComment("ReadSpeaker_pitch_fr","ReadSpeaker Range : pitch [50-200] / speed [50-400]");
             props.addPropertyComment("ReadSpeaker_pitch_fr","Android/ApiGoogle Range : pitch & speed [50-150]");
@@ -146,11 +146,6 @@ public class ConfigurationFile {
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "If no voice is specified for a language in TTS_ApiGoogle_Language_Voice, the system uses the voice type defined in TTS_ApiGoogle_Voice_Type and appends '-A' as the default voice (e.g., Standard-A) ");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
             setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
-            setProperty("model_openai_tts","tts-1");
-            setProperty("openai_tts_voice","sage");
-            setProperty("openai_tts_speed","1");
-            setProperty("openai_tts_instructions","Parle avec un ton heureux et enfantin.");
-
 
             props.addPropertyComment("ChatBot","");
             props.addPropertyComment("ChatBot","Default ChatBot : ChatGPT/CustomGPT");
@@ -194,13 +189,6 @@ public class ConfigurationFile {
             setProperty("Displaying_QRCode_Duration","30");
             setProperty("QRcodeFileName","qrCode.png");
             setProperty("QR_Text","SCAN<br>FOR DRINKS<br>AND SNACKS");
-
-
-            props.addPropertyComment("Lecture_QR_Code ","");
-            props.addPropertyComment("Lecture_QR_Code ","Possibility of scanning Codes to communicate (Yes/No)");
-            setProperty("Lecture_QR_Code ","No");
-            props.addPropertyComment("QRCode_System  ","Possible codes : QRCode / DataMatrix / AprilTag");
-            setProperty("QRCode_System","QRCode/DataMatrix/AprilTag");
 
             props.addPropertyComment("Language","");
             props.addPropertyComment("Language","Languages available Français /Anglais /Espagnol /Allemand /Italien /Japonais /Arabe /Chinois /Danois /Néerlandais /Norvégien");
@@ -247,7 +235,7 @@ public class ConfigurationFile {
 
 
             props.addPropertyComment("Pattern_End_Phrase","");
-            props.addPropertyComment("Pattern_End_Phrase","Set characters marking the end of a sentence using a regular expression for streaming TTS, fill with '</speak>' if you want to handle SSML blocks with Google Cloud TTS");
+            props.addPropertyComment("Pattern_End_Phrase","Set characters marking the end of a sentence using a regular expression for streaming TTS");
             setProperty("Pattern_End_Phrase","[.;!?][ ]{1,3}|:\\s*|\\n");
 
             props.addPropertyComment("Silence_time","");

@@ -8,11 +8,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.media.Image;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.ConnectivityManager;
@@ -21,6 +19,7 @@ import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
@@ -34,7 +33,6 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -65,8 +63,6 @@ import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
-import com.google.mlkit.vision.barcode.common.Barcode;
 import com.ibm.icu.text.BreakIterator;
 import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
@@ -76,10 +72,8 @@ import com.konovalov.vad.VadConfig;
 import com.konovalov.vad.VadListener;
 import com.robotique.aevaweb.bluemicapp.callbacks.IBlueMicAudioDataListener;
 import com.robotique.aevaweb.teamchatbuddy.R;
-import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ChatGptStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.CustomGPTStreamMode;
-import com.robotique.aevaweb.teamchatbuddy.models.ApriltagDetection;
 import com.robotique.aevaweb.teamchatbuddy.models.History;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.LocaleEntry;
@@ -91,7 +85,6 @@ import com.robotique.aevaweb.teamchatbuddy.observers.IDBObserver;
 import com.robotique.aevaweb.teamchatbuddy.utilis.BlueMic;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ConfigurationFile;
 import com.robotique.aevaweb.teamchatbuddy.utilis.CustomProperties;
-import com.robotique.aevaweb.teamchatbuddy.utilis.DetectionCallback;
 import com.robotique.aevaweb.teamchatbuddy.utilis.GoogleSTT;
 import com.robotique.aevaweb.teamchatbuddy.utilis.GoogleSTTCallbacks;
 import com.robotique.aevaweb.teamchatbuddy.utilis.IMLKitDownloadCallback;
@@ -101,18 +94,10 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.SettingsContentObserver;
 import com.robotique.aevaweb.teamchatbuddy.utilis.TtsFactory;
 import com.robotique.aevaweb.teamchatbuddy.utilis.TtsGoogleApiListener;
 import com.robotique.aevaweb.teamchatbuddy.utilis.TtsGoogleC;
-import com.robotique.aevaweb.teamchatbuddy.utilis.TtsOpenAI;
-import com.robotique.aevaweb.teamchatbuddy.utilis.TtsOpenAIListener;
-import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.ApriltagNative;
-import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.BarcodeScannerProcessor;
-import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.BitmapUtils;
-import com.robotique.aevaweb.teamchatbuddy.utilis.apriltag.FrameProcessing;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -122,8 +107,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,7 +119,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringTokenizer;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import darren.googlecloudtts.model.VoicesList;
@@ -310,11 +300,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private int counterTouch = 0;
     private int counterHotword = 0;
     private int counterTracking = 0;
-    public List<String> listQRTypes = new ArrayList<>();
-
-    public String listeningState;
-
-    public boolean isStartMsg = false;
 
     public int getCounterTouch() {
         return counterTouch;
@@ -996,10 +981,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         String number_attempt = getParamFromFile("Number_listens",configurationFilePseudo);
         if(number_attempt.equals("")||Integer.parseInt(number_attempt)<=0){
-            remainingAttempts= Integer.parseInt("1");
+            remainingAttempts= Integer.parseInt("1")-1;
         }
         else{
-            remainingAttempts= Integer.parseInt(number_attempt)+1;
+            remainingAttempts= Integer.parseInt(number_attempt)-1;
         }
 
         if (getparam("firstLaunch").equals("")){
@@ -1025,7 +1010,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         initCommandeSetting();
         initBIDisplay();
         initTracking();
-        listQRTypes = getDisponibleScaningSystem();
         Log.e("MRAA","init google api");
 
         Log.e("MRAA","init google api out if");
@@ -1117,12 +1101,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         if(listening_duration.equals("")||Integer.parseInt(listening_duration)<=0){
             listening_duration = "10";
         }
-        if(listening_attempt.equals("")||Integer.parseInt(listening_attempt)<0){
+        if(listening_attempt.equals("")||Integer.parseInt(listening_attempt)<=0){
             listening_attempt = "1";
         }
         listeningDuration = Integer.parseInt(listening_duration);
-        listeningAttempt = Integer.parseInt(listening_attempt) + 1;
-        remainingAttempts= listeningAttempt;
+        listeningAttempt = Integer.parseInt(listening_attempt);
+        remainingAttempts= listeningAttempt-1;
     }
 
     private void initProjectID(){
@@ -1280,17 +1264,11 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         if (listTTS.length>0) {
             if (listTTS[0].trim().equalsIgnoreCase("ReadSpeaker")) {
                 chosenTTS = "ReadSpeaker";
-            }
-            else if (listTTS[0].trim().equalsIgnoreCase("Android")) {
+            } else if (listTTS[0].trim().equalsIgnoreCase("Android")) {
                 chosenTTS = "Android";
-            }
-            else if (listTTS[0].trim().equalsIgnoreCase("ApiGoogle")) {
+            } else if (listTTS[0].trim().equalsIgnoreCase("ApiGoogle")) {
                 chosenTTS = "ApiGoogle";
-            }
-            else if (listTTS[0].trim().equalsIgnoreCase("OpenAI")) {
-                chosenTTS = "OpenAI";
-            }
-            else {
+            } else {
                 chosenTTS = "ReadSpeaker";
 
                 if (getLangue().getNom().equals("Anglais")){
@@ -1782,13 +1760,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @return : l'objet STTTask ou null si erreur
      */
     public void startListeningHotwor(Activity activity) {
-//        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-//            Log.e("MYA_YAKINE","listeningState = "+listeningState+"\nstartListeningHotwor ------ Delay");
-//                }, 2000);
-        listeningState = "hotword";
-        hotwordAlreadyHandled = false;
-        Log.e("MYA_YAKINE","listeningState = "+listeningState+"\nstartListeningHotwor");
-        Log.e("MYA_QR_H_","startListeningHotwor fct");
         getTranslateHotwordList();
         neutralAnimation();
         isSpeaking = false;
@@ -2168,7 +2139,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                             @Override
                             public void onRmsChanged(float v) {
-                                //Log.i(TAG, "onRmsChanged listen");
+                                Log.i(TAG, "onRmsChanged listen");
                             }
 
                             @Override
@@ -3140,49 +3111,30 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 //            });
         }
     }
+    public void checkTheHotword(String word){
+        List<String> hotword =getHotwordList();
+        boolean rightHottwordDetected = false;
+        for (int i = 0; i < hotword.size(); i++) {
+            Log.i(TAG, "checkTheHotword :" + word);
+            if (word.trim().equalsIgnoreCase(hotword.get(i).trim())) {
+                try {
+                    rightHottwordDetected =true;
+                    isListeningHotw = false;
+                    notifyObservers("STTHotword_success");
 
-    private boolean hotwordAlreadyHandled = false;
-    public void checkTheHotword(String word) {
-        List<String> hotword = getHotwordList();
-        boolean rightHotwordDetected = false;
 
-        // Si on a déjà traité un hotword → on sort immédiatement
-        if (hotwordAlreadyHandled) {
-            return;
-        }
+                } catch (Resources.NotFoundException e) {
+                    Log.e(TAG, "Resources not Found " + e);
+                }
 
-        for (String hw : hotword) {
-
-            if (word.trim().equalsIgnoreCase(hw.trim())) {
-
-                rightHotwordDetected = true;
-
-                hotwordAlreadyHandled = true;
-
-                //listeningState = "qst";
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-                    // Vérification : toujours en mode hotword ?
-                    if (listeningState.equals("hotword")) {
-
-                        listeningState = "qst";
-                    }
-
-                }, 1500);
-
-                // On notifie UNE SEULE FOIS
-                notifyObservers("STTHotword_success");
-
-                return;
             }
         }
-
-        // Si rien détecté et que le hotword n'a pas encore été traité
-        if (!rightHotwordDetected && !hotwordAlreadyHandled) {
-            if (speechRecognizer != null && speechRecognizerIntent2 != null) {
+        if (!rightHottwordDetected){
+            if (speechRecognizer!=null && speechRecognizerIntent2 !=null) {
                 setLed("listening");
                 speechRecognizer.startListening(speechRecognizerIntent2);
             }
+
         }
     }
 
@@ -3475,8 +3427,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     }
 
     // Function to speak an article and trigger the callback on completion
-    private void speakArticle(String article, int index, TTSCallback callback, Boolean isGoogle, Boolean isOpenAI) {
-        Log.i("OpenAITTS", "Speaking article " + (index) + ": " + article);
+    private void speakArticle(String article, int index, TTSCallback callback, Boolean isGoogle) {
+        Log.i("googleNews", "Speaking article " + (index) + ": " + article);
         if (isGoogle) {
             new AsyncTask<Void, Void, Void>() {
                 @SuppressLint("StaticFieldLeak")
@@ -3484,37 +3436,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 protected Void doInBackground(Void... voids) {
                     try {
                         SystemClock.sleep(2000);
-                        getGoogleCloudTTS().start(getParamFromFile("ApiGoogle_Key", configurationFilePseudo), article);
+                        getGoogleCloudTTS().start(article);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     return null;
                 }
             }.execute();
-        }
-        else if (isOpenAI) {
-            TtsOpenAI ttsOpenAI = new TtsOpenAI(this, this);
-            ttsOpenAI.setVoice(getParamFromFile("openai_tts_voice", configurationFilePseudo));
-            ttsOpenAI.setModel(getParamFromFile("model_openai_tts", configurationFilePseudo));
-            ttsOpenAI.setResponseFormat("wav");
-            ttsOpenAI.setSpeed(Float.parseFloat(getParamFromFile("openai_tts_speed", configurationFilePseudo)));
-            ttsOpenAI.setInstructions(getParamFromFile("openai_tts_instructions", configurationFilePseudo));
-            ttsOpenAI.setStreamFormat("audio");
-            new AsyncTask<Void, Void, Void>() {
-                @SuppressLint("StaticFieldLeak")
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    try {
-                        SystemClock.sleep(2000);
-                        ttsOpenAI.start(getparam(openAIKey), article);;
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-            }.execute();
-        }
-        else {
+        } else {
             tts_android.speak(article, TextToSpeech.QUEUE_FLUSH, null, "TTS_UTTERANCE_ID");
         }
     }
@@ -3656,13 +3585,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             Log.e("MEHDI", "onSpeechCompleted " + nextIndex);
                             if (nextIndex < articlesList.size()) {
                                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                    speakArticle(articlesList.get(nextIndex), nextIndex, this, false, false);
+                                    speakArticle(articlesList.get(nextIndex), nextIndex, this, false);
                                 }, 2000); // Pause before the next article
                             }
                         }
                     };
 
-                    speakArticle(articlesList.get(0), 0, callback, false, false);
+                    speakArticle(articlesList.get(0), 0, callback, false);
                     tts_android.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                         @Override
                         public void onStart(String utteranceId) {
@@ -3874,31 +3803,17 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 String fullLangCode = null;
                 List<String> mlkitLangs = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Mlkit");
                 int index = mlkitLangs.indexOf(languageToUseInApiGoogle);
-                Log.i("TEST_voix", "languageToUseInApiGoogle : " + languageToUseInApiGoogle
-                        + "\ngoogleTTSLangs : " + googleTTSLangs+ "\nmlkitLangs : " + mlkitLangs+ "\nindex : " + index);
 
-                if (index == -1){
-                    List<String> langsAlternative = Arrays.asList("fr", "en", "es", "de", "it", "ja", "ar", "cmn", "da", "nl", "nb");
-                    index = langsAlternative.indexOf(languageToUseInApiGoogle);
-                }
                 if (index >= 0 && index < googleTTSLangs.size()) {
                     fullLangCode = googleTTSLangs.get(index);
-                    Log.i("TEST_voix", "fullLangCode google : " + fullLangCode + "\nindex : " + index);
                 }
 
                 usingReadSpeaker = false;
                 Log.i("TEST_voix", "fullLangCode google : " + fullLangCode );
                 speakGoogleCloudTTS(fullLangCode, texteToSpeak, type);
             }
-            else if (getChosenTTS().trim().equalsIgnoreCase("OpenAI") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("OpenAI") && !usingReadSpeaker)) {
-                Log.i("OpenAITTS","SPEAK using TTS OpenAI");
 
-                usingReadSpeaker = false;
-                speakOpenAITTS(texteToSpeak, type);
-
-            }
-
-            } catch (Exception e) {
+        } catch (Exception e) {
             Log.e(TAG, "Exception pendant la prononciation : " + e);
             notifyObservers("TTS_exception;" + texteToSpeak);
         }
@@ -4316,14 +4231,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 Log.d("googleNews", " onSpeechCompleted ");
                                 if (nextIndex < articlesList.size()) {
                                     try {
-                                        speakArticle(articlesList.get(nextIndex), nextIndex, this, true, false);
+                                        speakArticle(articlesList.get(nextIndex), nextIndex, this, true);
                                     } catch (Exception e) {
                                         Log.e("googleNews", "Error while speaking article: " + e.getMessage());
                                     }
                                 }
                             }
                         };
-                        speakArticle(articlesList.get(0), 0, callback1, true, false);
+                        speakArticle(articlesList.get(0), 0, callback1, true);
 
                         getGoogleCloudTTS().setTtsListener(new TtsGoogleApiListener() {
                             @Override
@@ -4446,7 +4361,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 Log.e("MRA", "speakGoogleCloudTTS  onError-----------  ");
                             }
                         });
-                        getGoogleCloudTTS().start(getParamFromFile("ApiGoogle_Key", configurationFilePseudo), texteToSpeak);
+                        getGoogleCloudTTS().start(texteToSpeak);
 
                     }
                 }
@@ -4520,207 +4435,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 return null;
             }
         }.execute();
-    }
-
-    public void speakOpenAITTS(String texteToSpeak, String type) {
-        TtsOpenAI ttsOpenAI = new TtsOpenAI(this, this);
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                try {
-
-                    // Configuration voix
-                    ttsOpenAI.setVoice(getParamFromFile("openai_tts_voice", configurationFilePseudo));
-                    ttsOpenAI.setModel(getParamFromFile("model_openai_tts", configurationFilePseudo));
-                    ttsOpenAI.setResponseFormat("wav");
-                    ttsOpenAI.setSpeed(Float.parseFloat(getParamFromFile("openai_tts_speed", configurationFilePseudo)));
-                    ttsOpenAI.setStreamFormat("audio");
-                    ttsOpenAI.setInstructions(getParamFromFile("openai_tts_instructions", configurationFilePseudo));
-
-                    // Gestion splitNews
-                    if (texteToSpeak.contains(";splitNews;")) {
-                        Log.d("OpenAITTS", "----------texte contains splitNews----------");
-                        Log.d("OpenAITTS", "texteToSpeak :"+texteToSpeak);
-                        String[] articlesArray = texteToSpeak.split(";splitNews;");
-                        List<String> articlesList = new ArrayList<>();
-                        for (String article : articlesArray) {
-                            if (!article.trim().isEmpty()) articlesList.add(article);
-                        }
-
-                        Log.d("OpenAITTS", "articlesArray :"+articlesList);
-
-                        AtomicInteger currentArticleIndex = new AtomicInteger(0);
-
-                        TTSCallback callback2 = new TTSCallback() {
-                            @Override
-                            public void onSpeechCompleted(int nextIndex) {
-                                Log.d("googleNews", " onSpeechCompleted ");
-                                if (nextIndex < articlesList.size()) {
-                                    try {
-                                        speakArticle(articlesList.get(nextIndex), nextIndex, this, false, true);
-                                    } catch (Exception e) {
-                                        Log.e("googleNews", "Error while speaking article: " + e.getMessage());
-                                    }
-                                }
-                            }
-                        };
-                        speakArticle(articlesList.get(0), 0, callback2, false, true);
-                        TtsOpenAIListener callback = new TtsOpenAIListener() {
-                            @Override
-                            public void onStart() {
-                                // Ici tu peux mettre une expression labiale
-                                Log.d("OpenAITTS", "Lecture démarrée");
-                            }
-
-                            @Override
-                            public void onDone() {
-                                Log.d("googleNews", "onDone ");
-
-                                int nextIndex = currentArticleIndex.incrementAndGet();
-                                if (nextIndex == articlesList.size()) {
-                                    ttsOpenAI.close();
-                                    try {
-                                        BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                                    } catch (Exception e) {
-                                        Log.e(TAG, "BuddySDK Exception  " + e);
-                                    }
-
-                                    if (type.equals("timeOutExpired")) {
-                                        timeoutExpired = false;
-
-                                        if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
-                                            getChatGptStreamMode().resumeStreaming();
-                                        } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
-                                            getCustomGPTStreamMode().resumeStreaming();
-                                        } else {
-                                            notifyObservers("playStoredResponse");
-                                        }
-
-                                    } else if (type.equals("storedResponse")) {
-                                        questionNumber++;
-                                        notifyObservers("TTS_success;" + texteToSpeak);
-                                        storedResponse = "";
-                                        setLanguageDetected("");
-                                    } else {
-                                        questionNumber++;
-                                        setLanguageDetected("");
-                                        if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
-                                            getChatGptStreamMode().onTTSEnd();
-                                        } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
-                                            getCustomGPTStreamMode().onTTSEnd();
-                                        } else {
-                                            notifyObservers("TTS_success;" + texteToSpeak);
-                                        }
-                                    }
-                                } else {
-                                    try {
-                                        BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                                    } catch (Exception e) {
-                                        Log.e(TAG, "BuddySDK Exception  " + e);
-                                    }
-                                    callback2.onSpeechCompleted(nextIndex);// Trigger the callback
-                                }
-
-                            }
-
-                            @Override
-                            public void onError() {
-                                Log.e("OpenAITTS", "Erreur TTS OpenAI");
-                                ttsOpenAI.close();
-                                handleTTSError(type, texteToSpeak);
-                            }
-                        };
-
-                        ttsOpenAI.setTtsListener(callback);
-                        ttsOpenAI.start(getparam(openAIKey), articlesList.get(0));
-
-                    } else {
-
-                        Log.d("OpenAITTS", "---------- Texte simple ----------");
-                        Log.d("OpenAITTS", "texteToSpeak :"+texteToSpeak);
-                        // Texte simple
-                        ttsOpenAI.setTtsListener(new TtsOpenAIListener() {
-                            @Override
-                            public void onStart() {
-                                Log.d("OpenAITTS", "Lecture démarrée");
-                                try {
-                                    if(!isListeningHotw)BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
-                                } catch (Exception e) {
-                                    Log.e(TAG, "BuddySDK Exception  " + e);
-                                }
-                            }
-
-                            @Override
-                            public void onDone() {
-                                ttsOpenAI.close();
-                                try {
-                                    BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
-                                } catch (Exception e) {
-                                    Log.e(TAG, "BuddySDK Exception  " + e);
-                                }
-
-                                if (type.equals("timeOutExpired")) {
-                                    timeoutExpired = false;
-
-                                    if (getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null) {
-                                        getChatGptStreamMode().resumeStreaming();
-                                    } else if (getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null) {
-                                        getCustomGPTStreamMode().resumeStreaming();
-                                    } else {
-                                        notifyObservers("playStoredResponse");
-                                    }
-
-                                } else if (type.equals("storedResponse")) {
-                                    questionNumber++;
-                                    notifyObservers("TTS_success;" + texteToSpeak);
-                                    storedResponse = "";
-                                    setLanguageDetected("");
-                                } else {
-                                    questionNumber++;
-                                    setLanguageDetected("");
-                                    if (!type.equals("commande") && getparam("Mode_Stream").contains("yes") && getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT") && getChatGptStreamMode() != null && !type.equals("INVITATION")) {
-                                        getChatGptStreamMode().onTTSEnd();
-                                    } else if (!type.equals("commande") && getparam("chatbot_chosen").equalsIgnoreCase("CustomGPT") && getCustomGPTStreamMode() != null && !type.equals("INVITATION")) {
-                                        getCustomGPTStreamMode().onTTSEnd();
-                                    } else {
-                                        notifyObservers("TTS_success;" + texteToSpeak);
-                                    }
-                                }
-//                                Log.d("OpenAITTS", "Lecture terminée");
-                            }
-
-                            @Override
-                            public void onError() {
-                                Log.e("OpenAITTS", "Erreur TTS OpenAI");
-                                ttsOpenAI.close();
-                                handleTTSError(type, texteToSpeak);
-                            }
-                        });
-
-                        ttsOpenAI.start(getparam(openAIKey), texteToSpeak);
-                    }
-
-                } catch (Exception e) {
-                    Log.e("OpenAITTS", "Exception TTS OpenAI : " + e.getMessage(), e);
-                }
-                return null;
-            }
-        }.execute();
-    }
-
-
-    /**
-     * Exemple de gestion d'erreur TTS
-     */
-    private void handleTTSError(String type, String texte) {
-        switch (type) {
-            case "storedResponse":
-                notifyObservers("TTS_error;" + texte);
-                break;
-            default:
-                notifyObservers("TTS_error;" + texte);
-                break;
-        }
     }
 
     public String getSecondTTSfromTTSList(){
@@ -5614,353 +5328,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
 
     }
-
-    public static String stripSSML(String input) {
-        if (input == null || input.isEmpty()) return input;
-        StringBuilder textContent = new StringBuilder();
-        try {
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            factory.setNamespaceAware(false);
-            XmlPullParser parser = factory.newPullParser();
-            parser.setInput(new java.io.StringReader(input));
-
-            int eventType = parser.getEventType();
-            while (eventType != XmlPullParser.END_DOCUMENT) {
-                if (eventType == XmlPullParser.TEXT) {
-                    textContent.append(parser.getText());
-                }
-                eventType = parser.next();
-            }
-        } catch (Exception e) {
-            // Fallback simple en cas d’erreur
-            return input.replaceAll("<[^>]+>", "").trim();
-        }
-        return textContent.toString().trim();
-    }
-
-
-    // region ------------------------------------------------------------ QR code scanner ------------------------------------------------------------
-
-    private FrameProcessing zoomFrameProcessor;
-    private DetectionCallback detectionZoomCallback;
-    private final AtomicBoolean isAprilTagProcessing = new AtomicBoolean(false);
-    private final AtomicBoolean isQRProcessing = new AtomicBoolean(false);
-
-    public void setupZoomQRCode(DetectionCallback detectionCallback) {
-        if (zoomFrameProcessor == null) {
-            zoomFrameProcessor = new FrameProcessing();
-        }
-        detectionZoomCallback = detectionCallback;
-    }
-
-
-    public List<String> getDisponibleScaningSystem(){
-        StringTokenizer st = new StringTokenizer(getParamFromFile("QRCode_System",configurationFilePseudo), "/", false);
-        List<String> list = new ArrayList<>();
-        while (st.hasMoreTokens()) {
-            String result = st.nextToken();
-            list.add(result.trim());
-        }
-        return list;
-    }
-
-    public void processImage_(Context context, Image image, List<String> types) {
-        boolean shouldProcessQR = types.contains("QRCode");
-        boolean shouldProcessDataMatrix = types.contains("DataMatrix");
-        boolean shouldProcessAprilTag = types.contains("AprilTag");
-
-        if ((shouldProcessQR || shouldProcessDataMatrix) && isQRProcessing.get()) {
-            image.close();
-            return;
-        }
-
-        if (shouldProcessAprilTag && isAprilTagProcessing.get()) {
-            image.close();
-            return;
-        }
-
-        Image.Plane[] planes = image.getPlanes();
-        int rowStrideY = planes[0].getRowStride();
-        int rowStrideUV = planes[1].getRowStride();
-        final ByteBuffer yBuffer = planes[0].getBuffer().duplicate();
-        final int width = image.getWidth();
-        final int height = image.getHeight();
-        final int rowStride = planes[0].getRowStride();
-        final Bitmap bitmap = BitmapUtils.getBitmap(image, rowStrideY, rowStrideUV);
-
-        ImageView zoom_iv = ((MainActivity) context).findViewById(R.id.previewViewQr);
-
-        // Traitement QR/DataMatrix via MLKit
-        if ((shouldProcessQR || shouldProcessDataMatrix) && !isQRProcessing.get()) {
-            isQRProcessing.set(true);
-            zoomFrameProcessor.setNextFrame(bitmap);
-            zoom_iv.setImageBitmap(bitmap);
-            isQRProcessing.set(false);
-
-        }
-
-        // Traitement AprilTag natif
-        if (shouldProcessAprilTag && !isAprilTagProcessing.get()) {
-            isAprilTagProcessing.set(true);
-            ArrayList<ApriltagDetection> detections = ApriltagNative.apriltag_detect_yuv_zoom(
-                    yBuffer, width, height, rowStride
-            );
-
-            ((MainActivity) context).runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // Render image
-                    zoom_iv.setImageBitmap(bitmap);
-                    // Display Detected AprilTags values
-                    ((MainActivity) context).runOnUiThread(() -> {
-
-                        for (ApriltagDetection aprilTag : detections) {
-                            if (listeningState.equals("hotword")) {
-
-                                if(getCurrentLanguage().equals("fr")){
-
-                                    checkTheHotword(getTxtfromTag(String.valueOf(aprilTag.id)));
-                                }
-                                else{
-                                    getFrenchLanguageSelectedTranslator().translate(getTxtfromTag(String.valueOf(aprilTag.id))).addOnSuccessListener(new OnSuccessListener<String>() {
-                                        @Override
-                                        public void onSuccess(String translatedText) {
-                                            checkTheHotword(translatedText);
-                                            Log.e("MYA_trans", "Translation = " + translatedText);
-                                        }
-                                    }).addOnFailureListener(new OnFailureListener() {
-                                        @Override
-                                        public void onFailure(@NonNull Exception e) {
-                                            Log.e(TAG, "translatedText exception  " + e);
-                                        }
-                                    });
-
-                                }
-
-                            } else if (listeningState.equals("qst")) {
-                                notifyObservers("AprilTagScan;SPLIT;" + aprilTag.id);
-                            }
-                        }
-
-                        isAprilTagProcessing.set(false);
-                    });
-                }
-            });
-        }
-    }
-
-    public void processImage(Context context, Image image, List<String> types) {
-        boolean shouldProcessQR = types.contains("QRCode");
-        boolean shouldProcessDataMatrix = types.contains("DataMatrix");
-        boolean shouldProcessAprilTag = types.contains("AprilTag");
-
-        if ((shouldProcessQR || shouldProcessDataMatrix) && isQRProcessing.get()) {
-            image.close();
-            return;
-        }
-
-        if (shouldProcessAprilTag && isAprilTagProcessing.get()) {
-            image.close();
-            return;
-        }
-
-        try {
-            final int width = image.getWidth();
-            final int height = image.getHeight();
-            final int rowStride = image.getPlanes()[0].getRowStride();
-            final ByteBuffer yBuffer = image.getPlanes()[0].getBuffer().duplicate();
-
-            if ((shouldProcessQR || shouldProcessDataMatrix) && isQRProcessing.compareAndSet(false, true)) {
-                final Bitmap bitmap = BitmapUtils.getBitmap(
-                        image,
-                        image.getPlanes()[0].getRowStride(),
-                        image.getPlanes()[1].getRowStride()
-                );
-
-                ImageView zoom_iv = ((MainActivity) context).findViewById(R.id.previewViewQr);
-                zoom_iv.setImageBitmap(bitmap);
-
-                zoomFrameProcessor.setNextFrame(bitmap);
-                isQRProcessing.set(false);
-            }
-            if (shouldProcessAprilTag && !isAprilTagProcessing.get()) {
-                isAprilTagProcessing.set(true);
-                ArrayList<ApriltagDetection> detections = ApriltagNative.apriltag_detect_yuv_zoom(
-                        yBuffer, width, height, rowStride
-                );
-
-                ((MainActivity) context).runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ((MainActivity) context).runOnUiThread(() -> {
-
-                            for (ApriltagDetection aprilTag : detections) {
-                                if (listeningState.equals("hotword")) {
-
-                                    if(getCurrentLanguage().equals("fr")){
-
-                                        checkTheHotword(getTxtfromTag(String.valueOf(aprilTag.id)));
-                                    }
-                                    else{
-                                        getFrenchLanguageSelectedTranslator().translate(getTxtfromTag(String.valueOf(aprilTag.id))).addOnSuccessListener(new OnSuccessListener<String>() {
-                                            @Override
-                                            public void onSuccess(String translatedText) {
-                                                checkTheHotword(translatedText);
-                                                Log.e("MYA_trans", "Translation = " + translatedText);
-                                            }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Log.e(TAG, "translatedText exception  " + e);
-                                            }
-                                        });
-
-                                    }
-
-                                } else if (listeningState.equals("qst")) {
-                                    notifyObservers("AprilTagScan;SPLIT;" + aprilTag.id);
-                                }
-                            }
-
-                            isAprilTagProcessing.set(false);
-                        });
-                    }
-                });
-            }
-        } finally {
-            image.close();
-        }
-    }
-
-
-    public void startBarcodeScanner(Context context, List<String> types) {
-        if (zoomFrameProcessor == null) {
-            zoomFrameProcessor = new FrameProcessing();
-            Log.i("MYA_QR", "zoomFrameProcessor initialized.");
-        }
-        BarcodeScannerOptions.Builder optionsBuilder = new BarcodeScannerOptions.Builder();
-
-        if (types.contains("QRCode") && types.contains("DataMatrix")) {
-            optionsBuilder.setBarcodeFormats(Barcode.FORMAT_QR_CODE, Barcode.FORMAT_DATA_MATRIX);
-        } else if (types.contains("DataMatrix")) {
-            optionsBuilder.setBarcodeFormats(Barcode.FORMAT_DATA_MATRIX);
-        } else if (types.contains("QRCode")) {
-            optionsBuilder.setBarcodeFormats(Barcode.FORMAT_QR_CODE);
-        } else {
-            // Aucun code supporté
-            if (zoomFrameProcessor != null) {
-                zoomFrameProcessor.setMachineLearningFrameProcessor(null);
-            }
-            return;
-        }
-
-        BarcodeScannerOptions options = optionsBuilder.build();
-
-        BarcodeScannerProcessor processor = new BarcodeScannerProcessor(context, new DetectionCallback() {
-            @Override
-            public void onDetection(String text) {
-                detectionZoomCallback.onDetection(text);
-
-                Log.i("MYA_QR_H", "run: QR/MATRIX " + text);
-                if(listeningState == "hotword"){
-                    Log.e("MYA_YAKINE","listeningState = hotword\ncheckTheHotword(text.split(\";\")[0]): "+ text.split(";")[0]);
-                    checkTheHotword(text.split(";")[0]);
-                }
-                else if (listeningState == "qst"){
-                    Log.e("MYA_YAKINE","listeningState = qst\n" +text.split(";")[1] +" = "+ text.split(";")[0]);
-                    notifyObservers("QRCodeScan;SPLIT;" + text.split(";")[1] + ";SPLIT;" + text.split(";")[0]);
-                }
-            }
-
-            @Override
-            public void onNoDetection() {
-                detectionZoomCallback.onNoDetection();
-            }
-        }, options);
-
-        zoomFrameProcessor.setMachineLearningFrameProcessor(processor);
-    }
-
-    public void stopQRCode() {
-        if (zoomFrameProcessor != null) {
-            zoomFrameProcessor.stop();
-        }
-//        if (cameraUtils != null) {
-//            cameraUtils.stopCamera(); // ceci va aussi cacher la vue
-//        }
-    }
-
-
-    public void createAndDeployDefaultAprilTagJson() {
-        try {
-            JSONObject json = new JSONObject();
-            json.put("1", "Bonjour, comment tu t'appelles ?");
-            json.put("2", "Quel temps fait-il aujourd'hui ?");
-            json.put("3", "Raconte-moi une blague !");
-            json.put("4", "Exécute une danse.");
-            json.put("5", "C’est quoi ton jeu préféré ?");
-            json.put("6", "Répète après moi : Bonjour les amis !");
-            json.put("7", "Montre-moi une image de chien rouge.");
-            json.put("8", "Quelle est ta couleur préférée ?");
-            json.put("9", "Dis-moi une devinette.");
-
-
-            File dir = new File("/storage/emulated/0/", "TeamChatBuddy");
-            if (!dir.exists()) dir.mkdirs();
-
-            File jsonFile = new File(dir, "association_apriltag.json");
-
-            if (jsonFile.exists()) return;
-
-            FileOutputStream fos = new FileOutputStream(jsonFile);
-            fos.write(json.toString(4).getBytes());
-            fos.flush();
-            fos.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public String getTxtfromTag(String targetKey) {
-        try {
-            File directory = new File(getString(R.string.path), "TeamChatBuddy");
-            File jsonFile = new File(directory, "association_apriltag.json");
-            if (!jsonFile.exists()) {
-                Log.e("MYA_QR", "Fichier JSON introuvable : " + jsonFile.getAbsolutePath());
-                return "";
-            }
-
-
-            StringBuilder builder = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new FileReader(jsonFile));
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-            }
-            reader.close();
-
-            // Parsing JSON
-            JSONObject jsonObject = new JSONObject(builder.toString());
-
-            final String[] result = new String[1];
-            // Recherche par key
-            if (jsonObject.has(targetKey)) {
-                return jsonObject.getString(targetKey);
-            }
-
-        } catch (IOException e) {
-            Log.e("MYA_QR", "Erreur de lecture du fichier : " + e.getMessage());
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-
-        return ""; // return empty if no valid value found
-    }
-
-    //#endregion ------------------------------------------------------------ QR code scanner ------------------------------------------------------------
 
     //#endregion ******************************************************* Fonctions utiles *********************************************************
 

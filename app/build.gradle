@@ -76,12 +76,6 @@ android {
             excludes += '/META-INF/{NOTICE.md,LICENSE.md}' // <-- This line
         }
     }
-
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
-    }
 }
 
 
@@ -160,7 +154,5 @@ dependencies {
     //Ffmpeg to delete silence in the end of
     implementation(name: 'mobile-ffmpeg-full-4.4.LTS', ext: 'aar')
 
-    // ML Kit barcode scanning
-    implementation 'com.google.mlkit:barcode-scanning:17.2.0'
 
 }
