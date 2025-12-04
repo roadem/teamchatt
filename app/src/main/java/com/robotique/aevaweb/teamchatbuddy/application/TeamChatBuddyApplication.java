@@ -996,10 +996,10 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         String number_attempt = getParamFromFile("Number_listens",configurationFilePseudo);
         if(number_attempt.equals("")||Integer.parseInt(number_attempt)<=0){
-            remainingAttempts= Integer.parseInt("1")-1;
+            remainingAttempts= Integer.parseInt("1");
         }
         else{
-            remainingAttempts= Integer.parseInt(number_attempt)-1;
+            remainingAttempts= Integer.parseInt(number_attempt)+1;
         }
 
         if (getparam("firstLaunch").equals("")){
@@ -1117,12 +1117,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         if(listening_duration.equals("")||Integer.parseInt(listening_duration)<=0){
             listening_duration = "10";
         }
-        if(listening_attempt.equals("")||Integer.parseInt(listening_attempt)<=0){
+        if(listening_attempt.equals("")||Integer.parseInt(listening_attempt)<0){
             listening_attempt = "1";
         }
         listeningDuration = Integer.parseInt(listening_duration);
-        listeningAttempt = Integer.parseInt(listening_attempt);
-        remainingAttempts= listeningAttempt-1;
+        listeningAttempt = Integer.parseInt(listening_attempt) + 1;
+        remainingAttempts= listeningAttempt;
     }
 
     private void initProjectID(){
@@ -3874,9 +3874,16 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 String fullLangCode = null;
                 List<String> mlkitLangs = getLanguageCodeForDisponibleLangue("Language_Code_Used_In_Mlkit");
                 int index = mlkitLangs.indexOf(languageToUseInApiGoogle);
+                Log.i("TEST_voix", "languageToUseInApiGoogle : " + languageToUseInApiGoogle
+                        + "\ngoogleTTSLangs : " + googleTTSLangs+ "\nmlkitLangs : " + mlkitLangs+ "\nindex : " + index);
 
+                if (index == -1){
+                    List<String> langsAlternative = Arrays.asList("fr", "en", "es", "de", "it", "ja", "ar", "cmn", "da", "nl", "nb");
+                    index = langsAlternative.indexOf(languageToUseInApiGoogle);
+                }
                 if (index >= 0 && index < googleTTSLangs.size()) {
                     fullLangCode = googleTTSLangs.get(index);
+                    Log.i("TEST_voix", "fullLangCode google : " + fullLangCode + "\nindex : " + index);
                 }
 
                 usingReadSpeaker = false;

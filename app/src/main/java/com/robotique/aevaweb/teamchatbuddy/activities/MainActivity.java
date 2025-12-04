@@ -1685,23 +1685,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             } else {
                                 if (!teamChatBuddyApplication.isModeContinuousListeningON()) {
                                     if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                        String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");//todo: listenattempt
-                                        int numberListens = 0; // valeur par défaut
-                                        if (listensStr != null && !listensStr.isEmpty()) {
-                                            try {
-                                                numberListens = Integer.parseInt(listensStr);
-                                            } catch (NumberFormatException e) {
-                                                Log.e(TAG, "Invalid number format in config, defaulting to 0", e);
-                                            }
-                                        }
-
-                                        if (teamChatBuddyApplication.getStartRecording() && numberListens > 0) {
+                                        if (teamChatBuddyApplication.getStartRecording()) {
                                             Log.e(TAG, "startCycle TTS_success 2");
                                             teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                                             startCycle();
-                                        }
-                                        else if (teamChatBuddyApplication.getStartRecording() && numberListens==0){
-                                            teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                                         }
                                     } else {
 
@@ -1790,17 +1777,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                     }
                                                     else {
                                                         if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                                            String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
-                                                            int numberListens = 0; // valeur par défaut
-                                                            if (listensStr != null && !listensStr.isEmpty()) {
-                                                                try {
-                                                                    numberListens = Integer.parseInt(listensStr);
-                                                                } catch (NumberFormatException e) {
-                                                                    Log.e(TAG, "Invalid number format in config, defaulting to 0", e);
-                                                                }
-                                                            }
-
-                                                            if (teamChatBuddyApplication.getStartRecording() && numberListens > 0) {
+                                                            if (teamChatBuddyApplication.getStartRecording()) {
                                                                 Log.e(TAG, "startCycle TTS_success 2");
                                                                 teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                                                                 startCycle();
@@ -1898,17 +1875,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                                             }
                                                             else {
                                                                 if (!teamChatBuddyApplication.isMultiCommandsDetected()) {
-                                                                    String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
-                                                                    int numberListens = 0; // valeur par défaut
-                                                                    if (listensStr != null && !listensStr.isEmpty()) {
-                                                                        try {
-                                                                            numberListens = Integer.parseInt(listensStr);
-                                                                        } catch (NumberFormatException e) {
-                                                                            Log.e(TAG, "Invalid number format in config, defaulting to 0", e);
-                                                                        }
-                                                                    }
-
-                                                                    if (teamChatBuddyApplication.getStartRecording() && numberListens > 0){
+                                                                    if (teamChatBuddyApplication.getStartRecording()) {
                                                                         Log.e(TAG, "startCycle TTS_success 2");
                                                                         teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
                                                                         startCycle();
@@ -2554,22 +2521,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         else{
             teamChatBuddyApplication.setModeContinuousListeningON(false);
             isFirstResponse=true;
-            String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
-            int numberListens = 0; // valeur par défaut
-            if (listensStr != null && !listensStr.isEmpty()) {
-                try {
-                    numberListens = Integer.parseInt(listensStr);
-                } catch (NumberFormatException e) {
-                    Log.e(TAG, "Invalid number format in config, defaulting to 0", e);
-                }
-            }
-
-            if (teamChatBuddyApplication.getStartRecording() && numberListens > 0) {
+            if (teamChatBuddyApplication.getStartRecording()) {
                 Log.e(TAG, "startCycle TTS_success 2");
-                    teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
-                    startCycle();
-                }
-
+                teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getListeningAttempt() - 1);
+                startCycle();
+            }
         }
     }
 
@@ -3803,16 +3759,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     private void startNextCycle() {
         Log.e(TAG,"startNextCycle  remainingattempts= "+teamChatBuddyApplication.getRemainingAttempts());
-        String listensStr = teamChatBuddyApplication.getParamFromFile("Number_listens", "TeamChatBuddy.properties");
-        int numberListens = 0; // valeur par défaut
-        if (listensStr != null && !listensStr.isEmpty()) {
-            try {
-                numberListens = Integer.parseInt(listensStr);
-            } catch (NumberFormatException e) {
-                Log.e(TAG, "Invalid number format in config, defaulting to 0", e);
-            }
-        }
-        if (teamChatBuddyApplication.getRemainingAttempts() > 0 && numberListens > 0) {
+        if (teamChatBuddyApplication.getRemainingAttempts() > 0) {
             teamChatBuddyApplication.setRemainingAttempts(teamChatBuddyApplication.getRemainingAttempts()-1);
             startCycle();
             Log.e(TAG,"startNextCycle  after handler ");
