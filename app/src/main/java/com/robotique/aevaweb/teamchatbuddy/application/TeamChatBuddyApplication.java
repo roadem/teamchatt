@@ -3494,11 +3494,11 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
         else if (isOpenAI) {
             TtsOpenAI ttsOpenAI = new TtsOpenAI(this, this);
-            ttsOpenAI.setVoice(getParamFromFile("openai_tts_voice", configurationFilePseudo));
-            ttsOpenAI.setModel(getParamFromFile("model_openai_tts", configurationFilePseudo));
+            ttsOpenAI.setVoice(getParamFromFile("TTS_OpenAI_Voice", configurationFilePseudo));
+            ttsOpenAI.setModel(getParamFromFile("TTS_OpenAI_Model", configurationFilePseudo));
             ttsOpenAI.setResponseFormat("wav");
-            ttsOpenAI.setSpeed(Float.parseFloat(getParamFromFile("openai_tts_speed", configurationFilePseudo)));
-            ttsOpenAI.setInstructions(getParamFromFile("openai_tts_instructions", configurationFilePseudo));
+            ttsOpenAI.setSpeed(Float.parseFloat(getParamFromFile("TTS_OpenAI_Speed", configurationFilePseudo)));
+            ttsOpenAI.setInstructions(getParamFromFile("TTS_OpenAI_Instructions", configurationFilePseudo));
             ttsOpenAI.setStreamFormat("audio");
             new AsyncTask<Void, Void, Void>() {
                 @SuppressLint("StaticFieldLeak")
@@ -4530,12 +4530,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 try {
 
                     // Configuration voix
-                    ttsOpenAI.setVoice(getParamFromFile("openai_tts_voice", configurationFilePseudo));
-                    ttsOpenAI.setModel(getParamFromFile("model_openai_tts", configurationFilePseudo));
+                    ttsOpenAI.setVoice(getParamFromFile("TTS_OpenAI_Voice", configurationFilePseudo));
+                    ttsOpenAI.setModel(getParamFromFile("TTS_OpenAI_Model", configurationFilePseudo));
                     ttsOpenAI.setResponseFormat("wav");
-                    ttsOpenAI.setSpeed(Float.parseFloat(getParamFromFile("openai_tts_speed", configurationFilePseudo)));
+                    ttsOpenAI.setSpeed(Float.parseFloat(getParamFromFile("TTS_OpenAI_Speed", configurationFilePseudo)));
                     ttsOpenAI.setStreamFormat("audio");
-                    ttsOpenAI.setInstructions(getParamFromFile("openai_tts_instructions", configurationFilePseudo));
+                    ttsOpenAI.setInstructions(getParamFromFile("TTS_OpenAI_Instructions", configurationFilePseudo));
 
                     // Gestion splitNews
                     if (texteToSpeak.contains(";splitNews;")) {

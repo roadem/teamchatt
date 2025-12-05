@@ -65,10 +65,10 @@ public class TtsOpenAI implements AutoCloseable {
         executor.submit(() -> {
             try {
 
-                model = app.getParamFromFile("model_openai_tts", "TeamChatBuddy.properties").trim();
-                voice = app.getParamFromFile("openai_tts_voice", "TeamChatBuddy.properties").trim();
-                speed = Double.parseDouble(app.getParamFromFile("openai_tts_speed", "TeamChatBuddy.properties").trim());
-                instructions = app.getParamFromFile("openai_tts_instructions", "TeamChatBuddy.properties").trim();
+                model = app.getParamFromFile("TTS_OpenAI_Model", "TeamChatBuddy.properties").trim();
+                voice = app.getParamFromFile("TTS_OpenAI_Voice", "TeamChatBuddy.properties").trim();
+                speed = Double.parseDouble(app.getParamFromFile("TTS_OpenAI_Speed", "TeamChatBuddy.properties").trim());
+                instructions = app.getParamFromFile("TTS_OpenAI_Instructions", "TeamChatBuddy.properties").trim();
 
                 Log.i("MYA_TTS_OpenAI", "=== TTS OpenAI Start ===");
                 Log.i("MYA_TTS_OpenAI", "Texte : " + text);
@@ -94,8 +94,9 @@ public class TtsOpenAI implements AutoCloseable {
 
                 byte[] jsonBytes = body.toString().getBytes(StandardCharsets.UTF_8);
 
+                String apiUrl = app.getParamFromFile("ChatGPT_url","TeamChatBuddy.properties")+app.getParamFromFile("TTS_OpenAI_ApiEndpoint","TeamChatBuddy.properties");
                 // Connexion HTTP brute
-                URL url = new URL("https://api.openai.com/v1/audio/speech");
+                URL url = new URL(apiUrl);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
                 conn.setRequestMethod("POST");

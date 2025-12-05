@@ -146,10 +146,11 @@ public class ConfigurationFile {
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "If no voice is specified for a language in TTS_ApiGoogle_Language_Voice, the system uses the voice type defined in TTS_ApiGoogle_Voice_Type and appends '-A' as the default voice (e.g., Standard-A) ");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
             setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
-            setProperty("model_openai_tts","tts-1");
-            setProperty("openai_tts_voice","sage");
-            setProperty("openai_tts_speed","1");
-            setProperty("openai_tts_instructions","Parle avec un ton heureux et enfantin.");
+            setProperty("TTS_OpenAI_Model","tts-1");
+            setProperty("TTS_OpenAI_Voice","sage");
+            setProperty("TTS_OpenAI_Speed","1");
+            setProperty("TTS_OpenAI_Instructions","Parle avec un ton heureux et enfantin.");
+            setProperty("TTS_OpenAI_ApiEndpoint","/v1/audio/speech");
 
 
             props.addPropertyComment("ChatBot","");
