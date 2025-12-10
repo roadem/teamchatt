@@ -136,6 +136,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private View decorView;
 
     //views
+    private RelativeLayout previewView_qr;
     private RelativeLayout buddy_texte_qst_lyt;
     private RelativeLayout buddy_texte_resp_lyt;
     private RelativeLayout lyt_open_menu_settings;
@@ -658,6 +659,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         layoutTexteQR = findViewById(R.id.layout_Texte);
         layoutQRCode = findViewById(R.id.layout_QRCode);
         textViewQRMessage = findViewById(R.id.textViewQRMessage);
+        previewView_qr = findViewById(R.id.previewView_qr);
+
+        //TODO
+        previewView_qr.setTranslationY(100000); //pour cacher
+        previewView_qr.setTranslationY(0); //pour réafficher
+        
+
 
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         amanager.setStreamMute(AudioManager.STREAM_NOTIFICATION, true);
