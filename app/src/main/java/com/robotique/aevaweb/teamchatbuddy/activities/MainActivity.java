@@ -1406,11 +1406,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 }
             }
 
-            else if (message.contains("MODE_STREAM_TEXT;SPLIT;")) {//todo supprimer les balises ssml
+            else if (message.contains("MODE_STREAM_TEXT;SPLIT;")) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if (message.split(";SPLIT;").length > 1) {
+                            BuddySDK.UI.stopListenAnimation();
                             String response = message.split(";SPLIT;")[1];
                             //translate Response Title and show the response :
                             if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
@@ -1512,6 +1513,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     public void run() {
                         Log.e("Test_Continuous","STTQuestion_success receive");
                         teamChatBuddyApplication.listeningState = "traitement";
+                        Log.i("MYA", "listeningState : "+teamChatBuddyApplication.listeningState);
+                        BuddySDK.UI.stopListenAnimation();
                         Log.e("MYA_YAKINE","listeningState = traitement");
                         Log.e("MYA_QR_H_","STTQuestion_success receive");
                         stopListeningFreeSpeech();
@@ -2123,7 +2126,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
 
             else if (message.contains("QRCodeScan")&&teamChatBuddyApplication.listeningState.equalsIgnoreCase("qst")){
+                Log.i("MYA", "QRCodeScan -----------" + qrqst + "-----------stopListenAnimation");
+                BuddySDK.UI.stopListenAnimation();
                 teamChatBuddyApplication.listeningState = "traitement";
+                Log.i("MYA", "listeningState : "+teamChatBuddyApplication.listeningState);
                 qrqst = message.split(";SPLIT;")[2];
                 if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
 
@@ -2132,7 +2138,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                 teamChatBuddyApplication.notifyObservers("STTQuestion_success;"+qrqst+";scan");
                 teamChatBuddyApplication.setActivityClosed(false);
-                BuddySDK.UI.stopListenAnimation();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 String scanTXT = "[" + sdf.format(new Date()) +"] - " + message.split(";SPLIT;")[1] + " - " + qrqst+ System.getProperty("line.separator");
                 File file = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Scan_History.txt");
@@ -2147,11 +2152,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
 
             else if (message.contains("AprilTagScan")&&teamChatBuddyApplication.listeningState.equalsIgnoreCase("qst")){
+                BuddySDK.UI.stopListenAnimation();
+                Log.i("MYA", "AprilTagScan -----------" + qrqst + "-----------stopListenAnimation");
                 String tag = message.split(";SPLIT;")[1];
                 qrqst = teamChatBuddyApplication.getTxtfromTag(tag);
                 teamChatBuddyApplication.listeningState = "traitement";
+                Log.i("MYA", "listeningState : "+teamChatBuddyApplication.listeningState);
                 Log.i("MYA_QR", "update: AprilTagScan -----------" + qrqst);
-                BuddySDK.UI.stopListenAnimation();
                 teamChatBuddyApplication.getFrenchLanguageSelectedTranslator().translate( qrqst).addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String translatedText) {
@@ -4172,9 +4179,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 Log.e(TAG_TRACKING_DEBUG,"isFirstInvitaion = "+isFirstInvitaion+"Tracking_Invitation= "+Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation")));
                                 if (!isFirstInvitaion && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                                     startListeningQuestion();
+                                    teamChatBuddyApplication.listeningState = "qst";
                                 }
                                 else if (!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                                     startListeningQuestion();
+                                    teamChatBuddyApplication.listeningState = "qst";
                                 }
                                 Log.w(TAG_TRACKING, "isFirstInvitaion= "+isFirstInvitaion);
                             }
@@ -4201,6 +4210,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         Log.w(TAG_TRACKING_DEBUG, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
                         if (!useListeningNumberWithAutomaicListening){
                             stopListeningEverything();
+                            teamChatBuddyApplication.listeningState = "hotword";
                         }
                     }
                 }

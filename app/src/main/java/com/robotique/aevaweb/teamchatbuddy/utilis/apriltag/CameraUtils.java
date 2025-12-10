@@ -4,6 +4,7 @@ import static android.content.Context.CAMERA_SERVICE;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
@@ -13,9 +14,12 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
+import com.robotique.aevaweb.teamchatbuddy.R;
+import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 
 import java.util.Collections;
@@ -92,7 +96,7 @@ public class CameraUtils {
         try {
 
             final CaptureRequest.Builder captureBuilder = cameraDeviceZoom.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            imageReaderZoom = ImageReader.newInstance(currentWidth, currentHeight, ImageFormat.YUV_420_888, 1);
+            imageReaderZoom = ImageReader.newInstance(currentWidth, currentHeight, ImageFormat.YUV_420_888, 2);
             imageReaderZoom.setOnImageAvailableListener(
                     new ImageReader.OnImageAvailableListener() {
                         @Override
@@ -100,10 +104,19 @@ public class CameraUtils {
                             //Image image = reader.acquireNextImage();
                             Image image = reader.acquireLatestImage();
                             if (image != null) {
+                                final Bitmap bitmap = BitmapUtils.getBitmap(
+                                        image,
+                                        image.getPlanes()[0].getRowStride(),
+                                        image.getPlanes()[1].getRowStride()
+                                );
 
-                                teamChatBuddyApplication.processImage(context, image, types);
+                                ImageView zoom_iv = ((MainActivity) context).findViewById(R.id.previewViewQr);
+                                zoom_iv.setImageBitmap(bitmap);
+                                teamChatBuddyApplication.processImage(context, bitmap, image, types);
 
-                                image.close();
+                                //image.close();
+                                //Log.i(TAG, "processImage: image.close(3) ");
+
                             }
                         }
                     },

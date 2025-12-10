@@ -23,8 +23,8 @@ public class FrameProcessing {
     private static final float REQUESTED_FPS = 30.0f;
     private final IdentityHashMap<byte[], ByteBuffer> bytesToByteBuffer = new IdentityHashMap<>();
 
-    private final Object processorLock = new Object();
-    private VisionImageProcessor frameProcessor;
+    private static final Object processorLock = new Object();
+    private static VisionImageProcessor frameProcessor;
 
     public void setMachineLearningFrameProcessor(VisionImageProcessor processor) {
         synchronized (processorLock) {
@@ -57,7 +57,7 @@ public class FrameProcessing {
         }
     }
 
-    private class FrameProcessingRunnable implements Runnable {
+    private static class FrameProcessingRunnable implements Runnable {
 
         // This lock guards all of the member variables below.
         private final Object lock = new Object();
@@ -82,17 +82,34 @@ public class FrameProcessing {
          */
         @SuppressWarnings("ByteBufferBackingArray")
         void setNextFrame(Bitmap data) {
+
             synchronized (lock) {
-                if (pendingFrameData != null) {
-                    pendingFrameData = null;
+                // If already processing, ignore this frame
+//                if (isProcessing) {
+//                    return;  // SKIP FRAME
+//                }
+//
+//                pendingFrameData = data;
+//                lock.notifyAll();
+
+                if (isProcessing) {
+                    pendingFrameData = data;
+                } else {
+                    pendingFrameData = data;
+                    lock.notifyAll();
                 }
-
-                pendingFrameData = data;
-
-                // Notify the processor thread if it is waiting on the next frame (see below).
-                lock.notifyAll();
             }
         }
+
+
+
+
+        private  static boolean isProcessing = false;
+
+        public boolean isProcessing() {
+            return isProcessing;
+        }
+
 
         /**
          * As long as the processing thread is active, this executes detection on frames continuously.
@@ -115,49 +132,41 @@ public class FrameProcessing {
 
             while (true) {
                 synchronized (lock) {
-                    while (active && (pendingFrameData == null)) {
+                    while (active && pendingFrameData == null) {
                         try {
-                            // Wait for the next frame to be received from the camera, since we
-                            // don't have it yet.
                             lock.wait();
                         } catch (InterruptedException e) {
-                            Log.d(TAG, "Frame processing loop terminated.", e);
                             return;
                         }
                     }
 
-                    if (!active) {
-                        // Exit the loop once this camera source is stopped or released.  We check
-                        // this here, immediately after the wait() above, to handle the case where
-                        // setActive(false) had been called, triggering the termination of this
-                        // loop.
-                        return;
-                    }
+                    if (!active) return;
 
-                    // Hold onto the frame data locally, so that we can use this for detection
-                    // below.  We need to clear pendingFrameData to ensure that this buffer isn't
-                    // recycled back to the camera before we are done using that data.
                     data = pendingFrameData;
                     pendingFrameData = null;
                 }
 
-                // The code below needs to run outside of synchronization, because this will allow
-                // the camera to add pending frame(s) while we are running detection on the current
-                // frame.
-
                 try {
+                    isProcessing = true;   // <--- set busy flag
                     synchronized (processorLock) {
                         frameProcessor.processByteBuffer(
                                 data,
                                 new FrameMetadata.Builder()
                                         .setWidth(DEFAULT_REQUESTED_CAMERA_PREVIEW_WIDTH)
                                         .setHeight(DEFAULT_REQUESTED_CAMERA_PREVIEW_HEIGHT)
-                                        .build());
+                                        .build()
+                        );
+
                     }
+
                 } catch (Exception t) {
-                    Log.e(TAG, "Exception thrown from receiver.", t);
+                    t.printStackTrace();
+                } finally {
+                    isProcessing = false;  // <--- processing finished, allow next frame
                 }
             }
         }
+
+
     }
 }

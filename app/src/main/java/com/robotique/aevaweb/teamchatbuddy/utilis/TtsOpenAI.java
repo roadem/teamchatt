@@ -1,17 +1,28 @@
 package com.robotique.aevaweb.teamchatbuddy.utilis;
 
 import android.content.Context;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
+import com.google.android.exoplayer2.Player;
 import com.google.gson.JsonObject;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
+
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -19,6 +30,14 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Implémentation TTS OpenAI sans Retrofit.
@@ -34,7 +53,7 @@ public class TtsOpenAI implements AutoCloseable {
 
     private String model = null;
     private String voice = null;
-    private String responseFormat = "wav";
+    private String responseFormat = "mp3";
     private String instructions = null;
     private double speed ;
     private String streamFormat = "audio";
@@ -58,147 +77,137 @@ public class TtsOpenAI implements AutoCloseable {
     /**
      * Lancement TTS OpenAI
      */
-    public void start(String apiKey, String text) {
-        stop();
+    public void start(String apiKey, String text, TtsOpenAIListener mTtsListener) {
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(() -> {
-            try {
-
-                model = app.getParamFromFile("TTS_OpenAI_Model", "TeamChatBuddy.properties").trim();
-                voice = app.getParamFromFile("TTS_OpenAI_Voice", "TeamChatBuddy.properties").trim();
-                speed = Double.parseDouble(app.getParamFromFile("TTS_OpenAI_Speed", "TeamChatBuddy.properties").trim());
-                instructions = app.getParamFromFile("TTS_OpenAI_Instructions", "TeamChatBuddy.properties").trim();
-
-                Log.i("MYA_TTS_OpenAI", "=== TTS OpenAI Start ===");
-                Log.i("MYA_TTS_OpenAI", "Texte : " + text);
-                Log.i("MYA_TTS_OpenAI", "model : " + model);
-                Log.i("MYA_TTS_OpenAI", "voice : " + voice);
-                Log.i("MYA_TTS_OpenAI", "response_format : " + responseFormat);
-                Log.i("MYA_TTS_OpenAI", "speed : " + speed);
-                Log.i("MYA_TTS_OpenAI", "stream_format : " + streamFormat);
-                Log.i("MYA_TTS_OpenAI", "instructions : " + instructions);
-
-                // JSON payload
-                JsonObject body = new JsonObject();
-                body.addProperty("model", model);
-                body.addProperty("input", text);
-                body.addProperty("voice", voice);
-                body.addProperty("response_format", responseFormat);
-                body.addProperty("speed", speed);
-                body.addProperty("stream_format", streamFormat);
-
-                if (instructions != null && !instructions.isEmpty()) {
-                    body.addProperty("instructions", instructions);
-                }
-
-                byte[] jsonBytes = body.toString().getBytes(StandardCharsets.UTF_8);
-
-                String apiUrl = app.getParamFromFile("ChatGPT_url","TeamChatBuddy.properties")+app.getParamFromFile("TTS_OpenAI_ApiEndpoint","TeamChatBuddy.properties");
-                // Connexion HTTP brute
-                URL url = new URL(apiUrl);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-                conn.setRequestMethod("POST");
-                conn.setDoOutput(true);
-                conn.setDoInput(true);
-
-                conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setRequestProperty("Accept", "audio/*");
-
-                // Envoi JSON
-                try (OutputStream os = conn.getOutputStream()) {
-                    os.write(jsonBytes);
-                }
-
-                int code = conn.getResponseCode();
-                Log.i("MYA_TTS_OpenAI", "HTTP status : " + code);
-
-                InputStream is = (code >= 200 && code < 300)
-                        ? conn.getInputStream()
-                        : conn.getErrorStream();
-
-                if (is == null) {
-                    Log.e("MYA_TTS_OpenAI", "Réponse nulle");
-                    if (mTtsListener != null) mTtsListener.onError();
-                    return;
-                }
-
-                byte[] audioBytes = readAllBytes(is);
-
-                if (code < 200 || code >= 300) {
-                    Log.e("MYA_TTS_OpenAI", "Erreur API : " + new String(audioBytes));
-                    if (mTtsListener != null) mTtsListener.onError();
-                    return;
-                }
-
-                // Stockage fichier
-                File outputDir = context.getCacheDir();
-                String extension = "." + responseFormat;
-                File audioFile = File.createTempFile("openai_tts_", extension, outputDir);
-
-                try (FileOutputStream fos = new FileOutputStream(audioFile)) {
-                    fos.write(audioBytes);
-                }
-
-                Log.i("MYA_TTS_OpenAI", "Fichier audio : " + audioFile.getAbsolutePath());
-
-                // Post-traitement FFmpeg
-                File trimmedAudioFile = File.createTempFile("tts_trimmed_", extension, outputDir);
-
-                String cmd = "-y -i \"" + audioFile.getAbsolutePath() + "\" " +
-                        "-af \"areverse,silenceremove=start_periods=1:start_duration=0.01:start_threshold=-40dB:detection=peak,areverse\" " +
-                        "-c:a pcm_s16le \"" + trimmedAudioFile.getAbsolutePath() + "\"";
-
-                long startTime = System.currentTimeMillis();
-
-                FFmpeg.executeAsync(cmd, (executionId, returnCode) -> {
-                    long duration = System.currentTimeMillis() - startTime;
-
-                    if (returnCode == 0) {
-                        Log.i("MYA_TTS_OpenAI", "Silence trimming OK (" + duration + " ms)");
-                        playAudioFile(trimmedAudioFile);
-                    } else {
-                        Log.e("MYA_TTS_OpenAI", "FFmpeg fail → lecture brute");
-                        playAudioFile(audioFile);
-                    }
-                });
-
-            } catch (Exception e) {
-                Log.e("MYA_TTS_OpenAI", "Erreur TTS : " + e.getMessage(), e);
-                if (mTtsListener != null) mTtsListener.onError();
-            }
-        });
+        generateSpeech(apiKey,text,mTtsListener);
     }
 
+    public void generateSpeech(
+            String apiKey,
+            String text,
+            TtsOpenAIListener mTtsListener
+    ) {
+        OkHttpClient client = new OkHttpClient();
+
+        MediaType JSON = MediaType.get("application/json; charset=utf-8");
+
+        try{
+            // Corps JSON de la requête
+            String apiUrl =
+                    app.getParamFromFile("ChatGPT_url", "TeamChatBuddy.properties")
+                            + app.getParamFromFile("TTS_OpenAI_ApiEndpoint", "TeamChatBuddy.properties");
+
+            model = app.getParamFromFile("TTS_OpenAI_Model", "TeamChatBuddy.properties").trim();
+            voice = app.getParamFromFile("TTS_OpenAI_Voice", "TeamChatBuddy.properties").trim();
+            speed = Double.parseDouble(app.getParamFromFile("TTS_OpenAI_Speed", "TeamChatBuddy.properties").trim());
+            instructions = app.getParamFromFile("TTS_OpenAI_Instructions", "TeamChatBuddy.properties").trim();
+            JSONObject json = new JSONObject();
+            json.put("model", model);
+            json.put("voice", voice);
+            json.put("input", text);
+            json.put("format", "mp3");
+            json.put("speed", speed);
+
+            // Ajouter "instructions" uniquement si non vide et si le modèle les supporte
+            if (instructions != null && !instructions.trim().isEmpty()) {
+                json.put("instructions", instructions);
+            }
+
+            RequestBody body = RequestBody.create(json.toString(), JSON);
+
+            Request request = new Request.Builder()
+                    .url(apiUrl)
+                    .addHeader("Authorization", "Bearer " + apiKey)
+                    .addHeader("Content-Type", "application/json")
+                    .post(body)
+                    .build();
+
+            client.newCall(request).enqueue(new okhttp3.Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        mTtsListener.onError();
+                        return;
+                    }
+
+                    // Le flux audio binaire
+                    byte[] audioBytes = response.body().bytes();
+
+                    // Écrire dans un fichier MP3
+                    File temp = File.createTempFile("tts", ".mp3");
+                    FileOutputStream fos = new FileOutputStream(temp);
+                    fos.write(audioBytes);
+                    fos.close();
+
+                    playAudio(temp, mTtsListener);
+                    //mTtsListener.onResponse(outputFile);
+                }
+            });
+        }catch (Exception e) {
+            mTtsListener.onError();
+        }
+    }
 
     /**
      * Lecture MediaPlayer
      */
-    private void playAudioFile(File audioFile) {
+
+
+    private void playAudio(File audioFile, TtsOpenAIListener listener) {
         try {
-            mMediaPlayer = new MediaPlayer();
+            MediaPlayer player = new MediaPlayer();
 
-            FileInputStream fis = new FileInputStream(audioFile);
-            mMediaPlayer.setDataSource(fis.getFD());
-            fis.close();
+            player.setAudioAttributes(
+                    new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                            .build()
+            );
 
-            mMediaPlayer.setOnPreparedListener(mp -> {
-                if (mTtsListener != null) mTtsListener.onStart();
+            player.setDataSource(audioFile.getAbsolutePath());
+
+            // Timeout de sécurité
+            final Handler handler = new Handler(Looper.getMainLooper());
+            final Runnable safetyTimeout = () -> {
+                if (player.isPlaying()) {
+                    player.stop();
+                }
+                player.release();
+                listener.onDone(); // ne pas bloquer le workflow
+            };
+
+            player.setOnPreparedListener(mp -> {
+                listener.onStart();
                 mp.start();
+
+                // durée réelle + marge de sécurité
+                int duration = mp.getDuration(); // ms
+                int safetyMargin = 1000; // 1 sec
+
+                handler.postDelayed(safetyTimeout, duration + safetyMargin);
             });
 
-            mMediaPlayer.setOnCompletionListener(mp -> {
-                if (mTtsListener != null) mTtsListener.onDone();
+            player.setOnCompletionListener(mp -> {
+                handler.removeCallbacks(safetyTimeout);
                 mp.release();
+                listener.onDone();
             });
 
-            mMediaPlayer.prepareAsync();
+            player.setOnErrorListener((mp, what, extra) -> {
+                handler.removeCallbacks(safetyTimeout);
+                mp.release();
+                listener.onError();
+                return true;
+            });
+
+            player.prepareAsync();
 
         } catch (Exception e) {
-            Log.e("MYA_TTS_OpenAI", "Erreur lecture : " + e.getMessage());
-            if (mTtsListener != null) mTtsListener.onError();
+            listener.onError();
         }
     }
 
@@ -219,9 +228,14 @@ public class TtsOpenAI implements AutoCloseable {
 
     public void stop() {
         if (mMediaPlayer != null) {
-            try { mMediaPlayer.stop(); } catch (Exception ignored) {}
+            try {
+                if (mMediaPlayer.isPlaying()) mMediaPlayer.stop();
+            } catch (Exception ignored) {}
+
             try { mMediaPlayer.reset(); } catch (Exception ignored) {}
-            mMediaPlayer.release();
+
+            try { mMediaPlayer.release(); } catch (Exception ignored) {}
+
             mMediaPlayer = null;
             mVoiceLength = -1;
         }
@@ -250,3 +264,4 @@ public class TtsOpenAI implements AutoCloseable {
         }
     }
 }
+
