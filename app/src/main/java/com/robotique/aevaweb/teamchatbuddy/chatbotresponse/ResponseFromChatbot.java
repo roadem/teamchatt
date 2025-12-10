@@ -78,6 +78,7 @@ public class ResponseFromChatbot {
      */
     public void getResponseFromChatGPT(String texte,int numberOfQuestion){
 
+        teamChatBuddyApplication.notifyObservers("hideCameraQr");
         teamChatBuddyApplication.setAlreadyChatting(true);
 
 
@@ -678,6 +679,8 @@ public class ResponseFromChatbot {
     }
 
     public void getCommandsResponseFromChatGPT(String texte, int numberOfQuestion){
+
+        teamChatBuddyApplication.notifyObservers("hideCameraQr");
         teamChatBuddyApplication.setAlreadyChatting(true);
         Log.i("DLA","Commande active ? " + teamChatBuddyApplication.getparam( "Commands" ));
         if(teamChatBuddyApplication.getparam("Commands").contains("yes")) {
@@ -1204,6 +1207,8 @@ public class ResponseFromChatbot {
     }
     public void executeCommand(){
         if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed()!=null){
+
+            teamChatBuddyApplication.notifyObservers("hideCameraQr");
             String cmd = teamChatBuddyApplication.getListOfCommandmustToHavePlayed().get(0);
             if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed().size()==1){
                 teamChatBuddyApplication.setMultiCommandsDetected(false);
@@ -1219,6 +1224,8 @@ public class ResponseFromChatbot {
 
     }
     public void getQuestionToDescribePicture(Bitmap bitmap,String prompt){
+
+        teamChatBuddyApplication.notifyObservers("hideCameraQr");
         Bitmap bitmapReszeResolution = imageResolution(bitmap);
          if (teamChatBuddyApplication.getCurrentLanguage().equals("fr")){
             traitementPhotoByChatGpt(bitmapReszeResolution,prompt);
@@ -1265,6 +1272,7 @@ public class ResponseFromChatbot {
             public void run() {
 
                 try {
+                    teamChatBuddyApplication.notifyObservers("hideCameraQr");
                     String base64Image = encodeImageToBase64(bitmap);
                     Log.e("ChatGPT_Picture_Description","base64Image length= "+base64Image.length());
 
@@ -1645,6 +1653,7 @@ public class ResponseFromChatbot {
 
 
     public void getInvitationFromChatGPT(String model,double temperature, int max_token, String prompt){
+        teamChatBuddyApplication.notifyObservers("hideCameraQr");
 
         Log.e("TEAMCHAT_BUDDY_TRACKING","getInvitationFromChatGPT ("+model+" , "+temperature+" , "+max_token+" , "+prompt+")");
 

@@ -433,6 +433,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                        mlKitIsDownloading=true;
                         mlKitIsDownloading=false;
                         teamChatBuddyApplication.isStartMsg = true;
+                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
                         playStartMessage(new IStartMessageCallback() {
                             @Override
                             public void onEnd(String s) {
@@ -443,7 +444,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     }
                                     reGroup.setTranslationY(1000);
                                     if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
-                                        Log.e("TEST_QR","playStartMessage fonction Display---------------");
+                                        if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                            teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                        }
                                         displayQRCode(new IDisplayQrCodeCallback() {
                                             @Override
                                             public void onEnd() {
@@ -459,7 +462,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                                     }
                                     if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
-                                        Log.e("TEST_QR","playStartMessage 2 fonction Display---------------");
+                                        if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                            teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                        }
                                         displayQRCode(new IDisplayQrCodeCallback() {
                                             @Override
                                             public void onEnd() {
@@ -484,6 +489,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         }
                         reGroup.setTranslationY(1000);
                         if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+
+                            if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                            }
                             Log.e("TEST_QR","loading model fonction Display---------------");
                             displayQRCode(new IDisplayQrCodeCallback() {
                                 @Override
@@ -503,6 +512,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                             }
                         if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                            if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                            }
                             Log.e("TEST_QR","loading model 2 fonction Display---------------");
                             displayQRCode(new IDisplayQrCodeCallback() {
                                 @Override
@@ -1642,8 +1654,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     teamChatBuddyApplication.listeningState = "qst";
                     Log.e("MYA_YAKINE","========================"+teamChatBuddyApplication.listeningState);
                 }
-                else teamChatBuddyApplication.isStartMsg = false;
-                Log.e("MYA_YAKINE","listeningState = "+teamChatBuddyApplication.listeningState+"\nTTS_success ------ Delay");
+                else {
+                    teamChatBuddyApplication.isStartMsg = false;
+                    teamChatBuddyApplication.notifyObservers("showCameraQr");
+                }
+                //Log.e("MYA_YAKINE","listeningState = "+teamChatBuddyApplication.listeningState+"\nTTS_success ------ Delay");
                 //teamChatBuddyApplication.listeningState = "qst";
                 if(isSplitStreamingNews) {
                     callback.onSegmentDone();
@@ -2196,6 +2211,21 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     }
                 });
 
+            }
+
+            else if (message.equalsIgnoreCase("hideCameraQr")){
+
+                runOnUiThread(() -> {
+                    previewView_qr.setTranslationY(100000);
+                });
+            }
+
+            else if (message.equalsIgnoreCase("showCameraQr")){
+                runOnUiThread(() -> {
+                    if(!teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                        previewView_qr.setTranslationY(0);
+                    }
+                });
             }
 
             else if (message.contains("playStoredResponse")){
@@ -2876,10 +2906,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         };
         if (teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties")!=null
             && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim())!=0) {
-            timerPeriodToDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period", "TeamChatBuddy.properties").trim())*1000, 1000) {
+            timerPeriodToDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period", "TeamChatBuddy.properties").trim())*1000, 100) {
                 @Override
                 public void onTick(long l) {
                     Log.d("TEST_QR"," onTick QR code ---------------");
+
+                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                    }
                 }
 
                 @Override
@@ -2888,6 +2922,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                         if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Camera_Display"))) {
                             reGroup.setTranslationY(1000);
+                            teamChatBuddyApplication.notifyObservers("showCameraQr");
                         }
                     }
                     displayQRCode(new IDisplayQrCodeCallback() {
@@ -2897,8 +2932,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                                 if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Camera_Display"))) {
                                     reGroup.setTranslationY(0);
+                                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                    }
                                 } else {
                                     reGroup.setTranslationY(1000);
+                                    teamChatBuddyApplication.notifyObservers("showCameraQr");teamChatBuddyApplication.notifyObservers("showCameraQr");
                                 }
                             }
                         }
@@ -4272,6 +4311,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             else{
 
                                                 if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                                                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                                    }
                                                     displayQRCode(new IDisplayQrCodeCallback() {
                                                         @Override
                                                         public void onEnd() {
@@ -5060,10 +5102,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             new Handler().postDelayed(() -> startAnimateArrow(imageArrow), 1000);
             if(timerDisplayQRCode != null) timerDisplayQRCode.cancel();
-            timerDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties").trim()) * 1000L,1000) {
+            timerDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties").trim()) * 1000L,100) {
                 @Override
                 public void onTick(long l) {
-                    Log.d(TAG, "timerDisplay QRCode onTick");
+                    //Log.d(TAG, "timerDisplay QRCode onTick");
+                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                    }
                 }
                 @Override
                 public void onFinish() {
@@ -5098,6 +5143,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         }
         else {
             iDisplayQrCodeCallback.onEnd();
+            teamChatBuddyApplication.setShouldDisplayQRCode(false);
+            teamChatBuddyApplication.notifyObservers("showCameraQr");
         }
     }
 

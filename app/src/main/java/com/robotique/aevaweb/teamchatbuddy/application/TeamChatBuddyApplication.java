@@ -1786,6 +1786,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 //        new Handler(Looper.getMainLooper()).postDelayed(() -> {
 //            Log.e("MYA_YAKINE","listeningState = "+listeningState+"\nstartListeningHotwor ------ Delay");
 //                }, 2000);
+        notifyObservers("showCameraQr");
         listeningState = "hotword";
         hotwordAlreadyHandled = false;
         Log.e("MYA_YAKINE","listeningState = "+listeningState+"\nstartListeningHotwor");
@@ -1990,6 +1991,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
     }
     public STTTask startListeningCerence(Activity activity){
+        notifyObservers("showCameraQr");
         Log.e("MRRR","startListeningFreeSpeechStt fonction start");
         if (!isModeContinuousListeningON()) {
             alreadyGetAnswer = false;
@@ -2103,6 +2105,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
     }
     public void startListeningQuestion(Activity activity,String type) {
+        notifyObservers("showCameraQr");
         Log.e(TAG,"startListeningFreeSpeechStt fonction start");
         if (!isModeContinuousListeningON()) {
             activity.runOnUiThread(new Runnable() {
@@ -2315,6 +2318,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
     }
     public void startListeningQuestionWithGoogleApi(Activity activity){
+        notifyObservers("showCameraQr");
         SttGoogleCallbackCalledOnce = false;
         activityTemp =activity;
         if (!isModeContinuousListeningON()) {
@@ -2357,6 +2361,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         }
     }
     public void startWhisperRecording(Activity activity){
+        notifyObservers("showCameraQr");
         Log.e("MRA","startWhisperRecording");
         alReadyHadSpoke=false;
         activityTemp =activity;
@@ -5867,7 +5872,6 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
         // background processing
         Future<?> future = visionExecutor.submit(() ->{
-            Log.i(TAG, "processImage: background ");
 
             try {
                 final int width = image.getWidth();
