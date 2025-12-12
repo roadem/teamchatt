@@ -2,34 +2,22 @@ package com.robotique.aevaweb.teamchatbuddy.utilis;
 
 import android.content.Context;
 import android.media.AudioAttributes;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
-import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackException;
-import com.google.android.exoplayer2.Player;
-import com.google.gson.JsonObject;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -87,7 +75,12 @@ public class TtsOpenAI implements AutoCloseable {
             String text,
             TtsOpenAIListener mTtsListener
     ) {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .callTimeout(10, TimeUnit.SECONDS)
+                .build();
 
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
@@ -105,7 +98,7 @@ public class TtsOpenAI implements AutoCloseable {
             json.put("model", model);
             json.put("voice", voice);
             json.put("input", text);
-            json.put("format", "mp3");
+            json.put("response_format", "mp3");
             json.put("speed", speed);
 
             // Ajouter "instructions" uniquement si non vide et si le modèle les supporte
@@ -125,27 +118,89 @@ public class TtsOpenAI implements AutoCloseable {
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
+                    // Timeout détecté automatiquement par OkHttp
+                    if (e instanceof SocketTimeoutException
+                            || e.getMessage().contains("timeout")) {
+                        Log.e("OpenAITTS", "TIMEOUT détecté : " + e.getMessage());
+                        mTtsListener.onError();    // Action souhaitée
+                        return;
+                    }
+                    // Autres erreurs réseau
+                    Log.e("OpenAITTS", "Erreur réseau : " + e.getMessage());
+                    mTtsListener.onError();
                 }
+
 
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
+
                     if (!response.isSuccessful()) {
                         mTtsListener.onError();
                         return;
                     }
 
-                    // Le flux audio binaire
-                    byte[] audioBytes = response.body().bytes();
-
                     // Écrire dans un fichier MP3
-                    File temp = File.createTempFile("tts", ".mp3");
-                    FileOutputStream fos = new FileOutputStream(temp);
-                    fos.write(audioBytes);
-                    fos.close();
+                    File temp = File.createTempFile("tts_openai_", ".mp3");
+                    try {
+                        byte[] audioBytes = response.body().bytes();
 
-                    playAudio(temp, mTtsListener);
+                        FileOutputStream fos = new FileOutputStream(temp);
+                        fos.write(audioBytes);
+                        fos.close();
+
+                    } catch (IOException e) {
+                        Log.e("OpenAITTS", "Erreur lecture flux : " + e.getMessage());
+                        mTtsListener.onError();
+                        return;
+                    }
+
+
+
+                    MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+                    mmr.setDataSource(temp.getAbsolutePath());
+                    String durationStr = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                    long durationMs = Long.parseLong(durationStr);
+                    mmr.release();
+
+                    long seuilMs = 700;
+                    boolean appliquerNettoyage = durationMs > seuilMs;
+
+                    Log.w("OpenAITTS", "durationMs: "+durationMs);
+
+
+                    if (appliquerNettoyage){// --- TRIM SILENCE (minimal patch) ---
+                        File trimmed = File.createTempFile("tts_openai_trim_", ".mp3", temp.getParentFile());
+
+                        String[] cmd = {
+                                "-y",
+                                "-i", temp.getAbsolutePath(),
+                                "-af", "areverse,silenceremove=start_periods=1:start_duration=0.01:start_threshold=-40dB:detection=peak,areverse",
+                                "-c:a", "mp3",
+                                trimmed.getAbsolutePath()
+                        };
+
+                        FFmpeg.executeAsync(cmd, (id, rc) -> {
+                            File toPlay = (rc == 0 ? trimmed : temp);
+
+                            new Handler(Looper.getMainLooper())
+                                    .post(() -> playAudio(toPlay, mTtsListener));
+                        });
+                    }
+                    else{
+                        playAudio(temp, mTtsListener);
+                    }
+
                     //mTtsListener.onResponse(outputFile);
+
+
+
                 }
+
+
+
+
+
+
             });
         }catch (Exception e) {
             mTtsListener.onError();
@@ -159,52 +214,60 @@ public class TtsOpenAI implements AutoCloseable {
 
     private void playAudio(File audioFile, TtsOpenAIListener listener) {
         try {
-            MediaPlayer player = new MediaPlayer();
+            if (mMediaPlayer != null) {
+                try { mMediaPlayer.stop(); } catch (Exception ignored) {}
+                try { mMediaPlayer.release(); } catch (Exception ignored) {}
+                mMediaPlayer = null;
+            }
 
-            player.setAudioAttributes(
+            mMediaPlayer = new MediaPlayer();
+            mMediaPlayer.setAudioAttributes(
                     new AudioAttributes.Builder()
                             .setUsage(AudioAttributes.USAGE_MEDIA)
                             .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                             .build()
             );
 
-            player.setDataSource(audioFile.getAbsolutePath());
+            mMediaPlayer.setDataSource(audioFile.getAbsolutePath());
 
-            // Timeout de sécurité
             final Handler handler = new Handler(Looper.getMainLooper());
+
             final Runnable safetyTimeout = () -> {
-                if (player.isPlaying()) {
-                    player.stop();
+                MediaPlayer mp = mMediaPlayer;
+                if (mp != null) {
+                    try {
+                        if (mp.isPlaying()) mp.stop();
+                    } catch (Exception ignored) {}
+                    try { mp.release(); } catch (Exception ignored) {}
+                    mMediaPlayer = null;
                 }
-                player.release();
-                listener.onDone(); // ne pas bloquer le workflow
+                listener.onDone();
             };
 
-            player.setOnPreparedListener(mp -> {
+            mMediaPlayer.setOnPreparedListener(mp -> {
                 listener.onStart();
                 mp.start();
 
-                // durée réelle + marge de sécurité
-                int duration = mp.getDuration(); // ms
-                int safetyMargin = 1000; // 1 sec
-
-                handler.postDelayed(safetyTimeout, duration + safetyMargin);
+                int duration = mp.getDuration();
+                handler.postDelayed(safetyTimeout, duration + 1000);
             });
 
-            player.setOnCompletionListener(mp -> {
+            mMediaPlayer.setOnCompletionListener(mp -> {
                 handler.removeCallbacks(safetyTimeout);
-                mp.release();
+                try { mp.release(); } catch (Exception ignored) {}
+                mMediaPlayer = null;
                 listener.onDone();
             });
 
-            player.setOnErrorListener((mp, what, extra) -> {
+            mMediaPlayer.setOnErrorListener((mp, what, extra) -> {
                 handler.removeCallbacks(safetyTimeout);
-                mp.release();
+                try { mp.release(); } catch (Exception ignored) {}
+                mMediaPlayer = null;
                 listener.onError();
                 return true;
             });
 
-            player.prepareAsync();
+            mMediaPlayer.prepareAsync();
 
         } catch (Exception e) {
             listener.onError();
@@ -212,25 +275,16 @@ public class TtsOpenAI implements AutoCloseable {
     }
 
 
-    /**
-     * Lecture binaire utilitaire
-     */
-    private byte[] readAllBytes(InputStream is) throws Exception {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        byte[] data = new byte[4096];
-        int n;
-        while ((n = is.read(data)) != -1) {
-            buffer.write(data, 0, n);
-        }
-        return buffer.toByteArray();
-    }
-
-
     public void stop() {
+        Log.d("MYA_", "stop:");
         if (mMediaPlayer != null) {
+            Log.d("MYA_", "stop: mMediaPlayer != null");
             try {
+                Log.d("MYA_", "stop: mMediaPlayer");
                 if (mMediaPlayer.isPlaying()) mMediaPlayer.stop();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                Log.d("MYA_", "stop: mMediaPlayer -------- Exception");
+            }
 
             try { mMediaPlayer.reset(); } catch (Exception ignored) {}
 

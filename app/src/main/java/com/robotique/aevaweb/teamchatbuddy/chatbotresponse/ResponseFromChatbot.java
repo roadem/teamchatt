@@ -1206,6 +1206,7 @@ public class ResponseFromChatbot {
         }
     }
     public void executeCommand(){
+        teamChatBuddyApplication.isListeningHotw = false;
         if (teamChatBuddyApplication.getListOfCommandmustToHavePlayed()!=null){
 
             teamChatBuddyApplication.notifyObservers("hideCameraQr");
