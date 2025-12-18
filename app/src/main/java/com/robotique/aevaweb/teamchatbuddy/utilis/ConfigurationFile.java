@@ -14,7 +14,7 @@ import java.util.Arrays;
 public class ConfigurationFile {
 
     private static final String TAG = "TEAMCHATBUDDY_ConfigurationFile";
-    private static final int FILE_VERSION = 50; // upgrade this whenever you want to overwrite the file
+    private static final int FILE_VERSION = 51; // upgrade this whenever you want to overwrite the file
 
     public static CustomProperties props = new CustomProperties();
     public static InputStream is = null;
@@ -146,10 +146,12 @@ public class ConfigurationFile {
             props.addPropertyComment("TTS_ApiGoogle_Voice_Type", "If no voice is specified for a language in TTS_ApiGoogle_Language_Voice, the system uses the voice type defined in TTS_ApiGoogle_Voice_Type and appends '-A' as the default voice (e.g., Standard-A) ");
             setProperty("TTS_ApiGoogle_Voice_Type","Standard");
             setProperty("TTS_ApiGoogle_Language_Voice","[fr:Wavenet-C],[en:Standard-C]");
-            setProperty("model_openai_tts","tts-1");
-            setProperty("openai_tts_voice","sage");
-            setProperty("openai_tts_speed","1");
-            setProperty("openai_tts_instructions","Parle avec un ton heureux et enfantin.");
+            props.addPropertyComment("TTS_OpenAI_ApiEndpoint", "TTS OpenAI parameters");
+            setProperty("TTS_OpenAI_ApiEndpoint","/v1/audio/speech");
+            setProperty("TTS_OpenAI_Model","tts-1");
+            setProperty("TTS_OpenAI_Voice","sage");
+            setProperty("TTS_OpenAI_Speed","1");
+            setProperty("TTS_OpenAI_Instructions","Parle avec un ton heureux et enfantin.");
 
 
             props.addPropertyComment("ChatBot","");
@@ -196,10 +198,10 @@ public class ConfigurationFile {
             setProperty("QR_Text","SCAN<br>FOR DRINKS<br>AND SNACKS");
 
 
-            props.addPropertyComment("Lecture_QR_Code ","");
-            props.addPropertyComment("Lecture_QR_Code ","Possibility of scanning Codes to communicate (Yes/No)");
-            setProperty("Lecture_QR_Code ","No");
-            props.addPropertyComment("QRCode_System  ","Possible codes : QRCode / DataMatrix / AprilTag");
+            props.addPropertyComment("Lecture_QR_Code","");
+            props.addPropertyComment("Lecture_QR_Code","Possibility of scanning Codes to communicate (Yes/No)");
+            setProperty("Lecture_QR_Code","No");
+            props.addPropertyComment("QRCode_System","Possible codes : QRCode / DataMatrix / AprilTag");
             setProperty("QRCode_System","QRCode/DataMatrix/AprilTag");
 
             props.addPropertyComment("Language","");

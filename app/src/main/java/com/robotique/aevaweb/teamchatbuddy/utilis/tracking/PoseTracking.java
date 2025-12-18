@@ -117,16 +117,16 @@ public class PoseTracking {
                     res[12] = b1;
 
                     // Accédez aux autres landmarks de la même manière
-                    Log.i(TAG_TRACKING_DEBUG, "Landmarks list is not empty");
+                    //Log.i(TAG_TRACKING_DEBUG, "Landmarks list is not empty");
                     // Faites vos calculs avec les landmarks ici
                 } else {
-                    Log.e(TAG_TRACKING_DEBUG, "Landmarks list is empty");
+                    //Log.e(TAG_TRACKING_DEBUG, "Landmarks list is empty");
                 }
             } else {
-                Log.e(TAG_TRACKING_DEBUG, "Landmarks list is null or empty");
+                //Log.e(TAG_TRACKING_DEBUG, "Landmarks list is null or empty");
             }
         } else {
-            Log.e(TAG_TRACKING_DEBUG, "PoseLandmarkerResult is null");
+            //Log.e(TAG_TRACKING_DEBUG, "PoseLandmarkerResult is null");
         }
         return res;
     }
@@ -137,25 +137,25 @@ public class PoseTracking {
             if (dxN > dxED) {
                 if (lang > 120) {
                     if (dyED < dyN && dyEG < dyN) {
-                        Log.i(TAG_TRACKING_DEBUG, "regard haut");
+                        //Log.i(TAG_TRACKING_DEBUG, "regard haut");
                         return "HAUT";
                     }
-                    Log.i(TAG_TRACKING_DEBUG, "cible regaede la camera");
+                    //Log.i(TAG_TRACKING_DEBUG, "cible regaede la camera");
                     return "CAMERA";
 
                 } else {
                     if (dyED > dyN && dyEG > dyN) {
-                        Log.i(TAG_TRACKING_DEBUG, "regard haut");
+                        //Log.i(TAG_TRACKING_DEBUG, "regard haut");
                         return "HAUT";
                     }
-                    Log.i(TAG_TRACKING_DEBUG, "cible regaede la camera");
+                    //Log.i(TAG_TRACKING_DEBUG, "cible regaede la camera");
                     return "CAMERA";
                 }
             }
-            Log.i(TAG_TRACKING_DEBUG, "regarde lun des cotes");
+            //Log.i(TAG_TRACKING_DEBUG, "regarde lun des cotes");
             return "COTE";
         }
-        Log.i(TAG_TRACKING_DEBUG, "regarde lun des cotes");
+        //Log.i(TAG_TRACKING_DEBUG, "regarde lun des cotes");
         return "COTE";
 
     }

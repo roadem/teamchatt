@@ -7,196 +7,197 @@ import android.util.Log;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 import com.robotique.aevaweb.teamchatbuddy.models.HttpResponse;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import darren.googlecloudtts.api.SynthesizeApi;
-import darren.googlecloudtts.api.VoicesApi;
-import darren.googlecloudtts.exception.ApiException;
-import darren.googlecloudtts.model.VoicesList;
-import darren.googlecloudtts.parameter.AudioConfig;
-import darren.googlecloudtts.parameter.AudioEncoding;
-import darren.googlecloudtts.parameter.SynthesisInput;
-import darren.googlecloudtts.parameter.VoiceSelectionParams;
-import darren.googlecloudtts.request.SynthesizeRequest;
-import darren.googlecloudtts.response.SynthesizeResponse;
-import darren.googlecloudtts.response.VoicesResponse;
-import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+public class TtsGoogleC implements AutoCloseable {
 
-public class TtsGoogleC implements AutoCloseable{
-
-    private SynthesizeApi mSynthesizeApi;
-    private VoicesApi mVoicesApi;
     private final Context context;
-
-
-    private VoiceSelectionParams mVoiceSelectionParams;
-    private AudioConfig mAudioConfig;
-
     private MediaPlayer mMediaPlayer;
-    private TeamChatBuddyApplication teamChatBuddyApplication;
-
-    private int mVoiceLength = -1;
     private TtsGoogleApiListener mTtsListener;
 
-    public TtsGoogleC(Context context, SynthesizeApi synthesizeApi, VoicesApi voicesApi) {
+    private VoiceSelectionRaw voiceSelection;
+    private AudioConfigRaw audioConfig;
+
+    private int mVoiceLength = -1;
+
+    public TtsGoogleC(Context context) {
         this.context = context;
-        this.mSynthesizeApi = synthesizeApi;
-        this.mVoicesApi = voicesApi;
     }
 
-    public  TtsGoogleC setVoiceSelectionParams(VoiceSelectionParams voiceSelectionParams) {
-        mVoiceSelectionParams = voiceSelectionParams;
+    public static class VoiceSelectionRaw {
+        public String languageCode;
+        public String name;
+        public String ssmlGender;
+    }
+
+    public static class AudioConfigRaw {
+        public String audioEncoding;
+        public float speakingRate;
+        public float pitch;
+    }
+
+    public TtsGoogleC setVoiceSelectionParams(VoiceSelectionRaw voice) {
+        this.voiceSelection = voice;
         return this;
     }
 
-    public TtsGoogleC setAudioConfig(AudioConfig audioConfig) {
-        mAudioConfig = audioConfig;
+    public TtsGoogleC setAudioConfig(AudioConfigRaw cfg) {
+        this.audioConfig = cfg;
         return this;
     }
     public void setTtsListener(TtsGoogleApiListener ttsListener) {
         mTtsListener = ttsListener;
     }
 
+    public VoicesList load(String apiKey) {
+        try {
+            String url = "https://texttospeech.googleapis.com/v1/voices?key=" + apiKey;
 
-    public VoicesList load() {
-        VoicesResponse response = mVoicesApi.get();
-        VoicesList voicesList = new VoicesList();
+            Map<String, String> headers = new HashMap<>();
+            HttpResponse resp = HttpClientUtils.sendGet(url, headers, 30000);
 
-        for (VoicesResponse.Voices voices : response.getVoices()) {
-            String languageCode = voices.getLanguageCodes().get(0);
-            VoiceSelectionParams params = new VoiceSelectionParams(
-                    languageCode,
-                    voices.getName(),
-                    voices.getSsmlGender()
-            );
-            voicesList.add(languageCode, params);
+            if (resp.responseCode != 200 || resp.body == null) {
+                Log.e("MYA_TTS", "Impossible de charger les voix : " + resp.responseCode);
+                return new VoicesList();
+            }
+
+            JsonObject json = new Gson().fromJson(resp.body, JsonObject.class);
+            JsonArray voices = json.getAsJsonArray("voices");
+
+            VoicesList voicesList = new VoicesList();
+
+            for (int i = 0; i < voices.size(); i++) {
+
+                JsonObject v = voices.get(i).getAsJsonObject();
+
+                VoiceSelectionRaw vs = new VoiceSelectionRaw();
+
+                // Récupère le premier languageCode (comme le SDK)
+                vs.languageCode = v.getAsJsonArray("languageCodes").get(0).getAsString();
+                vs.name = v.get("name").getAsString();
+                vs.ssmlGender = v.get("ssmlGender").getAsString();
+
+                voicesList.add(vs.languageCode, vs);
+            }
+
+            return voicesList;
+
+        } catch (Exception e) {
+            Log.e("MYA_TTS", "Erreur load()", e);
+            return new VoicesList();
         }
-
-        return voicesList;
     }
 
     public void start(String key, String text) {
-        if (mVoiceSelectionParams == null)
-            throw new NullPointerException("You forget to setVoiceSelectionParams()");
-        if (mAudioConfig == null)
-            throw new NullPointerException("You forget to setAudioConfig()");
+        if (voiceSelection == null)
+            throw new IllegalStateException("VoiceSelectionParams manquant");
+        if (audioConfig == null)
+            throw new IllegalStateException("AudioConfig manquant");
 
         stop();
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(() -> {
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        exec.submit(() -> {
             try {
-                Log.i("MYA_API_Google", "=== Initialisation du processus TTS Google ===");
+                Log.i("MYA_API_Google", "=== Lancement synthèse vocale API REST ===");
 
                 Gson gson = new Gson();
 
-                // ---- Construction du corps JSON ----
+                // --- INPUT ---
                 JsonObject input = new JsonObject();
                 if (text.contains("<speak>"))
                     input.addProperty("ssml", text);
                 else
                     input.addProperty("text", text);
 
+                // --- VOICE ---
                 JsonObject voice = new JsonObject();
-                voice.addProperty("languageCode", mVoiceSelectionParams.getLanguageCode());
-                voice.addProperty("name", mVoiceSelectionParams.getName());
-                if (mVoiceSelectionParams.getSsmlGender() != null)
-                    voice.addProperty("ssmlGender", mVoiceSelectionParams.getSsmlGender().name());
-                else
-                    voice.addProperty("ssmlGender", "NEUTRAL");
+                voice.addProperty("languageCode", voiceSelection.languageCode);
+                voice.addProperty("name", voiceSelection.name);
+                voice.addProperty("ssmlGender", voiceSelection.ssmlGender);
 
-                // ---- LOGS VOICE ----
-                Log.i("MYA_API_Google", "=== Paramètres voix sélectionnés ===");
-                Log.i("MYA_API_Google", "Langue        : " + mVoiceSelectionParams.getLanguageCode());
-                Log.i("MYA_API_Google", "Voix          : " + mVoiceSelectionParams.getName());
-                Log.i("MYA_API_Google", "Genre SSML    : " +
-                        (mVoiceSelectionParams.getSsmlGender() != null
-                                ? mVoiceSelectionParams.getSsmlGender().name()
-                                : "NEUTRAL"));
+                Log.i("MYA_API_Google", "Voix : " + voiceSelection.name);
 
-                JsonObject audioConfig = new JsonObject();
-                audioConfig.addProperty("audioEncoding", mAudioConfig.getAudioEncoding().name());
-                audioConfig.addProperty("speakingRate", mAudioConfig.getSpeakingRate());
-                audioConfig.addProperty("pitch", mAudioConfig.getPitch());
-                // ---- LOGS AUDIO CONFIG ----
-                Log.i("MYA_API_Google", "=== Configuration audio appliquée ===");
-                Log.i("MYA_API_Google", "Encodage      : " + mAudioConfig.getAudioEncoding().name());
-                Log.i("MYA_API_Google", "Vitesse       : " +mAudioConfig.getSpeakingRate());
-                Log.i("MYA_API_Google", "Pitch       : " +mAudioConfig.getPitch());
+                // --- AUDIO CONFIG ---
+                JsonObject cfg = new JsonObject();
+                cfg.addProperty("audioEncoding", audioConfig.audioEncoding);
+                cfg.addProperty("speakingRate", audioConfig.speakingRate);
+                cfg.addProperty("pitch", audioConfig.pitch);
+
+                Log.i("MYA_API_Google", "Encoding audio : " + audioConfig.audioEncoding);
+
+                // --- BODY ---
                 JsonObject body = new JsonObject();
                 body.add("input", input);
                 body.add("voice", voice);
-                body.add("audioConfig", audioConfig);
+                body.add("audioConfig", cfg);
 
-                // ---- Préparation URL + headers ----
+                // --- URL ---
                 String TTS_URL = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + key;
                 Log.i("MYA_API_Google", "URL API TTS : " + TTS_URL);
 
                 Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json; charset=UTF-8");
+                headers.put("Content-Type", "application/json");
 
-                // ---- Envoi HTTP ----
-                Log.i("MYA_API_Google", "Envoi requête TTS via HttpClientUtils...");
-                HttpResponse httpResponse = HttpClientUtils.sendPost(TTS_URL, gson.toJson(body), headers, 50000);
+                HttpResponse httpResp = HttpClientUtils.sendPost(
+                        TTS_URL,
+                        gson.toJson(body),
+                        headers,
+                        60000
+                );
 
-                Log.i("MYA_API_Google", "Réponse HTTP reçue : " + httpResponse.responseCode);
-
-                if (httpResponse.responseCode >= 200 && httpResponse.responseCode < 300 && httpResponse.body != null) {
-
-                    JsonObject respJson = gson.fromJson(httpResponse.body, JsonObject.class);
-                    if (!respJson.has("audioContent")) {
-                        Log.e("MYA_API_Google", "Aucun champ 'audioContent' trouvé");
-                        if (mTtsListener != null) mTtsListener.onError();
-                        return;
-                    }
-
-                    // ---- Décodage audio ----
-                    String base64EncodedString = respJson.get("audioContent").getAsString();
-                    byte[] audioData = Base64.decode(base64EncodedString, Base64.DEFAULT);
-
-                    File outputDir = context.getCacheDir();
-                    File audioFile = File.createTempFile("tts_audio_", ".wav", outputDir);
-                    try (FileOutputStream fos = new FileOutputStream(audioFile)) {
-                        fos.write(audioData);
-                    }
-
-                    // ---- Nettoyage du silence ----
-                    File trimmedAudioFile = File.createTempFile("tts_audio_trimmed_", ".wav", outputDir);
-                    String cmd = "-y -i \"" + audioFile.getAbsolutePath() + "\" " +
-                            "-af \"areverse,silenceremove=start_periods=1:start_duration=0.01:start_threshold=-40dB:detection=peak,areverse\" " +
-                            "-c:a pcm_s16le \"" + trimmedAudioFile.getAbsolutePath() + "\"";
-
-                    long startTime = System.currentTimeMillis();
-                    FFmpeg.executeAsync(cmd, (executionId, returnCode) -> {
-                        long duration = System.currentTimeMillis() - startTime;
-                        if (returnCode == 0) {
-                            Log.i("MYA_API_Google", "Silence supprimé en " + duration + " ms");
-                            playAudioFile(trimmedAudioFile);
-                        } else {
-                            Log.e("MYA_API_Google", "Échec FFmpeg (" + returnCode + ")");
-                            playAudioFile(audioFile);
-                        }
-                    });
-
-                } else {
-                    Log.e("MYA_API_Google", "Erreur API TTS - code: " + httpResponse.responseCode + " - corps: " + httpResponse.body);
+                if (httpResp.responseCode < 200 || httpResp.responseCode >= 300) {
+                    Log.e("MYA_API_Google", "Erreur API : " + httpResp.responseCode);
                     if (mTtsListener != null) mTtsListener.onError();
+                    return;
                 }
+
+                JsonObject respJson = gson.fromJson(httpResp.body, JsonObject.class);
+                if (!respJson.has("audioContent")) {
+                    Log.e("MYA_API_Google", "Champ audioContent absent");
+                    if (mTtsListener != null) mTtsListener.onError();
+                    return;
+                }
+
+                // --- DÉCODAGE ---
+                String base64Audio = respJson.get("audioContent").getAsString();
+                byte[] audioData = Base64.decode(base64Audio, Base64.DEFAULT);
+
+                File outputDir = context.getCacheDir();
+                File rawFile = File.createTempFile("tts_raw_", ".wav", outputDir);
+
+                try (FileOutputStream fos = new FileOutputStream(rawFile)) {
+                    fos.write(audioData);
+                }
+
+                // --- TRIMMING FFmpeg ---
+                File trimmedFile = File.createTempFile("tts_trim_", ".wav", outputDir);
+
+                String cmd =
+                        "-y -i \"" + rawFile.getAbsolutePath() + "\" " +
+                                "-af \"areverse,silenceremove=start_periods=1:start_duration=0.01:start_threshold=-40dB:detection=peak,areverse\" " +
+                                "-c:a pcm_s16le \"" + trimmedFile.getAbsolutePath() + "\"";
+
+                long t = System.currentTimeMillis();
+
+                FFmpeg.executeAsync(cmd, (id, rc) -> {
+                    Log.i("MYA_API_Google",
+                            rc == 0 ?
+                                    "Trimming OK en " + (System.currentTimeMillis() - t) + " ms" :
+                                    "FFmpeg KO (" + rc + ")");
+
+                    playAudioFile(rc == 0 ? trimmedFile : rawFile);
+                });
 
             } catch (Exception e) {
                 Log.e("MYA_API_Google", "Exception pendant l'appel TTS : " + e.getMessage(), e);
@@ -230,10 +231,7 @@ public class TtsGoogleC implements AutoCloseable{
             mMediaPlayer.prepareAsync();
 
         } catch (Exception e) {
-            if (mTtsListener != null) {
-                mTtsListener.onError();
-            }
-            throw new ApiException(e);
+            if (mTtsListener != null) mTtsListener.onError();
         }
     }
 
@@ -267,16 +265,8 @@ public class TtsGoogleC implements AutoCloseable{
         }
     }
 
-    private void playAudio(String base64EncodedString) throws IOException {
-        stop();
 
-        String url = "data:audio/mp3;base64," + base64EncodedString;
-        mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setDataSource(url);
-        mMediaPlayer.prepare();
-        mMediaPlayer.start();
-    }
-
+    @Override
     public void close() {
         stop();
         if (mMediaPlayer !=null){

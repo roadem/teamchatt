@@ -11,8 +11,8 @@ android {
         applicationId "com.robotique.aevaweb.teamchatbuddy"
         minSdk 28
         targetSdk 30
-        versionCode 71
-        versionName "2.3.1"
+        versionCode 72
+        versionName "2.3.2"
         multiDexEnabled = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -133,9 +133,7 @@ dependencies {
     implementation 'com.ibm.icu:icu4j:69.1'
     implementation 'com.knuddels:jtokkit:0.6.1'
 
-    implementation ('com.github.changemyminds:Google-Cloud-TTS-Android:1.0.2'){
-        exclude group: 'com.android.support', module: 'appcompat-v7'
-    }
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // CameraX core library
     String camerax_version = "1.2.0-alpha02";

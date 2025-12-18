@@ -136,6 +136,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
     private View decorView;
 
     //views
+    private RelativeLayout previewView_qr;
     private RelativeLayout buddy_texte_qst_lyt;
     private RelativeLayout buddy_texte_resp_lyt;
     private RelativeLayout lyt_open_menu_settings;
@@ -432,6 +433,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                        mlKitIsDownloading=true;
                         mlKitIsDownloading=false;
                         teamChatBuddyApplication.isStartMsg = true;
+                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
                         playStartMessage(new IStartMessageCallback() {
                             @Override
                             public void onEnd(String s) {
@@ -442,7 +444,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     }
                                     reGroup.setTranslationY(1000);
                                     if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
-                                        Log.e("TEST_QR","playStartMessage fonction Display---------------");
+                                        if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                            teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                        }
                                         displayQRCode(new IDisplayQrCodeCallback() {
                                             @Override
                                             public void onEnd() {
@@ -458,7 +462,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                         teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                                     }
                                     if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
-                                        Log.e("TEST_QR","playStartMessage 2 fonction Display---------------");
+                                        if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                            teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                        }
                                         displayQRCode(new IDisplayQrCodeCallback() {
                                             @Override
                                             public void onEnd() {
@@ -483,6 +489,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         }
                         reGroup.setTranslationY(1000);
                         if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+
+                            if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                            }
                             Log.e("TEST_QR","loading model fonction Display---------------");
                             displayQRCode(new IDisplayQrCodeCallback() {
                                 @Override
@@ -502,6 +512,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 teamChatBuddyApplication.startListeningHotwor(MainActivity.this);
                             }
                         if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                            if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                            }
                             Log.e("TEST_QR","loading model 2 fonction Display---------------");
                             displayQRCode(new IDisplayQrCodeCallback() {
                                 @Override
@@ -573,7 +586,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             stopListeningFreeSpeech();
             try {
                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
-                BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
+                BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);//todo stop lip movements
                 BuddySDK.UI.stopListenAnimation();
             } catch (Exception e) {
                 Log.e(TAG, "BuddySDK Exception  " + e);
@@ -658,6 +671,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         layoutTexteQR = findViewById(R.id.layout_Texte);
         layoutQRCode = findViewById(R.id.layout_QRCode);
         textViewQRMessage = findViewById(R.id.textViewQRMessage);
+        previewView_qr = findViewById(R.id.previewView_qr);
+
+        //TODO
+        previewView_qr.setTranslationY(100000); //pour cacher
+        previewView_qr.setTranslationY(0); //pour réafficher
+        
+
 
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         amanager.setStreamMute(AudioManager.STREAM_NOTIFICATION, true);
@@ -1184,6 +1204,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             teamChatBuddyApplication.setSpeaking(true);
                             teamChatBuddyApplication.setModeContinuousListeningON(false);
                             teamChatBuddyApplication.isListeningHotw = false;
+                            Log.i("OpenAITTS", "------------------------ click mouth isListeningHotw = false ");
                             if(!isListeningFreeSpeech ) {
                                 if(mouth_messages!=null && mouth_messages.equalsIgnoreCase("Yes")){
                                     speakMouthMessages("listen", new IMouthMessageCallback() {
@@ -1206,6 +1227,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
                             totalTimeLookingAtCamera = 0L;
                             teamChatBuddyApplication.isListeningHotw = true;
+                            Log.i("OpenAITTS", "------------------------ click mouth isListeningHotw = true ");
                             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android") || teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence") || !teamChatBuddyApplication.getAppIsListeningToTheQuestion() || teamChatBuddyApplication.getParamFromFile("Processing_the_audio_sequence","TeamChatBuddy.properties").trim().equalsIgnoreCase("No")) {
                                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL, 1);
                                 teamChatBuddyApplication.setStartRecording(false);
@@ -1406,11 +1428,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 }
             }
 
-            else if (message.contains("MODE_STREAM_TEXT;SPLIT;")) {//todo supprimer les balises ssml
+            else if (message.contains("MODE_STREAM_TEXT;SPLIT;")) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if (message.split(";SPLIT;").length > 1) {
+                            BuddySDK.UI.stopListenAnimation();
                             String response = message.split(";SPLIT;")[1];
                             //translate Response Title and show the response :
                             if (teamChatBuddyApplication.getCurrentLanguage().equals("en")) {
@@ -1476,17 +1499,20 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             Log.i("MYA_QR_H", "update STTHotword_success : "+message);
                             Log.i("MYA_QR", "setActivityClosed ---- 12 ---- ");
                             teamChatBuddyApplication.setStartRecording(true);
+                            teamChatBuddyApplication.listeningState = "qst";
                             startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
                         }
                         else if (teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                             Log.e("TEST_HOT","hotword Success tracking activé ");
                             if(teamChatBuddyApplication.getParamFromFile("WELCOME_hotword","TeamChatBuddy.properties").equalsIgnoreCase("Yes")){
                                 Log.e("TEST_HOT"," welcome hotword yes  "+iInvitationCallback);
+                                Log.e(TAG_TRACKING," welcome hotword yes  "+iInvitationCallback);
                                 invitation(new IInvitationCallback() {
                                     @Override
                                     public void onEnd(String s) {
                                         Log.e("TEST_HOT", "Invitation onEnd Callback welcome hotword  : "+s);
                                         iInvitationCallback = null;
+                                        teamChatBuddyApplication.listeningState = "qst";
                                         startListeningQuestion();
                                     }
                                 });
@@ -1497,6 +1523,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                     isListeningFreeSpeech = true;
                                     teamChatBuddyApplication.setActivityClosed(false);
                                     teamChatBuddyApplication.setStartRecording(true);
+                                    teamChatBuddyApplication.listeningState = "qst";
                                     startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
                             }
                         }
@@ -1512,6 +1539,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     public void run() {
                         Log.e("Test_Continuous","STTQuestion_success receive");
                         teamChatBuddyApplication.listeningState = "traitement";
+                        Log.i("MYA", "listeningState : "+teamChatBuddyApplication.listeningState);
+                        BuddySDK.UI.stopListenAnimation();
                         Log.e("MYA_YAKINE","listeningState = traitement");
                         Log.e("MYA_QR_H_","STTQuestion_success receive");
                         stopListeningFreeSpeech();
@@ -1631,8 +1660,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     teamChatBuddyApplication.listeningState = "qst";
                     Log.e("MYA_YAKINE","========================"+teamChatBuddyApplication.listeningState);
                 }
-                else teamChatBuddyApplication.isStartMsg = false;
-                Log.e("MYA_YAKINE","listeningState = "+teamChatBuddyApplication.listeningState+"\nTTS_success ------ Delay");
+                else {
+                    teamChatBuddyApplication.isStartMsg = false;
+                    teamChatBuddyApplication.notifyObservers("showCameraQr");
+                }
+                //Log.e("MYA_YAKINE","listeningState = "+teamChatBuddyApplication.listeningState+"\nTTS_success ------ Delay");
                 //teamChatBuddyApplication.listeningState = "qst";
                 if(isSplitStreamingNews) {
                     callback.onSegmentDone();
@@ -1990,7 +2022,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                         }
                     }
                     else if (action.equals("INVITATION")) {
-                        Log.e(TAG_TRACKING, "ChatGPT Invitation: " + value);
+                        Log.e("test_welcome", "ChatGPT Invitation: " + value);
                         teamChatBuddyApplication.setActivityClosed(false);
                         speak(value, "INVITATION");
                         if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Auto_Listen"))){
@@ -2123,7 +2155,10 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
 
             else if (message.contains("QRCodeScan")&&teamChatBuddyApplication.listeningState.equalsIgnoreCase("qst")){
+                Log.i("MYA", "QRCodeScan -----------" + qrqst + "-----------stopListenAnimation");
+                BuddySDK.UI.stopListenAnimation();
                 teamChatBuddyApplication.listeningState = "traitement";
+                Log.i("MYA", "listeningState : "+teamChatBuddyApplication.listeningState);
                 qrqst = message.split(";SPLIT;")[2];
                 if (teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Response_filter","TeamChatBuddy.properties").trim().equalsIgnoreCase("")){
 
@@ -2132,7 +2167,6 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
                 teamChatBuddyApplication.notifyObservers("STTQuestion_success;"+qrqst+";scan");
                 teamChatBuddyApplication.setActivityClosed(false);
-                BuddySDK.UI.stopListenAnimation();
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 String scanTXT = "[" + sdf.format(new Date()) +"] - " + message.split(";SPLIT;")[1] + " - " + qrqst+ System.getProperty("line.separator");
                 File file = new File(Environment.getExternalStorageDirectory(), "TeamChatBuddy/Scan_History.txt");
@@ -2147,11 +2181,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
 
             else if (message.contains("AprilTagScan")&&teamChatBuddyApplication.listeningState.equalsIgnoreCase("qst")){
+                BuddySDK.UI.stopListenAnimation();
+                Log.i("MYA", "AprilTagScan -----------" + qrqst + "-----------stopListenAnimation");
                 String tag = message.split(";SPLIT;")[1];
                 qrqst = teamChatBuddyApplication.getTxtfromTag(tag);
                 teamChatBuddyApplication.listeningState = "traitement";
+                Log.i("MYA", "listeningState : "+teamChatBuddyApplication.listeningState);
                 Log.i("MYA_QR", "update: AprilTagScan -----------" + qrqst);
-                BuddySDK.UI.stopListenAnimation();
                 teamChatBuddyApplication.getFrenchLanguageSelectedTranslator().translate( qrqst).addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String translatedText) {
@@ -2181,6 +2217,21 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     }
                 });
 
+            }
+
+            else if (message.equalsIgnoreCase("hideCameraQr")){
+
+                runOnUiThread(() -> {
+                    previewView_qr.setTranslationY(100000);
+                });
+            }
+
+            else if (message.equalsIgnoreCase("showCameraQr")){
+                runOnUiThread(() -> {
+                    if(!teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                        previewView_qr.setTranslationY(0);
+                    }
+                });
             }
 
             else if (message.contains("playStoredResponse")){
@@ -2861,10 +2912,14 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         };
         if (teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties")!=null
             && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim())!=0) {
-            timerPeriodToDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period", "TeamChatBuddy.properties").trim())*1000, 1000) {
+            timerPeriodToDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period", "TeamChatBuddy.properties").trim())*1000, 100) {
                 @Override
                 public void onTick(long l) {
                     Log.d("TEST_QR"," onTick QR code ---------------");
+
+                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                    }
                 }
 
                 @Override
@@ -2873,6 +2928,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                         if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Camera_Display"))) {
                             reGroup.setTranslationY(1000);
+                            teamChatBuddyApplication.notifyObservers("showCameraQr");
                         }
                     }
                     displayQRCode(new IDisplayQrCodeCallback() {
@@ -2882,8 +2938,12 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                             if(teamChatBuddyApplication.getparam("Tracking_Activation").contains("yes")){
                                 if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Camera_Display"))) {
                                     reGroup.setTranslationY(0);
+                                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                    }
                                 } else {
                                     reGroup.setTranslationY(1000);
+                                    teamChatBuddyApplication.notifyObservers("showCameraQr");teamChatBuddyApplication.notifyObservers("showCameraQr");
                                 }
                             }
                         }
@@ -3612,6 +3672,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
      */
 
     private void startListeningFreeSpeech(int duration) {
+        teamChatBuddyApplication.listeningState = "qst";
         Boolean notUsingSpeechRecognizer = true;
         isListeningFreeSpeech = true;
         teamChatBuddyApplication.setMessageError(false);
@@ -4172,9 +4233,11 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                 Log.e(TAG_TRACKING_DEBUG,"isFirstInvitaion = "+isFirstInvitaion+"Tracking_Invitation= "+Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation")));
                                 if (!isFirstInvitaion && Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                                     startListeningQuestion();
+                                    teamChatBuddyApplication.listeningState = "qst";
                                 }
                                 else if (!Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
                                     startListeningQuestion();
+                                    teamChatBuddyApplication.listeningState = "qst";
                                 }
                                 Log.w(TAG_TRACKING, "isFirstInvitaion= "+isFirstInvitaion);
                             }
@@ -4195,12 +4258,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     }
                 }
                 else if (currentTime - lastVisibleTime >= TRACKING_DELAY_STOP_LISTEN * 1000L) {
-                    Log.w(TAG_TRACKING_DEBUG, "No person is visible");
+                    //Log.w(TAG_TRACKING_DEBUG, "No person is visible");
                     if (currentTrackingListeningState != StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT) {
                         currentTrackingListeningState = StateTrackingListening.PERSON_IS_NOT_VISIBLE_TIMEOUT;
-                        Log.w(TAG_TRACKING_DEBUG, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
+                        //Log.w(TAG_TRACKING_DEBUG, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
                         if (!useListeningNumberWithAutomaicListening){
                             stopListeningEverything();
+                            teamChatBuddyApplication.listeningState = "hotword";
                         }
                     }
                 }
@@ -4254,6 +4318,9 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                                             else{
 
                                                 if (teamChatBuddyApplication.isShouldDisplayQRCode()) {
+                                                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                                    }
                                                     displayQRCode(new IDisplayQrCodeCallback() {
                                                         @Override
                                                         public void onEnd() {
@@ -4284,7 +4351,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             //#region re-tracking, re-centering gaze and head
             if(TRACKING_DELAY_NO_WATCH!=0&&isRecenter){
-                Log.i(TAG_TRACKING," +++++++++++++++++++++++++re-tracking++++++++++++++++++++++++++");
+                //Log.i(TAG_TRACKING," +++++++++++++++++++++++++re-tracking++++++++++++++++++++++++++");
                 if (isPersonDetected && !regarde_camera && currentTime - lastLookingAtCameraTime >= TRACKING_DELAY_NO_WATCH * 1000L) {
                     Log.w(TAG_TRACKING, "No person has been looking directly at the camera for TRACKING_DELAY_NO_WATCH=" + TRACKING_DELAY_NO_WATCH + " seconds --> re-tracking + re-centering the gaze and head");
                     //re_track_and_center_head();
@@ -4297,13 +4364,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     isRecenter=false;
                 }
             }else{
-                Log.i(TAG_TRACKING," +++++++++++++++++++++++pas de re-tracking++++++++++++++++++++++++++");
+                //Log.i(TAG_TRACKING," +++++++++++++++++++++++pas de re-tracking++++++++++++++++++++++++++");
             }
             //#endregion re-tracking, re-centering gaze and head
 
             //#region Timer to exit the application
-            Log.i("Finiche"," currentTime : "+currentTime+" /lastLookingAtCameraTimeToCloseApp "+lastLookingAtCameraTimeToCloseApp );
-            Log.i("Finiche"," currentTime - lastLookingAtCameraTimeToCloseApp : "+(currentTime - lastLookingAtCameraTimeToCloseApp));
+            //Log.i("Finiche"," currentTime : "+currentTime+" /lastLookingAtCameraTimeToCloseApp "+lastLookingAtCameraTimeToCloseApp );
+            //Log.i("Finiche"," currentTime - lastLookingAtCameraTimeToCloseApp : "+(currentTime - lastLookingAtCameraTimeToCloseApp));
             if ( WATCHING_timeout!=0 && !regarde_camera && currentTime - lastLookingAtCameraTimeToCloseApp >= WATCHING_timeout * 1000L){
                 Log.i("Finiche","closed app ");
                 finishAffinity();
@@ -4313,8 +4380,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                 System.exit(0);
             }
             //#region Timer to exit the application
-            Log.i("Finiche"," currentTime : "+currentTime+" /personDetectedTimeToCloseApp "+personDetectedTimeToCloseApp );
-            Log.i("Finiche"," currentTime - personDetectedTimeToCloseApp : "+(currentTime - personDetectedTimeToCloseApp));
+            //Log.i("Finiche"," currentTime : "+currentTime+" /personDetectedTimeToCloseApp "+personDetectedTimeToCloseApp );
+            //Log.i("Finiche"," currentTime - personDetectedTimeToCloseApp : "+(currentTime - personDetectedTimeToCloseApp));
             if (teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").trim().equalsIgnoreCase("true") && TRACKING_TIMEOUT!=0 && !regarde_camera && currentTime - personDetectedTimeToCloseApp >= TRACKING_TIMEOUT * 1000L){
                 Log.i("Finiche","closed app ");
                 finishAffinity();
@@ -4741,6 +4808,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
     private void startListeningQuestion(){
         Log.d(TAG_TRACKING, "startListeningQuestion()");
+        teamChatBuddyApplication.listeningState = "qst";
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -4902,6 +4970,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
                     }
                     else if (teamChatBuddyApplication.getLangue().getNom().equals("Français")) {
                         if(TRACKING_WELCOME_PROMPT_FR != null && !TRACKING_WELCOME_PROMPT_FR.isEmpty()){
+
+                            Log.e(TAG_TRACKING, "invitation prononcer + MYA");
                             responseFromChatbot.getInvitationFromChatGPT(TRACKING_WELCOME_MODEL,TRACKING_WELCOME_TEMPERATURE,TRACKING_WELCOME_MAX_TOKEN,TRACKING_WELCOME_PROMPT_FR);
                         }
                         else {
@@ -5042,10 +5112,13 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
 
             new Handler().postDelayed(() -> startAnimateArrow(imageArrow), 1000);
             if(timerDisplayQRCode != null) timerDisplayQRCode.cancel();
-            timerDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties").trim()) * 1000L,1000) {
+            timerDisplayQRCode = new CountDownTimer(Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_Duration","TeamChatBuddy.properties").trim()) * 1000L,100) {
                 @Override
                 public void onTick(long l) {
-                    Log.d(TAG, "timerDisplay QRCode onTick");
+                    //Log.d(TAG, "timerDisplay QRCode onTick");
+                    if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                    }
                 }
                 @Override
                 public void onFinish() {
@@ -5080,6 +5153,8 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
         }
         else {
             iDisplayQrCodeCallback.onEnd();
+            teamChatBuddyApplication.setShouldDisplayQRCode(false);
+            teamChatBuddyApplication.notifyObservers("showCameraQr");
         }
     }
 
