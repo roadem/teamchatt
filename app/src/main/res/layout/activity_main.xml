@@ -326,5 +326,28 @@
         </RelativeLayout>
 
     </RelativeLayout>
+    <!--  (Read QrCode) -->
+    <RelativeLayout
+        android:id="@+id/previewView_qr"
+        android:layout_width="150dp"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginHorizontal="30dp"
+        android:animateLayoutChanges="true"
+        android:elevation="0.8dp">
+
+        <!-- Camera preview -->
+        <ImageView
+            android:id="@+id/previewViewQr"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+<!--        <TextureView-->
+<!--            android:id="@+id/previewTextureView"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"/>-->
+
+    </RelativeLayout>
 
 </RelativeLayout>

@@ -45,7 +45,7 @@ public class Replica {
     }
 
     public void setValue(String value) {
-        this.value = value;
+        this.value = value.replaceAll("<[^>]+>", "").trim();
     }
 
     public String getPrix() {
