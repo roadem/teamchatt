@@ -38,6 +38,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import com.bfr.buddy.speech.shared.ISTTCallback;
 import com.bfr.buddy.speech.shared.ITTSCallback;
@@ -80,6 +81,11 @@ import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ChatGptStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.CustomGPTStreamMode;
 import com.robotique.aevaweb.teamchatbuddy.models.ApriltagDetection;
+import com.robotique.aevaweb.teamchatbuddy.fragments.BlueMicFragment;
+import com.robotique.aevaweb.teamchatbuddy.fragments.ChatWindowFragment;
+import com.robotique.aevaweb.teamchatbuddy.fragments.MainFragment;
+import com.robotique.aevaweb.teamchatbuddy.fragments.OpenAiFragment;
+import com.robotique.aevaweb.teamchatbuddy.fragments.SettingsFragment;
 import com.robotique.aevaweb.teamchatbuddy.models.History;
 import com.robotique.aevaweb.teamchatbuddy.models.Langue;
 import com.robotique.aevaweb.teamchatbuddy.models.LocaleEntry;
@@ -124,6 +130,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -313,6 +320,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     private int counterTouch = 0;
     private int counterHotword = 0;
     private int counterTracking = 0;
+
+    private static final String KEY_COUNT_TOUCH = "alert_count_touch";
+    private static final String KEY_COUNT_HOTWORD = "alert_count_hotword";
+    private static final String KEY_COUNT_TRACKING = "alert_count_tracking";
+    private static final String KEY_REMAINING_TIME = "alert_remaining_time";
+    private static final String KEY_WAS_PAUSED = "alert_was_paused";
+
     public List<String> listQRTypes = new ArrayList<>();
 
     public String listeningState;
@@ -342,6 +356,27 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public void setCounterTracking(int counterTracking) {
         this.counterTracking = counterTracking;
     }
+
+    public boolean isPlayingMusic() {
+        return isPlayingMusic;
+    }
+
+    public void setPlayingMusic(boolean playingMusic) {
+        isPlayingMusic = playingMusic;
+    }
+
+    private boolean isPlayingMusic = false;
+
+    public boolean isPlayingRadio() {
+        return isPlayingRadio;
+    }
+
+    public void setPlayingRadio(boolean playingRadio) {
+        isPlayingRadio = playingRadio;
+    }
+
+    private boolean isPlayingRadio = false;
+
 
     public boolean isAlreadyChatting() {
         return alreadyChatting;
@@ -1047,12 +1082,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
     public void initAlert(){
         isAlertActivated = getParamFromFile("ALERT_ACTIVITY", "TeamChatBuddy.properties");
         if (isAlertActivated == null)isAlertActivated="";
-        String tool = getParamFromFile("ALERT_TOOL", "TeamChatBuddy.properties");
+        String tool = getParamFromFile("ALERT_TOOL", "TeamChatBuddy.properties").trim();
         if(isAlertActivated.trim().equalsIgnoreCase("Yes") && !tool.isEmpty()){
             String phoneNumber = getParamFromFile("ALERT_SMS", "TeamChatBuddy.properties");
-            String mailTo = getParamFromFile("ALERT_MAIL", "TeamChatBuddy.properties");
+            String mailTo = getParamFromFile("ALERT_MAIL", "TeamChatBuddy.properties").trim();
 
-            if ((tool.contains("SMS") && phoneNumber.isEmpty()) && (tool.contains("MAIL") && mailTo.isEmpty())) {
+            if ((tool.equalsIgnoreCase("SMS") && phoneNumber.isEmpty()) && (tool.equalsIgnoreCase("MAIL") && mailTo.isEmpty())) {
                 Log.i("AlertManager_App", "ALERT_SMS ou ALERT_MAIL est vide. Aucune alerte ne sera envoyée.");
                 getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via email/sms will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
@@ -1068,7 +1103,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                     }
                 });
             }
-            else if (tool.equals("SMS") && phoneNumber.isEmpty()) {
+            else if (tool.equalsIgnoreCase("SMS") && phoneNumber.isEmpty()) {
                 Log.i("AlertManager_App", "ALERT_SMS est vide. Aucune alerte ne sera envoyée.");
                 getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via sms will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
@@ -1085,7 +1120,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                 });
 
             }
-            else if (tool.contains("MAIL") && mailTo.isEmpty()) {
+            else if (tool.equalsIgnoreCase("MAIL") && mailTo.isEmpty()) {
                 Log.i("AlertManager_App", "ALERT_MAIL est vide. Aucune alerte ne sera envoyée.");
                 getEnglishLanguageSelectedTranslator().translate("Inactivity alerts via email will not be sent.").addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
@@ -1120,7 +1155,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         if(listening_duration.equals("")||Integer.parseInt(listening_duration)<=0){
             listening_duration = "10";
         }
-        if(listening_attempt.equals("")||Integer.parseInt(listening_attempt)<0){
+        if(listening_attempt.equals("")||Integer.parseInt(listening_attempt)<=0){
             listening_attempt = "1";
         }
         listeningDuration = Integer.parseInt(listening_duration);
@@ -1743,7 +1778,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                         @Override
                                         public void run() {
                                             notifyObservers("STTQuestion_success;"+text);
-                                            BuddySDK.UI.stopListenAnimation();
+                                            try {
+                                                BuddySDK.UI.stopListenAnimation();
+                                            }
+                                            catch (Exception e){
+                                                Log.e(TAG,"BuddySDK Exception  "+e);
+                                            }
                                         }
                                     });
                                 }
@@ -1785,6 +1825,8 @@ public class TeamChatBuddyApplication extends BuddyApplication {
      * @return : l'objet STTTask ou null si erreur
      */
     public void startListeningHotwor(Activity activity) {
+        Log.e(TAG,"startListeningHotword invoked");
+        Log.i("MYA_fragment", "startListeningHotword invoked");
 //        new Handler(Looper.getMainLooper()).postDelayed(() -> {
 //            Log.e("MYA_YAKINE","listeningState = "+listeningState+"\nstartListeningHotwor ------ Delay");
 //                }, 2000);
@@ -1864,6 +1906,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                     stopTTS();
                                     BuddySDK.UI.setLabialExpression(LabialExpression.NO_EXPRESSION);
                                     Log.e(TAG, "onBeginningOfSpeech");
+                                    Log.i("MYA_fragment", "startListeningHotword onBeginningOfSpeech");
                                 }
 
                                 @Override
@@ -1937,6 +1980,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                     ArrayList<String> data = bundle.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
                                     if (data!=null && data.size()>0) {
                                         Log.e(TAG, "Hotword result  : " + data.get(0));
+                                        Log.i("MYA_fragment", "startListeningHotword onResults");
                                         checkTheHotword(data.get(0),"listening");
                                     }
                                     else {
@@ -3302,7 +3346,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
         Log.i("FCH_DEBUG", "startSpeakingSplittedText "+ Arrays.toString(texteToSpeakSplitted) + " , " + type);
 
 
-
+        setSpeaking(true);
         Handler handler_all = new Handler(Looper.getMainLooper());
         Runnable delayedTask = new Runnable() {
             @Override
@@ -3702,6 +3746,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
             else if (getChosenTTS().trim().equalsIgnoreCase("Android") || (getChosenTTS().trim().equalsIgnoreCase("ReadSpeaker") && getSecondTTSfromTTSList().equalsIgnoreCase("Android")) && !usingReadSpeaker){
                 Log.i("TEST_voix","SPEAK using TTS Android");
+                setSpeaking(true);
                 if(!isAppInstalled(getApplicationContext(),"com.google.android.tts")) {
                     showToast(toast_tts_android_indispo);
                 }
@@ -3728,7 +3773,12 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                         }
                     };
 
-                    speakArticle(articlesList.get(0), 0, callback, false, false);
+                    if (!articlesList.isEmpty()) {
+                        speakArticle(articlesList.get(0), 0, callback, false, false);
+                    } else {
+                        Log.e(TAG, "No articles to speak after splitting");
+                        setSpeaking(false);
+                    }
                     tts_android.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                         @Override
                         public void onStart(String utteranceId) {
@@ -4346,7 +4396,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
             }
         }
         Log.i("TEST_voix", "  final voice name " + voice);
-
+        setSpeaking(true);
         String finalLanguageCode = languageCode;
         String finalVoice = voice;
         new AsyncTask<Void, Void, Void>() {
@@ -4476,8 +4526,7 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                             @Override
                             public void onStart() {
                                 try {
-                                    //if(!isListeningHotw)
-                                        BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
+                                    if(!isListeningHotw)BuddySDK.UI.setLabialExpression(LabialExpression.SPEAK_NEUTRAL);
                                 } catch (Exception e) {
                                     Log.e(TAG, "BuddySDK Exception  " + e);
                                 }
@@ -4637,14 +4686,14 @@ public class TeamChatBuddyApplication extends BuddyApplication {
                                 Log.d("googleNews", " onSpeechCompleted ");
                                 if (nextIndex < articlesList.size()) {
                                     try {
-                                        speakArticle(articlesList.get(nextIndex), nextIndex, this, false, true);//todo : article speak openAI
+                                        speakArticle(articlesList.get(nextIndex), nextIndex, this, false, true);
                                     } catch (Exception e) {
                                         Log.e("googleNews", "Error while speaking article: " + e.getMessage());
                                     }
                                 }
                             }
                         };
-                        speakArticle(articlesList.get(0), 0, callback2, false, true);//todo : article speak openAI
+                        speakArticle(articlesList.get(0), 0, callback2, false, true);
 
                         //ttsOpenAI.setTtsListener();
                         ttsOpenAI.start(getparam(openAIKey), articlesList.get(0),new TtsOpenAIListener() {

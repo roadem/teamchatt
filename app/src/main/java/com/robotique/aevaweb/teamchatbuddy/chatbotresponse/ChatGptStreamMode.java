@@ -119,7 +119,13 @@ public class ChatGptStreamMode {
                             app.setAnswerHasExceededTimeOut(true);
                             app.setTimeoutExpired(true);
                             if (!app.isOpenaialreadySwitchEmotion()) {
-                                BuddySDK.UI.setFacialExpression(FacialExpression.TIRED,1);
+                                try {
+                                    BuddySDK.UI.setFacialExpression(FacialExpression.TIRED,1);
+                                }
+                                catch (Exception e){
+                                    Log.e("TAG","BuddySDK Exception  "+e);
+                                }
+
                             }
                             if (app.getCurrentLanguage().equals("en")) {
                                 String[] message_Timeout_NotRespected_en = app.getParamFromFile("Message_Timeout_NotRespected_en","TeamChatBuddy.properties").split("/");
@@ -590,7 +596,6 @@ public class ChatGptStreamMode {
 
     private void showPhrase(String phrase) {
 
-        // --- 1. Nettoyer les balises SSML avant affichage ---
         String cleanPhrase = phrase.replaceAll("<[^>]+>", "").trim();
 
         if (cleanPhrase.isEmpty()) return;
@@ -601,7 +606,6 @@ public class ChatGptStreamMode {
 
         final int totalLength = currentDisplayedText.length() + cleanPhrase.length();
 
-        // --- 2. Affichage progressif sans balises ---
         for (int i = 1; i <= cleanPhrase.length(); i++) {
 
             final String phraseToShow = currentDisplayedText + cleanPhrase.substring(0, i);
@@ -617,7 +621,6 @@ public class ChatGptStreamMode {
             }, i * 50L);
         }
 
-        // --- 3. Mettre à jour le texte accumulé ---
         currentDisplayedText += cleanPhrase + " ";
     }
 
