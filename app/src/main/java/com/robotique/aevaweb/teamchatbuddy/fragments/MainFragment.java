@@ -930,7 +930,9 @@ public class MainFragment extends Fragment implements IDBObserver{
             String listeningMode = teamChatBuddyApplication.getparam("listening_mode");
             Log.i("MainFragment", "listening_mode : "+listeningMode);
             if (listeningMode.equals("hotword")) teamChatBuddyApplication.startListeningHotwor(_parentActivity);
-            else if (listeningMode.equals("listening")) startNextCycle();
+            else if (listeningMode.equals("listening")) {
+                startNextCycle();
+            }
                 //startListeningFreeSpeech(teamChatBuddyApplication.getListeningDuration());
 
             String remaining_attempts = teamChatBuddyApplication.getparam("remaining_attempts");
@@ -1036,13 +1038,13 @@ public class MainFragment extends Fragment implements IDBObserver{
         teamChatBuddyApplication.setparam("qr_displayed", String.valueOf(qr_displayed));
 
         if(teamChatBuddyApplication.getAppIsListeningToTheQuestion()){
-            Log.e(TAG,"getAppIsListeningToTheQuestion()  "+teamChatBuddyApplication.getAppIsListeningToTheQuestion());
+            Log.e("MYA_fragment","----------- getAppIsListeningToTheQuestion()  "+teamChatBuddyApplication.getAppIsListeningToTheQuestion());
             teamChatBuddyApplication.setparam("listening_mode","listening");
         } else if(teamChatBuddyApplication.getSpeaking()){
-            Log.e(TAG,"teamChatBuddyApplication.getSpeaking()  "+teamChatBuddyApplication.getSpeaking());
+            Log.e("MYA_fragment","----------- teamChatBuddyApplication.getSpeaking()  "+teamChatBuddyApplication.getSpeaking());
             teamChatBuddyApplication.setparam("listening_mode","speaking");
         } else {
-            Log.e(TAG,"teamChatBuddyApplication.isListeningHotw  "+teamChatBuddyApplication.isListeningHotw);
+            Log.e("MYA_fragment","----------- teamChatBuddyApplication.isListeningHotw  "+teamChatBuddyApplication.isListeningHotw);
             teamChatBuddyApplication.setparam("listening_mode","hotword");
         }
 
@@ -3785,6 +3787,8 @@ public class MainFragment extends Fragment implements IDBObserver{
 
     private void startListeningFreeSpeech(int duration) {
         teamChatBuddyApplication.listeningState = "qst";
+
+        Log.d("MYA_fragment"," --- startListeningFreeSpeech("+duration+") ---");
         Boolean notUsingSpeechRecognizer = true;
         isListeningFreeSpeech = true;
         teamChatBuddyApplication.setMessageError(false);

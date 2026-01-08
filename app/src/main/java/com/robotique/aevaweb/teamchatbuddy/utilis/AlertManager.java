@@ -64,8 +64,6 @@ public class AlertManager {
         pauseStartTime = null;
         try{
             alertDelay = Long.parseLong(app.getParamFromFile("ALERT_DURATION", "TeamChatBuddy.properties")) * 60000;
-
-            Log.i("AlertManager", "alertDelay:"+alertDelay);
         }catch (Exception e) {
             Log.i("AlertManager", "alertDelay Erreur:"+e);
             alertDelay = 1 * 60000;
@@ -135,7 +133,6 @@ public class AlertManager {
         app.setCounterHotword(0);
         app.setCounterTouch(0);
         app.setCounterTracking(0);
-        Log.i("AlertManager", "Réinitialisation du compteur à " + inactivityStartTime);
     }
 
     /** -------------------- ARRÊT COMPLET -------------------- **/
@@ -150,42 +147,6 @@ public class AlertManager {
     }
 
     /** -------------------- MISE EN PAUSE -------------------- **/
-    public void pause_() {
-
-        Log.i("AlertManager", "-------------------- pause --------------------" );
-
-        // Annuler l'alerte en attente
-        handler.removeCallbacks(alertRunnable);
-
-        // Timestamp actuel
-        long elapsed;
-        // Calcul du temps restant
-        //Log.d("AlertManager", "remainingTime: "+remainingTime);
-        if(pauseStartTime != null) {
-            elapsed = System.currentTimeMillis() - pauseStartTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
-            remainingTime = remainingTime - elapsed;
-            Log.d("AlertManager", "remainingTime: pauseStartTime " + pauseStartTime);
-            if (remainingTime < 0) remainingTime = 0;
-            pauseStartTime = null;
-        }
-        else if (inactivityStartTime != null) {
-            elapsed = System.currentTimeMillis() - inactivityStartTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
-            remainingTime = alertDelay - elapsed;
-            Log.d("AlertManager", "remainingTime: inactivityStartTime " + remainingTime);
-            if (remainingTime < 0) remainingTime = 0;
-        }
-        // Sauvegarde des compteurs et du temps restant
-        app.setparam("touch", app.getCounterTouch()+"");
-        app.setparam("hotword", app.getCounterHotword()+"");
-        app.setparam("tracking", app.getCounterTracking()+"");
-        app.setparam("remainingTime", String.valueOf(remainingTime));
-        app.setparam("wasAlterActivated", String.valueOf(true));
-        Log.i("AlertManager", "--- remainingTime=" + remainingTime + " savedTouch=" + app.getCounterTouch() + " savedHotword=" + app.getCounterHotword() + " savedTracking=" + app.getCounterTracking());
-
-        Log.i("AlertManager", "Pause activée. remainingTime = " + remainingTime);
-        pauseTimestamp = System.currentTimeMillis();
-    }
-
     public void pause() {
 
         Log.i("AlertManager", "-------------------- pause --------------------" );
@@ -196,27 +157,19 @@ public class AlertManager {
         // Calcul du temps restant
         long elapsed;
         if(pauseStartTime != null) {
-            // On reprend après une pause précédente
             elapsed = System.currentTimeMillis() - pauseStartTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
             remainingTime = remainingTime - elapsed;
-            Log.d("AlertManager", "remainingTime: pauseStartTime " + pauseStartTime + " elapsed=" + elapsed + " remainingTime=" + remainingTime);
             if (remainingTime < 0) remainingTime = 0;
             pauseStartTime = null;
         }
         else if (inactivityStartTime != null) {
-            // Première pause depuis le start
             elapsed = System.currentTimeMillis() - inactivityStartTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
             remainingTime = alertDelay - elapsed;
-            Log.d("AlertManager", "remainingTime: inactivityStartTime " + inactivityStartTime + " elapsed=" + elapsed + " alertDelay=" + alertDelay + " remainingTime=" + remainingTime);
             if (remainingTime < 0) remainingTime = 0;
         } else {
-            // Cas où ni pauseStartTime ni inactivityStartTime ne sont définis
-            // On utilise alertDelay comme valeur par défaut
             remainingTime = alertDelay;
-            Log.w("AlertManager", "Aucun timestamp disponible, utilisation de alertDelay=" + alertDelay);
         }
 
-        // Sauvegarde des compteurs et du temps restant
         app.setparam("touch", app.getCounterTouch()+"");
         app.setparam("hotword", app.getCounterHotword()+"");
         app.setparam("tracking", app.getCounterTracking()+"");
@@ -238,43 +191,15 @@ public class AlertManager {
         String trackingStr = app.getparam("tracking");
         String remainingTimeStr = app.getparam("remainingTime");
 
-        Log.i("AlertManager", "app.getparam(touch) = '" + touchStr + "'");
-        Log.i("AlertManager", "app.getparam(hotword) = '" + hotwordStr + "'");
-        Log.i("AlertManager", "app.getparam(tracking) = '" + trackingStr + "'");
-        Log.i("AlertManager", "app.getparam(remainingTime) = '" + remainingTimeStr + "'");
-
         int savedTouch = 0;
         int savedHotword = 0;
         int savedTracking = 0;
         long savedRemaining = 0;
 
-        try {
-            savedTouch = (touchStr != null && !touchStr.isEmpty()) ? Integer.parseInt(touchStr) + 1 : 0;
-        } catch (NumberFormatException e) {
-            Log.e("AlertManager", "Erreur parsing touch: " + e.getMessage());
-            savedTouch = 0;
-        }
-
-        try {
-            savedHotword = (hotwordStr != null && !hotwordStr.isEmpty()) ? Integer.parseInt(hotwordStr) : 0;
-        } catch (NumberFormatException e) {
-            Log.e("AlertManager", "Erreur parsing hotword: " + e.getMessage());
-            savedHotword = 0;
-        }
-
-        try {
-            savedTracking = (trackingStr != null && !trackingStr.isEmpty()) ? Integer.parseInt(trackingStr) : 0;
-        } catch (NumberFormatException e) {
-            Log.e("AlertManager", "Erreur parsing tracking: " + e.getMessage());
-            savedTracking = 0;
-        }
-
-        try {
-            savedRemaining = (remainingTimeStr != null && !remainingTimeStr.isEmpty()) ? Long.parseLong(remainingTimeStr) : 0;
-        } catch (NumberFormatException e) {
-            Log.e("AlertManager", "Erreur parsing remainingTime: " + e.getMessage());
-            savedRemaining = 0;
-        }
+        try { savedTouch = (touchStr != null && !touchStr.isEmpty()) ? Integer.parseInt(touchStr) + 1 : 0; } catch (Exception ignored) {}
+        try { savedHotword = (hotwordStr != null && !hotwordStr.isEmpty()) ? Integer.parseInt(hotwordStr) : 0; } catch (Exception ignored) {}
+        try { savedTracking = (trackingStr != null && !trackingStr.isEmpty()) ? Integer.parseInt(trackingStr) : 0; } catch (Exception ignored) {}
+        try { savedRemaining = (remainingTimeStr != null && !remainingTimeStr.isEmpty()) ? Long.parseLong(remainingTimeStr) : 0; } catch (Exception ignored) {}
 
         app.setCounterTouch(savedTouch);
         app.setCounterHotword(savedHotword);
@@ -282,48 +207,18 @@ public class AlertManager {
 
         remainingTime = savedRemaining;
 
-
-//        // Récupération des valeurs sauvegardées
-//        int savedTouch = Integer.parseInt(app.getparam("touch"))+1;
-//        int savedHotword = Integer.parseInt(app.getparam("hotword"));
-//        int savedTracking = Integer.parseInt(app.getparam("tracking"));
-//        long savedRemaining = Long.parseLong(app.getparam("remainingTime"));
-//        Log.i("AlertManager", "app.getparam(touch) " + app.getparam("touch"));
-//
-//        app.setCounterTouch(savedTouch);
-//        app.setCounterHotword(savedHotword);
-//        app.setCounterTracking(savedTracking);
-//        remainingTime = savedRemaining;
-
-
         String rep = app.getParamFromFile("ALERT_REPETITIONS", "TeamChatBuddy.properties");
-        if( rep != null && !rep.isEmpty()){
-            requiredRepetitions = Integer.parseInt(rep);
-            Log.i("AlertManager", "requiredRepetitions not empty ^^ " + requiredRepetitions);
-        }else{
-            requiredRepetitions = 0;
-            Log.i("AlertManager", "Oups requiredRepetitions is empty ^^ ");
-        }
+        requiredRepetitions = (rep != null && !rep.isEmpty()) ? Integer.parseInt(rep) : 0;
 
         pauseStartTime = LocalDateTime.now();
 
-        Log.i("AlertManager", "remainingTime=" + remainingTime + " savedTouch=" + app.getCounterTouch() + " savedHotword=" + app.getCounterHotword() + " savedTracking=" + app.getCounterTracking());
-        Log.i("AlertManager", "remainingTime=" + remainingTime + " savedTouch=" + savedTouch + " savedHotword=" + savedHotword + " savedTracking=" + savedTracking);
-        // Si aucun remainingTime, relancer complètement
-
-        Log.i("AlertManager", "remainingTime <= 0 " + (remainingTime <= 0));
-        Log.i("AlertManager", "requiredRepetitions " + requiredRepetitions);
-        Log.i("AlertManager", "app.getCounterTouch() + app.getCounterTracking() +  app.getCounterHotword() >= requiredRepetitions+1 " + (app.getCounterTouch() + app.getCounterTracking() +  app.getCounterHotword() >= requiredRepetitions+1));
         if ((remainingTime <= 0)||(app.getCounterTouch() + app.getCounterTracking() +  app.getCounterHotword() >= requiredRepetitions+1)) {
-            Log.i("AlertManager", "remainingTime <= 0 → restart normal");
             remainingTime = alertDelay;
             reinit();
             return;
         }
 
         inactivityStartTime = LocalDateTime.now();
-
-        // Relance du handler avec le temps restant
         handler.removeCallbacks(alertRunnable);
         handler.postDelayed(alertRunnable, remainingTime);
 

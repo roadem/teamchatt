@@ -182,7 +182,7 @@ public class MainActivity extends BuddyCompatActivity implements IDBObserver {
             }
         }
         try {
-            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("wasAlterActivated"))){
+            if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("wasAlterActivated"))&&teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
                 AlertManager.getInstance(MainActivity.this).resume();
             }
         } catch (Exception e) {
