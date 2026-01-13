@@ -762,6 +762,10 @@ public class SettingsFragment extends Fragment implements IDBObserver, LanguageD
         };
 
         teamChatBuddyApplication.isOnApp = true;
+        view.setOnTouchListener((v, event) -> {
+            hideKeyboard();
+            return false;
+        });
 
         return view;
     }
@@ -813,6 +817,14 @@ public class SettingsFragment extends Fragment implements IDBObserver, LanguageD
         return !(x < viewX || x > viewX + view.getWidth() || y < viewY || y > viewY + view.getHeight());
     }
 
+    public void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        View view = requireActivity().getCurrentFocus();
+        if (view == null) {
+            view = new View(requireContext());
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
 
     private void handlerTracking(){
 
