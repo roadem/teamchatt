@@ -429,6 +429,7 @@ public class MainFragment extends Fragment implements IDBObserver{
                         Log.i("MYA_fragment", "MainFragment : isFirstLaunch");
                         teamChatBuddyApplication.isStartMsg = true;
                         teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                        //Log.d("MainFragment", "------------ hideCameraQr mlkit -------------");
                         playStartMessage(new IStartMessageCallback() {
                             @Override
                             public void onEnd(String s) {
@@ -451,6 +452,7 @@ public class MainFragment extends Fragment implements IDBObserver{
                                         if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
 
                                             teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                            //Log.d("MainFragment", "------------ hideCameraQr mlkit play no tracking -------------");
 
                                         }
                                         displayQRCode(new IDisplayQrCodeCallback() {
@@ -473,6 +475,7 @@ public class MainFragment extends Fragment implements IDBObserver{
                                         if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
 
                                             teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                            //Log.d("MainFragment", "------------ hideCameraQr mlkit yes tracking -------------");
 
                                         }
                                         displayQRCode(new IDisplayQrCodeCallback() {
@@ -509,6 +512,7 @@ public class MainFragment extends Fragment implements IDBObserver{
                             if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
 
                                 teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                //Log.d("MainFragment", "------------ hideCameraQr !qr_displayed -------------");
 
                             }
                             Log.e("TEST_QR","loading model fonction Display---------------");
@@ -537,6 +541,7 @@ public class MainFragment extends Fragment implements IDBObserver{
                         if (teamChatBuddyApplication.isShouldDisplayQRCode() && !qr_displayed) {
                             if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
                                 teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                //Log.d("MainFragment", "------------ hideCameraQr mlkit Tracking_Activation -------------");
                             }
                             Log.e(TAG,"loading model 2 fonction Display---------------");
                             displayQRCode(new IDisplayQrCodeCallback() {
@@ -916,6 +921,8 @@ public class MainFragment extends Fragment implements IDBObserver{
                         timerPeriodToDisplayQRCode.cancel();
                     }
                     Log.e(TAG,"call displayQRCode 3 ");
+                    teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                    //Log.d("MainFragment", "------------ hideCameraQr onResume -------------");
                     displayQRCode(new IDisplayQrCodeCallback() {
                         @Override
                         public void onEnd() {
@@ -925,6 +932,10 @@ public class MainFragment extends Fragment implements IDBObserver{
                     Log.i("MainFragment", "Le QR était affiché mais timer écoulé → on le masque");
                     // éventuellement displayQRCode() pour le masquer ou le réinitialiser
                 }
+            }
+            else {
+                //Log.d("MainFragment", "------------ showCameraQr onResume -------------");
+                teamChatBuddyApplication.notifyObservers("showCameraQr");
             }
 
             String listeningMode = teamChatBuddyApplication.getparam("listening_mode");
@@ -1750,6 +1761,8 @@ public class MainFragment extends Fragment implements IDBObserver{
                 else {
                     teamChatBuddyApplication.isStartMsg = false;
                     teamChatBuddyApplication.notifyObservers("showCameraQr");
+
+                    //Log.d("MainFragment", "------------ showCameraQr TTS_success -------------");
                 }
                 //Log.e("MYA_YAKINE","listeningState = "+teamChatBuddyApplication.listeningState+"\nTTS_success ------ Delay");
                 //teamChatBuddyApplication.listeningState = "qst";
@@ -2325,12 +2338,14 @@ public class MainFragment extends Fragment implements IDBObserver{
             }
 
             else if (message.equalsIgnoreCase("hideCameraQr")){
+                //Log.d("MainFragment", "------------ hideCameraQr -------------");
                 getActivity().runOnUiThread(() -> {
                     previewView_qr.setTranslationY(100000);
                 });
             }
 
             else if (message.equalsIgnoreCase("showCameraQr")){
+                //Log.d("MainFragment", "------------ showCameraQr -------------");
                 getActivity().runOnUiThread(() -> {
                     if(!teamChatBuddyApplication.isShouldDisplayQRCode()) {
                         previewView_qr.setTranslationY(0);
@@ -3039,7 +3054,8 @@ public class MainFragment extends Fragment implements IDBObserver{
                 public void onTick(long l) {
                     Log.d("TEST_QR"," onTick QR code ---------------");
                     if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
-                        teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                        //teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                        //Log.d("MainFragment", "------------ hideCameraQr getData -------------");
                     }
                 }
 
@@ -3050,6 +3066,7 @@ public class MainFragment extends Fragment implements IDBObserver{
                         if (Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Camera_Display"))) {
                             reGroup.setTranslationY(1000);
                             teamChatBuddyApplication.notifyObservers("showCameraQr");
+                            //Log.d("MainFragment", "------------ showCameraQr finish countdown get Data -------------");
                         }
                     }
                     Log.e(TAG,"call displayQRCode 2 ");
@@ -3063,10 +3080,12 @@ public class MainFragment extends Fragment implements IDBObserver{
                                         reGroup.setTranslationY(0);
                                         if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
                                             teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                            //Log.d("MainFragment", "------------ hideCameraQr getData onFinish -------------");
                                         }
                                     } else {
                                         reGroup.setTranslationY(1000);
-                                        teamChatBuddyApplication.notifyObservers("showCameraQr");teamChatBuddyApplication.notifyObservers("showCameraQr");
+                                        teamChatBuddyApplication.notifyObservers("showCameraQr");
+                                        //Log.d("MainFragment", "------------ showCameraQr finish getData tracking -------------");
                                     }
                                 }
                             }
@@ -4443,6 +4462,10 @@ public class MainFragment extends Fragment implements IDBObserver{
                                         else{
 
                                             if (teamChatBuddyApplication.isShouldDisplayQRCode() && !qr_displayed) {
+                                                if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
+                                                    teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                                                    //Log.d("MainFragment", "------------ hideCameraQr runnable -------------");
+                                                }
                                                 Log.e(TAG,"call displayQRCode 1 ");
                                                 displayQRCode(new IDisplayQrCodeCallback() {
                                                     @Override
@@ -5250,12 +5273,14 @@ public class MainFragment extends Fragment implements IDBObserver{
                     qrTimeRemaining=l;
                     if(!teamChatBuddyApplication.getParamFromFile("Displaying_QRCode_period","TeamChatBuddy.properties").trim().equalsIgnoreCase("0")){
                         teamChatBuddyApplication.notifyObservers("hideCameraQr");
+                        //Log.d("MainFragment", "------------ hideCameraQr displayQRCode -------------");
                     }
                     Log.d(TAG, "timerDisplay QRCode onTick");
                 }
                 @Override
                 public void onFinish() {
                     Log.d(TAG, "timerDisplay QRCode onFinish");
+                    teamChatBuddyApplication.notifyObservers("showCameraQr");
 
                     qrTimeRemaining=0;
                     qr_displayed=false;
@@ -5292,6 +5317,7 @@ public class MainFragment extends Fragment implements IDBObserver{
             iDisplayQrCodeCallback.onEnd();
             teamChatBuddyApplication.setShouldDisplayQRCode(false);
             teamChatBuddyApplication.notifyObservers("showCameraQr");
+            //Log.d("MainFragment", "------------ showCameraQr displayQRCode -------------");
         }
     }
 
