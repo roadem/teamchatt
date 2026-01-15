@@ -436,6 +436,8 @@ public class MainFragment extends Fragment implements IDBObserver{
                                 Log.e(TAG,"end of playing Start Message");
                                 mlKitIsDownloading=false;
                                 teamChatBuddyApplication.setSpeaking(false);
+                                teamChatBuddyApplication.isStartMsg = false;
+                                //teamChatBuddyApplication.listeningState = "hotword";
                                 Log.i("MYA_fragment", "MainFragment : playStartMessage --- onEnd before conditions");
                                 Log.i("MYA_fragment", "teamChatBuddyApplication.getparam(\"Tracking_Activation\") "+teamChatBuddyApplication.getparam("Tracking_Activation"));
                                 Log.i("MYA_fragment", "!teamChatBuddyApplication.getSpeaking() "+!teamChatBuddyApplication.getSpeaking());
@@ -972,6 +974,7 @@ public class MainFragment extends Fragment implements IDBObserver{
         super.onPause();
         Log.d(TAG," --- onPause() ---");
         Log.d("MYA_fragment"," --- onPause() MainFragment ---");
+        teamChatBuddyApplication.listeningState = "traitement";
         teamChatBuddyApplication.isOnApp = false;
         initHasBeenLaunchedFromOnResume=true;
         if(ResponseFromChatbot.responseTimeout !=null){
@@ -4410,6 +4413,7 @@ public class MainFragment extends Fragment implements IDBObserver{
                         Log.w(TAG_TRACKING_DEBUG, "No person has been visible for TRACKING_DELAY_STOP_LISTEN="+TRACKING_DELAY_STOP_LISTEN+" seconds (or more) --> stop listening");
                         if (!useListeningNumberWithAutomaicListening){
                             stopListeningEverything();
+                            teamChatBuddyApplication.listeningState = "hotword";
                         }
                     }
                 }

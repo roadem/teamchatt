@@ -3214,13 +3214,13 @@ public class TeamChatBuddyApplication extends BuddyApplication {
 
                 hotwordAlreadyHandled = true;
 
-                //listeningState = "qst";
+                listeningState = "qst";
                 new Handler(Looper.getMainLooper()).postDelayed(() -> {
 
                     // Vérification : toujours en mode hotword ?
                     if (listeningState.equals("hotword")) {
 
-                        listeningState = "qst";
+                        //listeningState = "qst";
                         isAprilTagProcessing.set(false);
                         isListeningHotw = false;
                         Log.i("OpenAITTS", "------------------------ checkHotw isListeningHotw = false ");
