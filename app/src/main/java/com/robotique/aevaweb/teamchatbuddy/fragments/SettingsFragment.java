@@ -1,9 +1,8 @@
-package com.robotique.aevaweb.teamchatbuddy.activities;
+package com.robotique.aevaweb.teamchatbuddy.fragments;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Rect;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -14,8 +13,10 @@ import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -36,14 +37,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
-import com.bfr.buddy.utils.events.EventItem;
-import com.bfr.buddysdk.BuddyActivity;
 import com.bfr.buddysdk.BuddySDK;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.robotique.aevaweb.teamchatbuddy.R;
+import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.adapters.ChatbotSpinnerAdapter;
 import com.robotique.aevaweb.teamchatbuddy.adapters.LangueSpinnerAdapter;
 import com.robotique.aevaweb.teamchatbuddy.adapters.SttSpinnerAdapter;
@@ -63,8 +65,11 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingsActivity extends BuddyActivity implements IDBObserver,LanguageDetailsChecker.LanguageDetailsListener {
+public class SettingsFragment extends Fragment implements IDBObserver, LanguageDetailsChecker.LanguageDetailsListener{
+
     private static final String TAG = "TEAMCHATBUDDY_SettingsActivity";
+
+    private MainActivity _parentActivity;
 
     private TeamChatBuddyApplication teamChatBuddyApplication;
     private View decorView;
@@ -177,8 +182,11 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private CountDownTimer timerEcoute;
     private LanguageDetailsChecker languageDetailsChecker;
     private RelativeLayout popupLanguageList;
+    private RelativeLayout lyt_close_menu_settings;
     private LinearLayout popupLanguageListContent;
     private ImageView dollar_icon;
+    private ImageView header_refresh;
+    private ImageView header_delete;
 
     private LinearLayout menuOptionBIlyt;
     private LinearLayout menu_option_detection_language_lyt;
@@ -193,113 +201,136 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
     private Toast currentToast;
     private Handler handler= new Handler();
     private Runnable runnable;
+    View view;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
-        Log.d(TAG," --- onCreate() ---");
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 
-        teamChatBuddyApplication = (TeamChatBuddyApplication) getApplicationContext();
-        teamChatBuddyApplication.hideSystemUI(this);
+    public SettingsFragment(MainActivity _parentActivity) {
+        this._parentActivity = _parentActivity;
+    }
+
+    public SettingsFragment() {
+
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        view = inflater.inflate(R.layout.activity_settings, container, false);
+
+        Log.d(TAG," --- onCreateView() Settings---");
+
+        teamChatBuddyApplication = (TeamChatBuddyApplication) getActivity().getApplicationContext();
         teamChatBuddyApplication.setInitSharedpreferences(false);
-        decorView=getWindow().getDecorView();
+        teamChatBuddyApplication.hideSystemUI(getActivity());
+        decorView=getActivity().getWindow().getDecorView();
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(int visibility) {
                 if(visibility==0){
-                    decorView.setSystemUiVisibility(teamChatBuddyApplication.hideSystemUI(SettingsActivity.this));
+                    decorView.setSystemUiVisibility(teamChatBuddyApplication.hideSystemUI(getActivity()));
                 }
             }
         });
 
 
-        menu_title = findViewById(R.id.menu_title);
-        menu_option_commande_textView = findViewById(R.id.menu_option_commande_textView);
-        menu_option_projectID_textView = findViewById(R.id.menu_option_projectID_textView);
-        popupLanguageList= findViewById(R.id.popup_Languages_List);
-        popupLanguageListContent= findViewById(R.id.popup_Languages_List_linearLayout);
-        menu_option_projectID_lyt = findViewById(R.id.menu_option_projectID_lyt);
-        affichage_Languages_List_lyt = findViewById(R.id.Android_STT_language_lyt);
-        menu_option_stt_lyt = findViewById(R.id.menu_option_stt_lyt);
-        menu_option_chatbot_lyt = findViewById(R.id.menu_option_chatbot_lyt);
+        menu_title = view.findViewById(R.id.menu_title);
+        menu_option_commande_textView = view.findViewById(R.id.menu_option_commande_textView);
+        menu_option_projectID_textView = view.findViewById(R.id.menu_option_projectID_textView);
+        popupLanguageList= view.findViewById(R.id.popup_Languages_List);
+        popupLanguageListContent= view.findViewById(R.id.popup_Languages_List_linearLayout);
+        menu_option_projectID_lyt = view.findViewById(R.id.menu_option_projectID_lyt);
+        affichage_Languages_List_lyt = view.findViewById(R.id.Android_STT_language_lyt);
+        menu_option_stt_lyt = view.findViewById(R.id.menu_option_stt_lyt);
+        menu_option_chatbot_lyt = view.findViewById(R.id.menu_option_chatbot_lyt);
 
-        menu_option_langue_textView = findViewById(R.id.menu_option_langue_textView);
-        menu_option_chatbot_textView = findViewById(R.id.menu_option_chatbot_textView);
-        menu_option_stt_textView =findViewById(R.id.menu_option_stt_textView);
-        option_tracking_timeout_textView = findViewById(R.id.option_tracking_timeout_textView);
+        menu_option_langue_textView = view.findViewById(R.id.menu_option_langue_textView);
+        menu_option_chatbot_textView = view.findViewById(R.id.menu_option_chatbot_textView);
+        menu_option_stt_textView = view.findViewById(R.id.menu_option_stt_textView);
+        option_tracking_timeout_textView = view.findViewById(R.id.option_tracking_timeout_textView);
 
-        menu_option_volume_textView = findViewById(R.id.menu_option_volume_textView);
-        menu_option_affichage_textView = findViewById(R.id.menu_option_affichage_textView);
-        menu_option_emotion_textView = findViewById(R.id.menu_option_emotion_textView);
-        menu_option_detectLanguage_textView = findViewById(R.id.menu_option_language_detection_textView);
-        menu_option_mode_stream_textView = findViewById(R.id.menu_option_mode_stream_textView);
-        menu_apiKey_textView = findViewById(R.id.api_key_txt);
-        menu_header_textView = findViewById(R.id.header_txt);
-        menu_option_langue_spinner = findViewById(R.id.menu_option_langue_spinner);
-        menu_option_stt_spinner = findViewById(R.id.menu_option_stt_spinner);
-        menu_option_chatbot_spinner = findViewById(R.id.menu_option_chatbot_spinner);
-        option_tracking_timeout = findViewById(R.id.option_tracking_timeout);
-        option_tracking_lyt = findViewById(R.id.option_tracking_lyt);
+        menu_option_volume_textView = view.findViewById(R.id.menu_option_volume_textView);
+        menu_option_affichage_textView = view.findViewById(R.id.menu_option_affichage_textView);
+        menu_option_emotion_textView = view.findViewById(R.id.menu_option_emotion_textView);
+        menu_option_detectLanguage_textView = view.findViewById(R.id.menu_option_language_detection_textView);
+        menu_option_mode_stream_textView = view.findViewById(R.id.menu_option_mode_stream_textView);
+        menu_apiKey_textView = view.findViewById(R.id.api_key_txt);
+        menu_header_textView = view.findViewById(R.id.header_txt);
+        menu_option_langue_spinner = view.findViewById(R.id.menu_option_langue_spinner);
+        menu_option_stt_spinner = view.findViewById(R.id.menu_option_stt_spinner);
+        menu_option_chatbot_spinner = view.findViewById(R.id.menu_option_chatbot_spinner);
+        option_tracking_timeout = view.findViewById(R.id.option_tracking_timeout);
+        option_tracking_lyt = view.findViewById(R.id.option_tracking_lyt);
 
-        menu_option_projectID_editText = findViewById(R.id.menu_option_projectID_editText);
-        menu_apiKey_editText = findViewById(R.id.api_key_editText);
-        menu_header_editText = findViewById(R.id.header_editText);
+        menu_option_projectID_editText = view.findViewById(R.id.menu_option_projectID_editText);
+        menu_apiKey_editText = view.findViewById(R.id.api_key_editText);
+        menu_header_editText = view.findViewById(R.id.header_editText);
 
-        volume_seekbar=findViewById(R.id.volume_seekbar);
-        volume_seekbar_value=findViewById(R.id.volume_seekbar_value);
-        switchVisibility=findViewById(R.id.switchVisibility);
-        switchEmotion = findViewById(R.id.switchEmotion);
-        switchBIDisplay = findViewById(R.id.switchBI);
-        switchLanguageDetection = findViewById(R.id.switchLanguageDetection);
-        switchModeStream = findViewById(R.id.switchModeStream);
-        switchCommande = findViewById(R.id.switchCommande);
-        launch_view = findViewById(R.id.launch_view);
-        noNetwork = findViewById(R.id.noNetwork);
-        downloadingBar = findViewById(R.id.progressBar_MLKitDownload);
+        volume_seekbar= view.findViewById(R.id.volume_seekbar);
+        volume_seekbar_value = view.findViewById(R.id.volume_seekbar_value);
+        switchVisibility = view.findViewById(R.id.switchVisibility);
+        switchEmotion = view.findViewById(R.id.switchEmotion);
+        switchBIDisplay = view.findViewById(R.id.switchBI);
+        switchLanguageDetection = view.findViewById(R.id.switchLanguageDetection);
+        switchModeStream = view.findViewById(R.id.switchModeStream);
+        switchCommande = view.findViewById(R.id.switchCommande);
+        launch_view = view.findViewById(R.id.launch_view);
+        noNetwork = view.findViewById(R.id.noNetwork);
+        downloadingBar = view.findViewById(R.id.progressBar_MLKitDownload);
 
-        menu_option_tracking_activation_lyt = findViewById(R.id.menu_option_tracking_activation_lyt);
-        menu_option_tracking_camera_display_lyt = findViewById(R.id.menu_option_tracking_camera_display_lyt);
-        menu_option_tracking_head_lyt = findViewById(R.id.menu_option_tracking_head_lyt);
-        menu_option_tracking_body_lyt = findViewById(R.id.menu_option_tracking_body_lyt);
-        menu_option_tracking_auto_listen_lyt = findViewById(R.id.menu_option_tracking_auto_listen_lyt);
-        menu_option_tracking_invitation_lyt = findViewById(R.id.menu_option_tracking_invitation_lyt);
-        menu_option_tracking_timeout_lyt = findViewById(R.id.menu_option_tracking_timeout_lyt);
-        menu_option_tracking_invitation_chatGpt_lyt = findViewById(R.id.menu_option_tracking_invitation_chatGpt_lyt);
-        menu_option_tracking_activation_textView = findViewById(R.id.menu_option_tracking_activation_textView);
-        menu_option_tracking_camera_display_textView = findViewById(R.id.menu_option_tracking_camera_display_textView);
-        menu_option_tracking_head_textView = findViewById(R.id.menu_option_tracking_head_textView);
-        menu_option_tracking_body_textView = findViewById(R.id.menu_option_tracking_body_textView);
-        menu_option_tracking_auto_listen_textView = findViewById(R.id.menu_option_tracking_auto_listen_textView);
-        menu_option_tracking_invitation_textView = findViewById(R.id.menu_option_tracking_invitation_textView);
-        menu_option_tracking_invitation_chatGpt_textView = findViewById(R.id.menu_option_tracking_invitation_chatGpt_textView);
-        menu_option_tracking_timeout_textView = findViewById(R.id.menu_option_tracking_timeout_textView);
-        switchTrackingActivation = findViewById(R.id.switchTrackingActivation);
-        switchTrackingCameraDisplay = findViewById(R.id.switchTrackingCameraDisplay);
-        switchTrackingHead = findViewById(R.id.switchTrackingHead);
-        switchTrackingBody = findViewById(R.id.switchTrackingBody);
-        switchTrackingAutoListen = findViewById(R.id.switchTrackingAutoListen);
-        switchTrackingInvitation = findViewById(R.id.switchTrackingInvitation);
-        switchTrackingInvitationChatGpt = findViewById(R.id.switchTrackingInvitationChatGpt);
-        switchTrackingTimeout = findViewById(R.id.switchTrackingTimeout);
-        dollar_icon = findViewById(R.id.dollar_icon);
+        menu_option_tracking_activation_lyt = view.findViewById(R.id.menu_option_tracking_activation_lyt);
+        menu_option_tracking_camera_display_lyt = view.findViewById(R.id.menu_option_tracking_camera_display_lyt);
+        menu_option_tracking_head_lyt = view.findViewById(R.id.menu_option_tracking_head_lyt);
+        menu_option_tracking_body_lyt = view.findViewById(R.id.menu_option_tracking_body_lyt);
+        menu_option_tracking_auto_listen_lyt = view.findViewById(R.id.menu_option_tracking_auto_listen_lyt);
+        menu_option_tracking_invitation_lyt = view.findViewById(R.id.menu_option_tracking_invitation_lyt);
+        menu_option_tracking_timeout_lyt = view.findViewById(R.id.menu_option_tracking_timeout_lyt);
+        menu_option_tracking_invitation_chatGpt_lyt = view.findViewById(R.id.menu_option_tracking_invitation_chatGpt_lyt);
+        menu_option_tracking_activation_textView = view.findViewById(R.id.menu_option_tracking_activation_textView);
+        menu_option_tracking_camera_display_textView = view.findViewById(R.id.menu_option_tracking_camera_display_textView);
+        menu_option_tracking_head_textView = view.findViewById(R.id.menu_option_tracking_head_textView);
+        menu_option_tracking_body_textView = view.findViewById(R.id.menu_option_tracking_body_textView);
+        menu_option_tracking_auto_listen_textView = view.findViewById(R.id.menu_option_tracking_auto_listen_textView);
+        menu_option_tracking_invitation_textView = view.findViewById(R.id.menu_option_tracking_invitation_textView);
+        menu_option_tracking_invitation_chatGpt_textView = view.findViewById(R.id.menu_option_tracking_invitation_chatGpt_textView);
+        menu_option_tracking_timeout_textView = view.findViewById(R.id.menu_option_tracking_timeout_textView);
+        switchTrackingActivation = view.findViewById(R.id.switchTrackingActivation);
+        switchTrackingCameraDisplay = view.findViewById(R.id.switchTrackingCameraDisplay);
+        switchTrackingHead = view.findViewById(R.id.switchTrackingHead);
+        switchTrackingBody = view.findViewById(R.id.switchTrackingBody);
+        switchTrackingAutoListen = view.findViewById(R.id.switchTrackingAutoListen);
+        switchTrackingInvitation = view.findViewById(R.id.switchTrackingInvitation);
+        switchTrackingInvitationChatGpt = view.findViewById(R.id.switchTrackingInvitationChatGpt);
+        switchTrackingTimeout = view.findViewById(R.id.switchTrackingTimeout);
+        dollar_icon = view.findViewById(R.id.dollar_icon);
+        header_refresh = view.findViewById(R.id.header_refresh);
+        header_delete = view.findViewById(R.id.header_delete);
 
-        menuOptionBIlyt = findViewById(R.id.menu_option_BI_lyt);
-        menu_option_detection_language_lyt = findViewById(R.id.menu_option_detection_language_lyt);
-        menu_option_stream_mode_lyt = findViewById(R.id.menu_option_stream_mode_lyt);
-        menu_option_commande_lyt = findViewById(R.id.menu_option_commande_lyt);
-        menu_option_affichage_lyt = findViewById(R.id.menu_option_affichage_lyt);
+
+        menuOptionBIlyt = view.findViewById(R.id.menu_option_BI_lyt);
+        menu_option_detection_language_lyt = view.findViewById(R.id.menu_option_detection_language_lyt);
+        menu_option_stream_mode_lyt = view.findViewById(R.id.menu_option_stream_mode_lyt);
+        menu_option_commande_lyt = view.findViewById(R.id.menu_option_commande_lyt);
+        menu_option_affichage_lyt = view.findViewById(R.id.menu_option_affichage_lyt);
+        lyt_close_menu_settings = view.findViewById(R.id.lyt_close_menu_settings);
+
+        lyt_close_menu_settings.setOnClickListener(view -> btnCloseSettings(view));
+        dollar_icon.setOnClickListener(view -> btnOpenAi(view));
+        header_refresh.setOnClickListener(view -> btnRefreshHeader(view));
+        header_delete.setOnClickListener(view -> btnDeleteHeader(view));
+
 
         set=new Setting();
         setting=new Setting();
         teamChatBuddyApplication.registerObserver(this);
-        wifiBroadCastReceiver.setAct(getApplicationContext());
-        IntentFilter intentFilter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-        registerReceiver(wifiBroadCastReceiver, intentFilter);
-        wifiBroadCastReceiver.forceCheckConnexState(getApplicationContext());
 
+        affichage_Languages_List_lyt.setOnClickListener(view -> btnAfficheLanguageList(view));
 
-        ImageView blue_mic_lyt = findViewById(R.id.blue_mic_lyt);
+        ImageView blue_mic_lyt = view.findViewById(R.id.blue_mic_lyt);
+        blue_mic_lyt.setOnClickListener(view -> btnOpenBlueMic(view));
 
         String blueMic_Disponibility = teamChatBuddyApplication.getParamFromFile("BlueMic_Disponibility", "TeamChatBuddy.properties");
 
@@ -309,6 +340,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         else{
             blue_mic_lyt.setVisibility(View.INVISIBLE);
         }
+
 
 
         /**
@@ -431,26 +463,41 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             teamChatBuddyApplication.setSwitchBIDisplay(String.valueOf(b));
             if(b){
                 teamChatBuddyApplication.setparam("Stimulis","yes");
-                BuddySDK.Companion.raiseEvent("disableRightEye");
-                BuddySDK.Companion.raiseEvent("disableLeftEye");
-                BuddySDK.Companion.raiseEvent("disableHeadSensors");
-                BuddySDK.Companion.raiseEvent("disableBodySensors");
-            }
-            else{
-                teamChatBuddyApplication.setparam("Stimulis","no");
-                if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
-                    Log.e("MRARA","enable Raise event Yes");
-                    BuddySDK.Companion.raiseEvent("enableRightEye");
-                    BuddySDK.Companion.raiseEvent("enableLeftEye");
-                    BuddySDK.Companion.raiseEvent("enableHeadSensors");
-                    BuddySDK.Companion.raiseEvent("enableBodySensors");
-                    BuddySDK.Companion.raiseEvent("disableOnMouth");
-                }else {
-                    Log.e("MRARA","disable Raise event NO");
+                try {
                     BuddySDK.Companion.raiseEvent("disableRightEye");
                     BuddySDK.Companion.raiseEvent("disableLeftEye");
                     BuddySDK.Companion.raiseEvent("disableHeadSensors");
                     BuddySDK.Companion.raiseEvent("disableBodySensors");
+                }
+                catch (Exception e){
+                    Log.e(TAG,"BuddySDK Exception  "+e);
+                }
+            }
+            else{
+                teamChatBuddyApplication.setparam("Stimulis","no");
+                if (teamChatBuddyApplication.getParamFromFile("use_companion_when_stimulis_disabled","TeamChatBuddy.properties").trim().equalsIgnoreCase("Yes")){
+                    try {
+                        Log.e("MRARA","enable Raise event Yes");
+                        BuddySDK.Companion.raiseEvent("enableRightEye");
+                        BuddySDK.Companion.raiseEvent("enableLeftEye");
+                        BuddySDK.Companion.raiseEvent("enableHeadSensors");
+                        BuddySDK.Companion.raiseEvent("enableBodySensors");
+                        BuddySDK.Companion.raiseEvent("disableOnMouth");
+                    }
+                    catch (Exception e){
+                        Log.e(TAG,"BuddySDK Exception  "+e);
+                    }
+                }else {
+                    try {
+                        Log.e("MRARA","disable Raise event NO");
+                        BuddySDK.Companion.raiseEvent("disableRightEye");
+                        BuddySDK.Companion.raiseEvent("disableLeftEye");
+                        BuddySDK.Companion.raiseEvent("disableHeadSensors");
+                        BuddySDK.Companion.raiseEvent("disableBodySensors");
+                    }
+                    catch (Exception e){
+                        Log.e(TAG,"BuddySDK Exception  "+e);
+                    }
                 }
             }
             set.setSwitchBIDisplay(String.valueOf(b));
@@ -708,17 +755,23 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 teamChatBuddyApplication.setLangue(new Gson().fromJson(teamChatBuddyApplication.getparam("previousLanguage"), Langue.class));
                 setPreviousLanguage();
                 Log.i("HHO","--- onfinish s---"+teamChatBuddyApplication.getLangue().getNom());
-                Toast.makeText(getApplicationContext(),R.string.toast_message_error_downloading_en, Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(),R.string.toast_message_error_downloading_en, Toast.LENGTH_LONG).show();
                 modelDownloading = false;
                 setLanguageText();
             }
         };
 
         teamChatBuddyApplication.isOnApp = true;
+        view.setOnTouchListener((v, event) -> {
+            hideKeyboard();
+            return false;
+        });
+
+        return view;
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
         teamChatBuddyApplication.isOnApp = false;
     }
@@ -755,7 +808,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
     }
 
-
     // Vérifie si les coordonnées de l'événement sont à l'intérieur de la vue spécifiée
     private boolean isViewInsideBounds(View view, int x, int y) {
         int[] location = new int[2];
@@ -765,6 +817,14 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         return !(x < viewX || x > viewX + view.getWidth() || y < viewY || y > viewY + view.getHeight());
     }
 
+    public void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        View view = requireActivity().getCurrentFocus();
+        if (view == null) {
+            view = new View(requireContext());
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
 
     private void handlerTracking(){
 
@@ -777,6 +837,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                 menu_option_tracking_auto_listen_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_invitation_lyt.setVisibility(View.VISIBLE);
                 menu_option_tracking_activation_lyt.setVisibility(View.VISIBLE);
+                menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
                 if(teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").contains("yes")){
                     switchTrackingTimeout.setChecked(true);
                     if(!teamChatBuddyApplication.getparam("TRACKING_timeout_Switch").equals("yeshid")){
@@ -832,7 +893,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         else{
             switchTrackingActivation.setChecked(false);
         }
-        Log.i("YAKINE", "____________________________________Tracking_Activation____________________________________");
         switchTrackingActivation.setOnCheckedChangeListener((CompoundButton compoundButton, boolean b) ->{
             if(b){
                 teamChatBuddyApplication.setparam("Tracking_Activation","yes");
@@ -858,7 +918,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                     menu_option_tracking_timeout_lyt.setVisibility(View.VISIBLE);
                     switchTrackingTimeout.setVisibility(View.VISIBLE);
                 }
-
 
                 option_tracking_lyt.setVisibility(View.VISIBLE);
                 if(Boolean.parseBoolean(teamChatBuddyApplication.getparam("Tracking_Invitation"))){
@@ -957,7 +1016,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
 
         option_tracking_timeout.setOnFocusChangeListener((v,hasFocus) -> {
             if (hasFocus) {
-                View decorView = getWindow().getDecorView();
+                View decorView = requireActivity().getWindow().getDecorView();
                 decorView.setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -966,7 +1025,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
             } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
+                teamChatBuddyApplication.hideSystemUI(requireActivity());
             }
         });
     }
@@ -984,7 +1043,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             langues.add(new Gson().fromJson(teamChatBuddyApplication.getparam(french), Langue.class));
         }
 
-        langueSpinnerAdapter = new LangueSpinnerAdapter(getApplicationContext(),
+        langueSpinnerAdapter = new LangueSpinnerAdapter(getActivity().getApplicationContext(),
                 R.layout.spinner_item_layout_resource,
                 R.id.item_name,
                 R.id.checked_item_checked,
@@ -1055,7 +1114,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         chatbotList.add(new ChatBot(1,"ChatGPT",false));
         chatbotList.add(new ChatBot(2,"CustomGPT",false));
 
-        chatbotSpinnerAdapter= new ChatbotSpinnerAdapter(getApplicationContext(),
+        chatbotSpinnerAdapter= new ChatbotSpinnerAdapter(getActivity().getApplicationContext(),
                 R.layout.spinner_item_layout_resource,
                 R.id.item_name,
                 R.id.checked_item_checked,
@@ -1090,6 +1149,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
         menu_option_chatbot_spinner.setSelection(chosenChatBotPos);
         menu_option_chatbot_spinner.setEnabled(true);
+
 
         menu_option_chatbot_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -1161,8 +1221,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         sttList.add(new SttModel(4,"Cerence",false));
 
 
-
-        sttSpinnerAdapter= new SttSpinnerAdapter(getApplicationContext(),
+        sttSpinnerAdapter= new SttSpinnerAdapter(getActivity(),
                 R.layout.spinner_item_layout_resource,
                 R.id.item_name,
                 R.id.checked_item_checked,
@@ -1237,8 +1296,6 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         });
     }
 
-
-
     private void handlerListeningAttempt() {
         String listeningAttempt = teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties");
         if(listeningAttempt.equals("")||Integer.parseInt(listeningAttempt)<=0){
@@ -1278,7 +1335,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
 
         menu_option_projectID_editText.setOnFocusChangeListener((v,hasFocus) -> {
             if (hasFocus) {
-                View decorView = getWindow().getDecorView();
+                View decorView = getActivity().getWindow().getDecorView();
                 decorView.setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -1287,7 +1344,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
             } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
+                teamChatBuddyApplication.hideSystemUI(requireActivity());
             }
         });
     }
@@ -1387,7 +1444,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
 
         menu_header_editText.setOnFocusChangeListener((v,hasFocus) -> {
             if (hasFocus) {
-                View decorView = getWindow().getDecorView();
+                View decorView = getActivity().getWindow().getDecorView();
                 decorView.setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -1396,7 +1453,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
             } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
+                teamChatBuddyApplication.hideSystemUI(requireActivity());
             }
         });
     }
@@ -1443,7 +1500,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
 
         menu_apiKey_editText.setOnFocusChangeListener((v,hasFocus) -> {
             if (hasFocus) {
-                View decorView = getWindow().getDecorView();
+                View decorView = getActivity().getWindow().getDecorView();
                 decorView.setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -1452,7 +1509,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
             } else {
-                teamChatBuddyApplication.hideSystemUI(SettingsActivity.this);
+                teamChatBuddyApplication.hideSystemUI(requireActivity());
             }
         });
     }
@@ -1566,7 +1623,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
                     }
                 }
             }
-        //    modelDownloading = true;
+            //    modelDownloading = true;
 
         }
     }
@@ -1654,32 +1711,32 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
     };
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
 
-        Log.d(TAG," --- onResume() ---");
+        Log.d(TAG," --- onResume() Setting---");
 
-        teamChatBuddyApplication.hideSystemUI(this);
+        teamChatBuddyApplication.hideSystemUI(requireActivity());
         teamChatBuddyApplication.setVolume(Integer.parseInt(teamChatBuddyApplication.getparam("speak_volume")),AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
-            AlertManager.getInstance(this).stop();
+            AlertManager.getInstance(_parentActivity).stop();
         }
         if (!teamChatBuddyApplication.getInitSharedpreferences()){
             teamChatBuddyApplication.setparam("firstLaunch","true");
             teamChatBuddyApplication.notifyObservers("ChatDestroy");
         }
         try {
-            unregisterReceiver(wifiBroadCastReceiver);
+        //    unregisterReceiver(wifiBroadCastReceiver);
         }catch(IllegalArgumentException e) {
             Log.i(TAG,"---unregisterReceiver wifiBroadcast:: IllegalArgumentException---"+e.getMessage());
         }
         teamChatBuddyApplication.removeObserver(this);
-        Log.d(TAG," --- onDestroy() ---");
+        Log.d(TAG," --- onDestroy() Settings---");
         if(timerEcoute!=null){
             timerEcoute.cancel();
         }
@@ -1702,7 +1759,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
             if (message.contains("isConnected")){
                 isConnected = true;
-                runOnUiThread(new Runnable() {
+                requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
@@ -1719,7 +1776,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
             if (message.contains("isNotConnected")){
                 isConnected = false;
-                runOnUiThread(new Runnable() {
+                requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
@@ -1748,15 +1805,31 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
 
         }
     }
-    @Override
-    public void onSDKReady() {
-        Log.w(TAG, "onSDKReady");
+
+    public void onUserTouch(MotionEvent event) {
+        Log.d(TAG, "AlertManager: Touch détecté dans SettingFragment");
     }
 
-    @Override
-    public void onEvent(EventItem iEvent) {
-        Log.w(TAG, "onEvent : "+iEvent.toString());
-    }
+//    @Override
+//    public boolean dispatchTouchEvent(MotionEvent event) {
+//        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
+//                AlertManager.getInstance(this).incremente("touch", this);
+//            }
+//            View v = getCurrentFocus();
+//            if ( v instanceof EditText) {
+//                Rect outRect = new Rect();
+//                v.getGlobalVisibleRect(outRect);
+//                if (!outRect.contains((int)event.getRawX(), (int)event.getRawY())) {
+//                    v.clearFocus();
+//                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+//                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+//                }
+//            }
+//        }
+//        return super.dispatchTouchEvent( event );
+//    }
+
     public void btnCloseSettings(View view) {
         if (runnable!=null){
             handler.removeCallbacks(runnable);
@@ -1765,39 +1838,43 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         runnable= new Runnable() {
             @Override
             public void run() {
-            teamChatBuddyApplication.setSetting(set);
-            isClosingSettings = true;
-            if(!set.getChatbot().equals(setting.getChatbot())) {
-                teamChatBuddyApplication.setFileCreate(true);
-            }
+                teamChatBuddyApplication.setSetting(set);
+                isClosingSettings = true;
+                if(!set.getChatbot().equals(setting.getChatbot())) {
+                    teamChatBuddyApplication.setFileCreate(true);
+                }
 
-            Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
-            intent.putExtra("fromSettings", "true");
-            finish();
-            startActivity(intent);
-            overridePendingTransition(0, 0);
+                ((MainActivity) requireActivity()).navigateTo(new MainFragment(_parentActivity), false);
             }
         };
         handler.postDelayed(runnable,300);
-
     }
 
     public void btnOpenBlueMic(View view) {
-        Intent intentTeamChatBlueMicActivity = new Intent(SettingsActivity.this, TeamChatBlueMicActivity.class);
-        startActivity(intentTeamChatBlueMicActivity);
-        overridePendingTransition(0, 0);
+        ((MainActivity) requireActivity()).navigateTo(new BlueMicFragment(_parentActivity), true);
+
     }
+
     public void btnAfficheLanguageList(View view){
         Intent detailsIntent = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
         detailsIntent.setPackage("com.google.android.googlequicksearchbox");
-        languageDetailsChecker = new LanguageDetailsChecker(SettingsActivity.this);
-        sendOrderedBroadcast(detailsIntent, null, languageDetailsChecker, null, Activity.RESULT_OK, null, null);
+        languageDetailsChecker = new LanguageDetailsChecker(this);
+
+        requireActivity().sendOrderedBroadcast(
+                detailsIntent,
+                null,
+                languageDetailsChecker,
+                null,
+                Activity.RESULT_OK,
+                null,
+                null
+        );
     }
+
     public void btnOpenAi(View view) {
-        Intent intentOpenAiActivity = new Intent(getApplicationContext(), OpenAiActivity.class);
-        startActivity(intentOpenAiActivity);
-        overridePendingTransition(0, 0);
+        ((MainActivity) requireActivity()).navigateTo(new OpenAiFragment(_parentActivity), true);
     }
+
     public void btnRefreshHeader(View view){
         if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
@@ -1859,6 +1936,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
         }
     }
+
     public void btnDeleteHeader(View view){
         if (teamChatBuddyApplication.getparam("chatbot_chosen").equalsIgnoreCase("ChatGPT")) {
             if (teamChatBuddyApplication.getLangue().getNom().equals("Anglais")){
@@ -1873,10 +1951,10 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
             else {
 
-                 teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"entete"," ");
-                 Log.e("MRA_idetifyLanguage"," teamChatBuddyApplication.getparam("+teamChatBuddyApplication.getLangue().getNom()+"entete)= "+teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete"));
-                  set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete"));
-                  menu_header_editText.setText(" ");
+                teamChatBuddyApplication.setparam(teamChatBuddyApplication.getLangue().getNom()+"entete"," ");
+                Log.e("MRA_idetifyLanguage"," teamChatBuddyApplication.getparam("+teamChatBuddyApplication.getLangue().getNom()+"entete)= "+teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete"));
+                set.setHeader(teamChatBuddyApplication.getparam(teamChatBuddyApplication.getLangue().getNom()+"entete"));
+                menu_header_editText.setText(" ");
             }
         }
         else{
@@ -1898,6 +1976,7 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             }
         }
     }
+
     @Override
     public void onLanguagesReceived(ArrayList<String> languages) {
         translateTitle(languages);
@@ -1934,36 +2013,14 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
         }
     }
     private void showLanguageDialog(ArrayList<String> languages,String title) {
-
-
-        TextView titleView = findViewById(R.id.dialogTitle);
-        ListView listView = findViewById(R.id.dialogListView);
-
+        TextView titleView = view.findViewById(R.id.dialogTitle);
+        ListView listView = view.findViewById(R.id.dialogListView);
 
         titleView.setText(title);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, languages);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, languages);
         listView.setAdapter(adapter);
 
         popupLanguageList.setVisibility(View.VISIBLE);
-    }
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
-                AlertManager.getInstance(this).incremente("touch", this);
-            }
-            View v = getCurrentFocus();
-            if ( v instanceof EditText) {
-                Rect outRect = new Rect();
-                v.getGlobalVisibleRect(outRect);
-                if (!outRect.contains((int)event.getRawX(), (int)event.getRawY())) {
-                    v.clearFocus();
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                }
-            }
-        }
-        return super.dispatchTouchEvent( event );
     }
 
     public static void avoidSpinnerDropdownFocus(Spinner spinner) {
@@ -1985,30 +2042,19 @@ public class SettingsActivity extends BuddyActivity implements IDBObserver,Langu
             e.printStackTrace();
         }
     }
-    /**
-     *   -------------------------------  Gestion d'affichage des barres du systemUI  ----------------------------------------------
-     */
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            teamChatBuddyApplication.hideSystemUI(this);
-        }
-    }
 
     private void showToastMessage() {
         String language = teamChatBuddyApplication.getLangue().getNom();
         if (language.equals("en")) {
-            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
+            currentToast = Toast.makeText(getActivity(), R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
         } else if (language.equals("fr")) {
-            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_fr, Toast.LENGTH_SHORT);
+            currentToast = Toast.makeText(getActivity(), R.string.mlkit_model_is_downloading_fr, Toast.LENGTH_SHORT);
         } else if (language.equals("es")) {
-            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_es, Toast.LENGTH_SHORT);
+            currentToast = Toast.makeText(getActivity(), R.string.mlkit_model_is_downloading_es, Toast.LENGTH_SHORT);
         } else if (language.equals("de")) {
-            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_de, Toast.LENGTH_SHORT);
+            currentToast = Toast.makeText(getActivity(), R.string.mlkit_model_is_downloading_de, Toast.LENGTH_SHORT);
         } else {
-            currentToast = Toast.makeText(SettingsActivity.this, R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
+            currentToast = Toast.makeText(getActivity(), R.string.mlkit_model_is_downloading_en, Toast.LENGTH_SHORT);
         }
         currentToast.show();
     }

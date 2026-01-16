@@ -1,10 +1,12 @@
-package com.robotique.aevaweb.teamchatbuddy.activities;
+package com.robotique.aevaweb.teamchatbuddy.fragments;
 
 import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.widget.AdapterView;
@@ -13,8 +15,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bfr.buddysdk.BuddyCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import com.robotique.aevaweb.teamchatbuddy.R;
+import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.adapters.DiscoveredBlueMicAdapter;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 import com.robotique.aevaweb.teamchatbuddy.models.BlueMicDevice;
@@ -23,7 +29,7 @@ import com.robotique.aevaweb.teamchatbuddy.utilis.BlueMic;
 
 import java.io.IOException;
 
-public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBObserver {
+public class BlueMicFragment extends Fragment implements IDBObserver {
 
     private static final String TAG = "TeamChatBlueMicAct";
     private static final String TAG_LIFE_CYCLE_DEBUG = "TeamChatBlueMicAct_LIFE_CYCLE";
@@ -37,6 +43,7 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
 
     //views
     private RelativeLayout start_scan_btn_lyt;
+    private RelativeLayout close_blue_mic;
     private RelativeLayout stop_scan_btn_lyt;
     private RelativeLayout connect_btn_lyt;
     private RelativeLayout disconnect_btn_lyt;
@@ -44,48 +51,61 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
     private TextView layout_blue_mic_title;
     private ListView list_blue_mic_discovered;
 
+    private MainActivity _parentActivity;
 
+    public BlueMicFragment() {
+        Log.i(TAG, "MainFragment constructeur");
+    }
+
+    public BlueMicFragment(MainActivity _parentActivity) {
+        this._parentActivity = _parentActivity;
+    }
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        Log.i(TAG_LIFE_CYCLE_DEBUG,"onCreate()");
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_team_chat_blue_mic);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_team_chat_blue_mic, container, false);
+        Log.i(TAG_LIFE_CYCLE_DEBUG,"onCreateView");
 
-        teamChatBuddyApplication = (TeamChatBuddyApplication) getApplicationContext();
+        teamChatBuddyApplication = (TeamChatBuddyApplication) requireActivity().getApplicationContext();
 
         //Gestion d'affichage des barres du systemUI
-        teamChatBuddyApplication.hideSystemUI(this);
-        decorView=getWindow().getDecorView();
+        teamChatBuddyApplication.hideSystemUI(requireActivity());
+        decorView=requireActivity().getWindow().getDecorView();
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(int visibility) {
                 if(visibility==0){
-                    decorView.setSystemUiVisibility(teamChatBuddyApplication.hideSystemUI(TeamChatBlueMicActivity.this));
+                    decorView.setSystemUiVisibility(teamChatBuddyApplication.hideSystemUI(requireActivity()));
                 }
             }
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getWindow().setDecorFitsSystemWindows(false);
-            WindowInsetsController controller = getWindow().getInsetsController();
+            requireActivity().getWindow().setDecorFitsSystemWindows(false);
+            WindowInsetsController controller = requireActivity().getWindow().getInsetsController();
             if (controller != null) {
                 controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
                 controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
             }
         }
 
-
         //init views
+        start_scan_btn_lyt = view.findViewById(R.id.start_scan_btn_lyt);
+        stop_scan_btn_lyt = view.findViewById(R.id.stop_scan_btn_lyt);
+        connect_btn_lyt = view.findViewById(R.id.connect_btn_lyt);
+        disconnect_btn_lyt = view.findViewById(R.id.disconnect_btn_lyt);
+        selected_blue_mic_text = view.findViewById(R.id.selected_blue_mic_text);
+        list_blue_mic_discovered = view.findViewById(R.id.list_blue_mic_discovered);
+        layout_blue_mic_title = view.findViewById(R.id.layout_blue_mic_title);
+        close_blue_mic =  view.findViewById(R.id.close_blue_mic);
 
-        start_scan_btn_lyt = findViewById(R.id.start_scan_btn_lyt);
-        stop_scan_btn_lyt = findViewById(R.id.stop_scan_btn_lyt);
-        connect_btn_lyt = findViewById(R.id.connect_btn_lyt);
-        disconnect_btn_lyt = findViewById(R.id.disconnect_btn_lyt);
-        selected_blue_mic_text = findViewById(R.id.selected_blue_mic_text);
-        list_blue_mic_discovered = findViewById(R.id.list_blue_mic_discovered);
-        layout_blue_mic_title = findViewById(R.id.layout_blue_mic_title);
+        close_blue_mic.setOnClickListener(view1 -> closeBlueMicPage(view1));
+        start_scan_btn_lyt.setOnClickListener(view2 -> startScan(view2));
+        stop_scan_btn_lyt.setOnClickListener(view3 -> stopScan(view3));
+        disconnect_btn_lyt.setOnClickListener(view4 -> disconnect(view4));
+        connect_btn_lyt.setOnClickListener(view5 -> connect(view5));
 
         //initialisations
-
         if(teamChatBuddyApplication.getBlueMic() == null || teamChatBuddyApplication.getBlueMic().getmBlueMicService() == null){
             teamChatBuddyApplication.setBlueMic(new BlueMic(teamChatBuddyApplication));
             boolean result = teamChatBuddyApplication.getBlueMic().bindBlueMicService();
@@ -97,7 +117,7 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
         }
 
         teamChatBuddyApplication.registerObserver(this);
-        discoveredBlueMicAdapter = new DiscoveredBlueMicAdapter(getApplicationContext(),
+        discoveredBlueMicAdapter = new DiscoveredBlueMicAdapter(requireActivity().getApplicationContext(),
                 R.layout.bluemic_item_layout_resource,
                 teamChatBuddyApplication.getBlueMic().blueMicDeviceList);
         list_blue_mic_discovered.setAdapter(discoveredBlueMicAdapter);
@@ -128,31 +148,20 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
             }
         });
 
+        return view;
     }
 
     @Override
-    protected void onPause() {
+    public void onPause() {
         Log.i(TAG_LIFE_CYCLE_DEBUG,"onPause()");
         super.onPause();
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         Log.i(TAG_LIFE_CYCLE_DEBUG,"onResume()");
         super.onResume();
-        teamChatBuddyApplication.hideSystemUI(this);
-    }
-
-    @Override
-    protected void onStart() {
-        Log.i(TAG_LIFE_CYCLE_DEBUG,"onStart()");
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        Log.i(TAG_LIFE_CYCLE_DEBUG,"onStop()");
-        super.onStop();
+        teamChatBuddyApplication.hideSystemUI(requireActivity());
     }
 
     @Override
@@ -163,15 +172,12 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
         teamChatBuddyApplication.removeObserver(this);
     }
 
-
-
     /**
      *   -------------------------------  Fonctions utiles  ----------------------------------------------
      */
 
     public void closeBlueMicPage(View view) {
-        finish();
-        overridePendingTransition(0, 0);
+        ((MainActivity) requireActivity()).navigateTo(new SettingsFragment(_parentActivity), false);
     }
 
     public void startScan(View view) {
@@ -425,7 +431,7 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
 
             //SCAN RESULT - STATE CHANGE
             if(message.contains("iBlueMicScanListener;onScanChange;")){
-                runOnUiThread(new Runnable() {
+                requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         String enabled = message.split(";")[2];
@@ -441,7 +447,7 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
 
             //SCAN RESULT - NEW DISCOVERY
             if(message.contains("iBlueMicScanListener;onScanDiscovered;")){
-                runOnUiThread(new Runnable() {
+                requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         BlueMicDevice blueMicDevice = new BlueMicDevice(
@@ -458,7 +464,7 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
 
             //CONNEXION RESULT
             if(message.contains("iBlueMicConnexionListener;onConnexionStateChange;")){
-                runOnUiThread(new Runnable() {
+                requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         BlueMicDevice blueMicDevice = new BlueMicDevice(
@@ -486,12 +492,12 @@ public class TeamChatBlueMicActivity extends BuddyCompatActivity implements IDBO
     /**
      * Cacher les barres systemUI
      */
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            teamChatBuddyApplication.hideSystemUI(this);
-        }
-    }
+//
+//    @Override
+//    public void onWindowFocusChanged(boolean hasFocus) {
+//        super.onWindowFocusChanged(hasFocus);
+//        if (hasFocus) {
+//            teamChatBuddyApplication.hideSystemUI(this);
+//        }
+//    }
 }

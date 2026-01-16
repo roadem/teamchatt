@@ -37,22 +37,6 @@
         android:theme="@style/BuddyTheme"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".activities.OpenAiActivity"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".activities.TeamChatBlueMicActivity"
-            android:exported="false"
-            android:screenOrientation="landscape"/>
-        <activity
-            android:name=".activities.SettingsActivity"
-            android:exported="false"
-            android:screenOrientation="landscape"/>
-        <activity
-            android:name=".activities.ChatWindow"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-        <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="landscape">
             <intent-filter>

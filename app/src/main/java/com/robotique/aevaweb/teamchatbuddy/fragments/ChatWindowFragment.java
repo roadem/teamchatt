@@ -1,50 +1,39 @@
-package com.robotique.aevaweb.teamchatbuddy.activities;
-
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+package com.robotique.aevaweb.teamchatbuddy.fragments;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bfr.buddy.ui.shared.FacialExpression;
-import com.bfr.buddy.ui.shared.GazePosition;
 import com.bfr.buddy.ui.shared.LabialExpression;
-import com.bfr.buddy.utils.events.EventItem;
-import com.bfr.buddy.utils.values.FloatingWidgetVisibility;
-import com.bfr.buddysdk.BuddyActivity;
 import com.bfr.buddysdk.BuddySDK;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.gson.Gson;
 import com.robotique.aevaweb.teamchatbuddy.R;
+import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.adapters.ReplicaListAdapter;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 import com.robotique.aevaweb.teamchatbuddy.chatbotresponse.ChatGptStreamMode;
@@ -56,7 +45,6 @@ import com.robotique.aevaweb.teamchatbuddy.models.Session;
 import com.robotique.aevaweb.teamchatbuddy.models.Setting;
 import com.robotique.aevaweb.teamchatbuddy.observers.IDBObserver;
 import com.robotique.aevaweb.teamchatbuddy.utilis.AlertManager;
-import com.robotique.aevaweb.teamchatbuddy.utilis.CreationFile;
 import com.robotique.aevaweb.teamchatbuddy.utilis.ITTSCallbacks;
 import com.robotique.aevaweb.teamchatbuddy.utilis.MailSender;
 
@@ -66,13 +54,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 
-public class ChatWindow extends BuddyActivity implements IDBObserver {
-    private static final String TAG = "TEAM_CHAT_ChatWindow";
+public class ChatWindowFragment extends Fragment implements IDBObserver {
+
+    private static final String TAG = "ChatWindowFragment";
 
     private TeamChatBuddyApplication teamChatBuddyApplication;
-    private View decorView;
+
+    private MainActivity _parentActivity;
 
     private boolean onSdkReadyIsAlreadyCalledOnce = false;
     private boolean isListeningFreeSpeech = false;
@@ -91,7 +80,11 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     private RelativeLayout popupAddMail;
     private LinearLayout popupAddMailContent;
     private RelativeLayout parent_chat;
+    private RelativeLayout lyt_close_menu_chat;
     private ImageView micro_btn;
+    private ImageView send_btn;
+    private ImageView clear_btn;
+    private ImageView send_btn2;
     private RecyclerView recyclerView;
     private ScrollView scrollView;
     private TextView textEmail;
@@ -116,51 +109,82 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
     private Runnable runnablePauseTime;
     private Handler handler= new Handler();
     private Runnable runnable;
+
+    public ChatWindowFragment(MainActivity _parentActivity) {
+        this._parentActivity = _parentActivity;
+    }
+
+    public ChatWindowFragment() {
+
+    }
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_window);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_chat_window, container, false);
+        Log.d(TAG," --- onCreate() chatWindow---");
 
-        Log.d(TAG," --- onCreate() ---");
-
-        teamChatBuddyApplication = (TeamChatBuddyApplication) getApplicationContext();
+        teamChatBuddyApplication = (TeamChatBuddyApplication) requireActivity().getApplicationContext();
         teamChatBuddyApplication.setInitSharedpreferences(false);
-        teamChatBuddyApplication.hideSystemUI(this);
-        decorView=getWindow().getDecorView();
-        decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-            @Override
-            public void onSystemUiVisibilityChange(int visibility) {
-                if(visibility==0){
-                    decorView.setSystemUiVisibility(teamChatBuddyApplication.hideSystemUI(ChatWindow.this));
-                }
-            }
-        });
-        responseFromChatbot=new ResponseFromChatbot(teamChatBuddyApplication,this);
+        teamChatBuddyApplication.hideSystemUI(requireActivity());
+
+        responseFromChatbot=new ResponseFromChatbot(teamChatBuddyApplication,getActivity());
         //init views
-        popupAddMail = findViewById(R.id.popup_add_mail);
-        parent_chat = findViewById( R.id.parent_chat );
-        micro_btn = findViewById( R.id.micro_btn );
-        scrollView=findViewById(R.id.scrollview);
-        recyclerView=findViewById(R.id.chatRecyclerView);
-        editTextEmail = findViewById(R.id.editTextEmail);
-        textEmail = findViewById(R.id.popup_add_mail_textView);
-        popupAddMailContent = findViewById(R.id.popup_add_mail_linearLayout);
+        popupAddMail = view.findViewById(R.id.popup_add_mail);
+        parent_chat = view.findViewById( R.id.parent_chat );
+        micro_btn = view.findViewById( R.id.micro_btn );
+        scrollView= view.findViewById(R.id.scrollview);
+        recyclerView= view.findViewById(R.id.chatRecyclerView);
+        editTextEmail = view.findViewById(R.id.editTextEmail);
+        textEmail = view.findViewById(R.id.popup_add_mail_textView);
+        popupAddMailContent = view.findViewById(R.id.popup_add_mail_linearLayout);
+        lyt_close_menu_chat = view.findViewById(R.id.lyt_close_menu_chat);
+        send_btn = view.findViewById(R.id.send_btn);
+        clear_btn = view.findViewById(R.id.clear_btn);
+        send_btn2 = view.findViewById(R.id.send_btn2);
+
         teamChatBuddyApplication.isOnApp = true;
+
+        lyt_close_menu_chat.setOnClickListener(view1 -> btnCloseChat(view1));
+        micro_btn.setOnClickListener(view2 -> onClickMicro(view2));
+        send_btn.setOnClickListener(view3 -> onClickSend(view3));
+        clear_btn.setOnClickListener(view4 -> onClickClearConversation(view4));
+        send_btn2.setOnClickListener(view5 -> onClickSendFromPopup(view5));
+
+        teamChatBuddyApplication.setparam("listening_mode","");
+        teamChatBuddyApplication.setparam("remaining_attempts","");
+
         setAddMailDestinationText();
+        init();
+
+        return view;
     }
+
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
-        Log.d(TAG," --- onResume() ---");
+        Log.d(TAG," --- onResume() ChatWindowFragment---");
         teamChatBuddyApplication.registerObserver(this);
-        teamChatBuddyApplication.hideSystemUI(this);
+        teamChatBuddyApplication.hideSystemUI(requireActivity());
+
+        Log.i(TAG, "MainActivity.isFirstLaunch : "+MainActivity.isFirstLaunch);
+        if(!MainActivity.isFirstLaunch){
+            String listeningMode = teamChatBuddyApplication.getparam("listening_mode");
+            Log.i(TAG, "listening_mode : "+listeningMode);
+            if (listeningMode.equals("hotword")) teamChatBuddyApplication.startListeningHotwor(_parentActivity);
+            else if (listeningMode.equals("listening")) startNextCycle();
+            String remaining_attempts = teamChatBuddyApplication.getparam("remaining_attempts");
+            if(remaining_attempts!=null && !remaining_attempts.isEmpty()){
+                teamChatBuddyApplication.setRemainingAttempts(Integer.parseInt(remaining_attempts));
+            }
+        }
     }
+
     @Override
-    protected void onPause() {
+    public void onPause() {
         super.onPause();
-
         teamChatBuddyApplication.isOnApp = false;
-
+        Log.i(TAG," onPause ChatWindowFragment ");
         if(ResponseFromChatbot.responseTimeout !=null){
             ResponseFromChatbot.responseTimeout.cancel();
         }
@@ -193,59 +217,43 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
             Log.e(TAG,"BuddySDK Exception  "+e);
         }
         stopListeningFreeSpeech();
+        if(teamChatBuddyApplication.getAppIsListeningToTheQuestion()){
+            Log.e(TAG,"getAppIsListeningToTheQuestion()  "+teamChatBuddyApplication.getAppIsListeningToTheQuestion());
+            teamChatBuddyApplication.setparam("listening_mode","listening");
+        } else if(teamChatBuddyApplication.getSpeaking()){
+            Log.e(TAG,"teamChatBuddyApplication.getSpeaking()  "+teamChatBuddyApplication.getSpeaking());
+            teamChatBuddyApplication.setparam("listening_mode","speaking");
+        } else {
+            Log.e(TAG,"teamChatBuddyApplication.isListeningHotw  "+teamChatBuddyApplication.isListeningHotw);
+            teamChatBuddyApplication.setparam("listening_mode","hotword");
+        }
+
+        teamChatBuddyApplication.setparam("remaining_attempts",String.valueOf(teamChatBuddyApplication.getRemainingAttempts()));
         teamChatBuddyApplication.removeObserver(this);
     }
+
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         if (!teamChatBuddyApplication.getInitSharedpreferences()){
             teamChatBuddyApplication.setparam("firstLaunch","true");
             teamChatBuddyApplication.notifyObservers("ChatDestroy");
-
         }
-        Log.d(TAG," --- onDestroy() ---");
-
+        Log.d(TAG," --- onDestroy() chatWindow---");
         if(!teamChatBuddyApplication.isOnApp && teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")){
-            AlertManager.getInstance(this).stop();
+            AlertManager.getInstance(_parentActivity).stop();
         }
     }
     /**
-     * ------------------ Register to the SDK callbacks ---------------------
+     * ------------------ Register to the SDK callbacks deleted onSDKReady & onEvent ---------------------
      */
 
-    @Override
-    public void onSDKReady() {
-        Log.w(TAG, "onSDKReady");
-        if(!onSdkReadyIsAlreadyCalledOnce){
-            //initialisation du visage de Buddy
-            BuddySDK.UI.setFaceEnergy(1.0f);
-            BuddySDK.UI.setFacePositivity(1.0f);
-            BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
-            BuddySDK.UI.lookAt(GazePosition.CENTER, true);
-            BuddySDK.UI.stopListenAnimation();
-            BuddySDK.UI.setViewAsFace(parent_chat);
-            BuddySDK.UI.setMenuWidgetVisibility(FloatingWidgetVisibility.ALWAYS);
-            BuddySDK.UI.setCloseWidgetVisibility(FloatingWidgetVisibility.ALWAYS);
-
-            //teamChatBuddyApplication.setTTSLanguage();
-
-            init();
-        }
-        onSdkReadyIsAlreadyCalledOnce = true;
-    }
-
-    @Override
-    public void onEvent(EventItem iEvent) {
-        Log.w(TAG, "onEvent : "+iEvent.toString());
-    }
     /**
      * Initialisations
      */
     private void init(){
 
         click=1;
-
-
         settingClass = new Setting();
         String listeningDuration =teamChatBuddyApplication.getParamFromFile("Listening_time","TeamChatBuddy.properties");
         String listeningAttempt = teamChatBuddyApplication.getParamFromFile("Number_listens","TeamChatBuddy.properties");
@@ -292,7 +300,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         });
 
         adapter = new ReplicaListAdapter(teamChatBuddyApplication,initDataset());
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(adapter);
         editTextEmail.setImeOptions(EditorInfo.IME_FLAG_NO_FULLSCREEN);
 
@@ -319,7 +327,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
         editTextEmail.setOnFocusChangeListener((v,hasFocus) -> {
             if (hasFocus) {
-                View decorView = getWindow().getDecorView();
+                View decorView = requireActivity().getWindow().getDecorView();
                 decorView.setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                                 | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -329,7 +337,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                                 | View.SYSTEM_UI_FLAG_FULLSCREEN);
                 // color black + opacity 50%
             } else {
-                teamChatBuddyApplication.hideSystemUI(ChatWindow.this);
+                teamChatBuddyApplication.hideSystemUI(requireActivity());
             }
         });
 
@@ -344,29 +352,10 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         int viewY = location[1];
         return !(x < viewX || x > viewX + view.getWidth() || y < viewY || y > viewY + view.getHeight());
     }
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
-                AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
-            }
-            View v = getCurrentFocus();
-            if ( v instanceof EditText) {
-                Rect outRect = new Rect();
-                v.getGlobalVisibleRect(outRect);
-                if (!outRect.contains((int)event.getRawX(), (int)event.getRawY())) {
-                    v.clearFocus();
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                }
-            }
-        }
-        return super.dispatchTouchEvent( event );
-    }
     private void refreshSTTLangue() {
         List<String> STTAndroidLangueCode = teamChatBuddyApplication.getLanguageCodeForDisponibleLangue("Language_Code_Used_In_STT_Android");
         String codeLanguageSTTAndroid = STTAndroidLangueCode.get(new Gson().fromJson(teamChatBuddyApplication.getparam(settingClass.getLangue()), Langue.class).getId()-1);
-        teamChatBuddyApplication.refresh(codeLanguageSTTAndroid,this);
+        teamChatBuddyApplication.refresh(codeLanguageSTTAndroid,getActivity());
     }
     /**
      * Récupération des questions/réponses
@@ -375,6 +364,8 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
         int size=0;
         ArrayList<Session> ss = teamChatBuddyApplication.getListSession();
+
+        Log.i("SessionManager", "listSession restaurée avec " + ss.size() + " sessions");
         for (int i = 0; i < ss.size(); i++) {
 
             ArrayList<Replica> s = ss.get(i).getSession();
@@ -410,7 +401,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      */
     private void updateChat(){
         if (teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties")!=null && !teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties").isEmpty()
-        && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))!=0){
+                && Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))!=0){
             while (listRepGlobale.size() > Integer.parseInt(teamChatBuddyApplication.getParamFromFile("Maximum_Dialogs_in_Chat_Window","TeamChatBuddy.properties"))*2) {
                 listRepGlobale.remove(0); // Supprime le premier élément
             }
@@ -543,10 +534,11 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      */
     public void onClickClearConversation(View view){
         teamChatBuddyApplication.listSessionClear();
+        teamChatBuddyApplication.setparam("listSession", new Gson().toJson(teamChatBuddyApplication.getListSession()));
         listRep.clear();
         listRepGlobale.clear();
         adapter = new ReplicaListAdapter(teamChatBuddyApplication,initDataset());
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         recyclerView.setAdapter(adapter);
 
 
@@ -557,25 +549,23 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      */
     public void onClickSend(View view){
         popupAddMail.setVisibility(View.VISIBLE);
-        //AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
 
     }
     /**
      * Gestion du clic sur l'icone Send depuis le popUP
      */
     public void onClickSendFromPopup(View view){
-        //AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
         if (!teamChatBuddyApplication.getparam("Mail_Destination").trim().isEmpty()){
             if(teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
-                smtpService = new MailSender(ChatWindow.this,writeMail(), teamChatBuddyApplication.getparam("Mail_Destination"), teamChatBuddyApplication.getParamFromFile("Mail_Subject_en",configFile));
+                smtpService = new MailSender(requireActivity(),writeMail(), teamChatBuddyApplication.getparam("Mail_Destination"), teamChatBuddyApplication.getParamFromFile("Mail_Subject_en",configFile));
                 smtpService.execute();
             }
             else if(teamChatBuddyApplication.getLangue().getNom().equals(langueFr)){
-                smtpService = new MailSender(ChatWindow.this,writeMail(), teamChatBuddyApplication.getparam("Mail_Destination"), teamChatBuddyApplication.getParamFromFile("Mail_Subject_fr",configFile));
+                smtpService = new MailSender(requireActivity(),writeMail(), teamChatBuddyApplication.getparam("Mail_Destination"), teamChatBuddyApplication.getParamFromFile("Mail_Subject_fr",configFile));
                 smtpService.execute();
             }
             else{
-                final Activity activity = ChatWindow.this;
+                final Activity activity = requireActivity();
                 teamChatBuddyApplication.getEnglishLanguageSelectedTranslator().translate(teamChatBuddyApplication.getParamFromFile("Mail_Subject_en",configFile)).addOnSuccessListener(new OnSuccessListener<String>() {
                     @Override
                     public void onSuccess(String translatedText) {
@@ -664,7 +654,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
      * Fermeture de la fenetre de discussion
      */
     public void btnCloseChat(View view) {
-        //AlertManager.getInstance(this).incremente("touch", ChatWindow.this);
         if (runnable!=null){
             handler.removeCallbacks(runnable);
             runnable = null;
@@ -680,12 +669,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                     Log.e(TAG,"BuddySDK Exception  "+e);
                 }
                 //stopListeningFreeSpeech();
-
-                Intent intent = new Intent(ChatWindow.this,MainActivity.class);
-                intent.putExtra("fromChatWindow", "true");
-                startActivity(intent);
-                finish();
-                overridePendingTransition(0, 0);
+                ((MainActivity) requireActivity()).navigateTo(new MainFragment(_parentActivity), true);
             }
         };
         handler.postDelayed(runnable,300);
@@ -713,7 +697,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
             }
 
             if(message.contains("MODE_STREAM_SPEAK;SPLIT;")){
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if (message.split(";SPLIT;").length > 1){
@@ -725,7 +709,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
             }
 
             if(message.contains("STTQuestion_success")){
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         teamChatBuddyApplication.setAppIsListeningToTheQuestion(false);
@@ -790,7 +774,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                             responseFromChatbot.getSessionId(detectedSTTMessage);
                         }
                         if(teamChatBuddyApplication.isAlertActivated.trim().equalsIgnoreCase("Yes")) {
-                            AlertManager.getInstance(ChatWindow.this).incremente("hotword", ChatWindow.this);
+                            AlertManager.getInstance(_parentActivity).incremente("hotword", _parentActivity);
                         }
                     }
                 });
@@ -798,7 +782,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
 
             else if (message.contains("TTS_success")) {
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         isWaitingForResponse = false;
@@ -813,7 +797,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
             }
 
             else if (message.contains("TTS_error") || message.contains("TTS_exception")) {
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
 
@@ -825,7 +809,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                         teamChatBuddyApplication.playUsingReadSpeakerCaseError(text, new ITTSCallbacks() {
                             @Override
                             public void onSuccess(String s) {
-                                runOnUiThread(new Runnable() {
+                                getActivity().runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
                                         try {
@@ -870,7 +854,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                                 handlerTTSError.postDelayed(runnableTTSError = new Runnable() {
                                     @Override
                                     public void run() {
-                                        runOnUiThread(new Runnable() {
+                                        getActivity().runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
                                                 try {
@@ -907,7 +891,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
             }
 
             else if(message.contains("CHATBOTS_RETURN")){
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         String action = message.split(";SPLIT;")[1];
@@ -942,7 +926,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
 
             else if (message.contains("conversationFinished google assistant responce")){
 
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         isWaitingForResponse = false;
@@ -962,7 +946,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
             }
             else if (message.contains("playStoredResponse")){
                 if (!teamChatBuddyApplication.getStoredResponse().equals("")){
-                    runOnUiThread(new Runnable() {
+                    getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             speak(teamChatBuddyApplication.getStoredResponse(),"storedResponse");
@@ -975,7 +959,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 BuddySDK.UI.setFacialExpression(FacialExpression.NEUTRAL,1);
             }
             else if (message.contains("mailSend")){
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if(teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
@@ -1010,7 +994,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 });
             }
             else if (message.contains("ErrorSending")){
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if(teamChatBuddyApplication.getLangue().getNom().equals(langueEn)) {
@@ -1066,7 +1050,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 stopListeningFreeSpeech();
             }
             else if (message.contains("end of cycle")){
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         micro_btn.setImageResource(R.drawable.micro_off);
@@ -1103,7 +1087,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 click = 1;
             }
             else if (message.equals("SpeechRecognizerAttemptTimeout")){
-                runOnUiThread(new Runnable() {
+                getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         micro_btn.setImageResource(R.drawable.micro_off);
@@ -1137,25 +1121,25 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 && teamChatBuddyApplication.getBlueMic().getmBlueMicService() != null
                 && teamChatBuddyApplication.getBlueMic().selectedBlueMic != null
                 && teamChatBuddyApplication.getBlueMic().selectedBlueMic.getState().equals("Connected")){
-            teamChatBuddyApplication.startListeningBlueMic(false, this);
+            teamChatBuddyApplication.startListeningBlueMic(false, getActivity());
         }
         else{
             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android")){
                 notUsingSpeechRecognizer=false;
-                teamChatBuddyApplication.startListeningQuestion(this,"FirstListening");
+                teamChatBuddyApplication.startListeningQuestion(getActivity(),"FirstListening");
             }else if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Whisper")) {
                 //startWhisperSTT(settingClass, listRep, nameActivity, adapter);
-                teamChatBuddyApplication.startWhisperRecording(this);
+                teamChatBuddyApplication.startWhisperRecording(getActivity());
             }else if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence")){
                 if (teamChatBuddyApplication.getCurrentLanguage().equals("fr") || teamChatBuddyApplication.getCurrentLanguage().equals("en")){
-                    teamChatBuddyApplication.startListeningCerence(this);
+                    teamChatBuddyApplication.startListeningCerence(getActivity());
                 }
                 else{
                     notUsingSpeechRecognizer=false;
-                    teamChatBuddyApplication.startListeningQuestion(this,"FirstListening");
+                    teamChatBuddyApplication.startListeningQuestion(getActivity(),"FirstListening");
                 }
             }
-            else teamChatBuddyApplication.startListeningQuestionWithGoogleApi(this);
+            else teamChatBuddyApplication.startListeningQuestionWithGoogleApi(getActivity());
         }
         if (notUsingSpeechRecognizer) {
             if (timerEcoute != null) timerEcoute.cancel();
@@ -1194,25 +1178,25 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 && teamChatBuddyApplication.getBlueMic().getmBlueMicService() != null
                 && teamChatBuddyApplication.getBlueMic().selectedBlueMic != null
                 && teamChatBuddyApplication.getBlueMic().selectedBlueMic.getState().equals("Connected")){
-            teamChatBuddyApplication.startListeningBlueMic(false, this);
+            teamChatBuddyApplication.startListeningBlueMic(false, getActivity());
         }
         else{
             if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Android")){
                 notUsingSpeechRecognizer=false;
-                teamChatBuddyApplication.startListeningQuestion(this,"startCycle");
+                teamChatBuddyApplication.startListeningQuestion(getActivity(),"startCycle");
             }else if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Whisper")) {
                 //startWhisperSTT(settingClass, listRep, nameActivity, adapter);
-                teamChatBuddyApplication.startWhisperRecording(this);
+                teamChatBuddyApplication.startWhisperRecording(getActivity());
             }else if (teamChatBuddyApplication.getparam("STT_chosen").trim().equalsIgnoreCase("Cerence")){
                 if (teamChatBuddyApplication.getCurrentLanguage().equals("fr") || teamChatBuddyApplication.getCurrentLanguage().equals("en")){
-                    teamChatBuddyApplication.startListeningCerence(this);
+                    teamChatBuddyApplication.startListeningCerence(getActivity());
                 }
                 else{
                     notUsingSpeechRecognizer=false;
-                    teamChatBuddyApplication.startListeningQuestion(this,"startCycle");
+                    teamChatBuddyApplication.startListeningQuestion(getActivity(),"startCycle");
                 }
             }
-            else teamChatBuddyApplication.startListeningQuestionWithGoogleApi(this);
+            else teamChatBuddyApplication.startListeningQuestionWithGoogleApi(getActivity());
         }
         if (notUsingSpeechRecognizer) {
             if (timerEcoute != null) timerEcoute.cancel();
@@ -1267,10 +1251,13 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         Log.d(TAG," --- stopListeningFreeSpeech() ---");
 
         if (timerEcoute!=null) timerEcoute.cancel();
-        teamChatBuddyApplication.stopListening(this);
+        teamChatBuddyApplication.stopListening(requireActivity());
         micro_btn.setImageResource(R.drawable.micro_off);
     }
 
+    public void onUserTouch(MotionEvent event) {
+        Log.d(TAG, "AlertManager: Touch détecté dans ChatFragment");
+    }
 
     /**
      * ------------------------------------------ TTS  -------------------------------------------
@@ -1311,6 +1298,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                 }
                 Session session = new Session(ll);
                 teamChatBuddyApplication.getListSession().add(session);
+                teamChatBuddyApplication.setparam("listSession", new Gson().toJson(teamChatBuddyApplication.getListSession()));
                 listRep.clear();
                 listRepGlobale.add(reponse);
                 updateChat();
@@ -1332,6 +1320,7 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
                     listRep.add(reponse);
                     Session session = new Session(new ArrayList<>(listRep));
                     teamChatBuddyApplication.getListSession().add(session);
+                    teamChatBuddyApplication.setparam("listSession", new Gson().toJson(teamChatBuddyApplication.getListSession()));
                     listRep.clear();
                     listRepGlobale.add(reponse);
                     updateChat();
@@ -1360,19 +1349,6 @@ public class ChatWindow extends BuddyActivity implements IDBObserver {
         }
         else if (type.equals("timeOutExpired")){
             teamChatBuddyApplication.speakTTS(texte, LabialExpression.SPEAK_NEUTRAL,type);
-        }
-    }
-
-
-    /**
-     *   -------------------------------  Gestion d'affichage des barres du systemUI  ----------------------------------------------
-     */
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            teamChatBuddyApplication.hideSystemUI(this);
         }
     }
 

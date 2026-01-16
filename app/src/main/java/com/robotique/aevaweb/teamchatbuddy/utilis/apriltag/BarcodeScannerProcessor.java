@@ -55,7 +55,6 @@ public class BarcodeScannerProcessor extends VisionProcessorBase<List<Barcode>> 
             Barcode barcode = barcodes.get(i);
             detectionCallback.onDetection(barcode.getRawValue()+";"+ getFormatName(barcode.getFormat()));
 
-            //todo : scanned code
             Log.i("MYA_QR", "run: qr/matrix " + barcode.getRawValue()+";"+ getFormatName(barcode.getFormat()));
             logExtrasForTesting(barcode);
         }

@@ -11,8 +11,8 @@ android {
         applicationId "com.robotique.aevaweb.teamchatbuddy"
         minSdk 28
         targetSdk 30
-        versionCode 72
-        versionName "2.3.2"
+        versionCode 73
+        versionName "2.3.3"
         multiDexEnabled = true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {

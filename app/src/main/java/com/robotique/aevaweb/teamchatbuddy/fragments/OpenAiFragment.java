@@ -1,21 +1,23 @@
-package com.robotique.aevaweb.teamchatbuddy.activities;
+package com.robotique.aevaweb.teamchatbuddy.fragments;
 
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
-import android.graphics.Rect;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import com.bfr.buddysdk.BuddyCompatActivity;
 import com.robotique.aevaweb.teamchatbuddy.R;
+import com.robotique.aevaweb.teamchatbuddy.activities.MainActivity;
 import com.robotique.aevaweb.teamchatbuddy.adapters.OpenAiInfoAdapter;
 import com.robotique.aevaweb.teamchatbuddy.application.TeamChatBuddyApplication;
 import com.robotique.aevaweb.teamchatbuddy.models.OpenAiInfo;
@@ -25,15 +27,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class OpenAiActivity extends BuddyCompatActivity {
+public class OpenAiFragment extends Fragment {
 
-    private static final String TAG = "OpenAiAct";
     private static final String TAG_LIFE_CYCLE_DEBUG = "OpenAiAct_LIFE_CYCLE";
+
+    private MainActivity _parentActivity;
 
     private TeamChatBuddyApplication teamChatBuddyApplication;
     private View decorView;
 
     private RecyclerView list_prices, models_no_prices_list;
+    private RelativeLayout close_open_ai;
     private TextView layout_open_ai_title;
     private TextView header_model_txt;
     private TextView header_input_txt;
@@ -45,53 +49,66 @@ public class OpenAiActivity extends BuddyCompatActivity {
     private TextView header_model_name;
     private TextView header_input_token;
     private TextView second_list_title;
+    private ImageView refresh_btn;
 
     private List<OpenAiInfo> openAiInfoList;
     List<OpenAiInfo> otherModels;
     private OpenAiInfoAdapter adapter, adapter1;
 
 
+    public OpenAiFragment() {
+    }
 
+    public OpenAiFragment(MainActivity _parentActivity) {
+        this._parentActivity = _parentActivity;
+    }
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        Log.i(TAG_LIFE_CYCLE_DEBUG,"onCreate()");
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_open_ai);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+       View view =  inflater.inflate(R.layout.activity_open_ai, container, false);
 
-        teamChatBuddyApplication = (TeamChatBuddyApplication) getApplicationContext();
+        Log.i(TAG_LIFE_CYCLE_DEBUG,"onCreate()");
+
+        teamChatBuddyApplication = (TeamChatBuddyApplication) requireActivity().getApplicationContext();
 
         //Gestion d'affichage des barres du systemUI
-        teamChatBuddyApplication.hideSystemUI(this);
-        decorView=getWindow().getDecorView();
+        teamChatBuddyApplication.hideSystemUI(requireActivity());
+        decorView=requireActivity().getWindow().getDecorView();
         decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(int visibility) {
                 if(visibility==0){
-                    decorView.setSystemUiVisibility(teamChatBuddyApplication.hideSystemUI(OpenAiActivity.this));
+                    decorView.setSystemUiVisibility(teamChatBuddyApplication.hideSystemUI(requireActivity()));
                 }
             }
         });
 
         //init views
-        list_prices = findViewById(R.id.list_prices);
-        layout_open_ai_title = findViewById(R.id.layout_open_ai_title);
-        header_model_txt = findViewById(R.id.header_model_txt);
-        header_input_txt = findViewById(R.id.header_input_txt);
-        header_output_txt = findViewById(R.id.header_output_txt);
-        total_txt = findViewById(R.id.total_txt);
-        total_title_txt = findViewById(R.id.total_title_txt);
-        list_empty = findViewById(R.id.list_empty);
-        models_no_prices_list = findViewById(R.id.models_no_prices_list);
-        list_no_prices_header = findViewById(R.id.list_no_prices_header);
-        header_input_token = findViewById(R.id.header_input_token);
-        header_model_name = findViewById(R.id.header_model_name);
-        second_list_title =  findViewById(R.id.second_list_title);
+        list_prices = view.findViewById(R.id.list_prices);
+        layout_open_ai_title = view.findViewById(R.id.layout_open_ai_title);
+        header_model_txt = view.findViewById(R.id.header_model_txt);
+        header_input_txt = view.findViewById(R.id.header_input_txt);
+        header_output_txt = view.findViewById(R.id.header_output_txt);
+        total_txt = view.findViewById(R.id.total_txt);
+        total_title_txt = view.findViewById(R.id.total_title_txt);
+        list_empty = view.findViewById(R.id.list_empty);
+        models_no_prices_list = view.findViewById(R.id.models_no_prices_list);
+        list_no_prices_header = view.findViewById(R.id.list_no_prices_header);
+        header_input_token = view.findViewById(R.id.header_input_token);
+        header_model_name = view.findViewById(R.id.header_model_name);
+        second_list_title =  view.findViewById(R.id.second_list_title);
+        refresh_btn = view.findViewById(R.id.refresh_btn);
+        close_open_ai = view.findViewById(R.id.close_open_ai);
 
-        list_prices.setLayoutManager(new LinearLayoutManager(OpenAiActivity.this));
+        refresh_btn.setOnClickListener(view1 -> refresh(view1));
+        close_open_ai.setOnClickListener(view2 -> closeOpenAiPage(view2));
+
+        list_prices.setLayoutManager(new LinearLayoutManager(getActivity()));
         openAiInfoList = teamChatBuddyApplication.parseAndLoadPrices();
-        adapter = new OpenAiInfoAdapter(OpenAiActivity.this, openAiInfoList, true);
+        adapter = new OpenAiInfoAdapter(requireActivity(), openAiInfoList, true);
         list_prices.setAdapter(adapter);
-        models_no_prices_list.setLayoutManager(new LinearLayoutManager(OpenAiActivity.this));
+        models_no_prices_list.setLayoutManager(new LinearLayoutManager(requireActivity()));
         otherModels = getOtherModels();
         if(otherModels.isEmpty()){
             models_no_prices_list.setVisibility(View.GONE);
@@ -102,41 +119,28 @@ public class OpenAiActivity extends BuddyCompatActivity {
             models_no_prices_list.setVisibility(View.VISIBLE);
             list_no_prices_header.setVisibility(View.VISIBLE);
             list_empty.setVisibility(View.GONE);
-            adapter1 = new OpenAiInfoAdapter(OpenAiActivity.this, otherModels, false);
+            adapter1 = new OpenAiInfoAdapter(requireActivity(), otherModels, false);
             models_no_prices_list.setAdapter(adapter1);
         }
-
 
         setLanguageText();
 
         //Gestion du calcul de la consommation d'openai
         handlerConsommation();
+        return  view;
     }
 
-
     @Override
-    protected void onPause() {
+    public void onPause() {
         Log.i(TAG_LIFE_CYCLE_DEBUG,"onPause()");
         super.onPause();
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         Log.i(TAG_LIFE_CYCLE_DEBUG,"onResume()");
         super.onResume();
-        teamChatBuddyApplication.hideSystemUI(this);
-    }
-
-    @Override
-    protected void onStart() {
-        Log.i(TAG_LIFE_CYCLE_DEBUG,"onStart()");
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        Log.i(TAG_LIFE_CYCLE_DEBUG,"onStop()");
-        super.onStop();
+        teamChatBuddyApplication.hideSystemUI(requireActivity());
     }
 
     @Override
@@ -152,8 +156,7 @@ public class OpenAiActivity extends BuddyCompatActivity {
      */
 
     public void closeOpenAiPage(View view) {
-        finish();
-        overridePendingTransition(0, 0);
+        ((MainActivity) requireActivity()).navigateTo(new SettingsFragment(_parentActivity), false);
     }
 
     public void refresh(View view) {
@@ -179,7 +182,6 @@ public class OpenAiActivity extends BuddyCompatActivity {
         }
 
     }
-
 
     private List<OpenAiInfo> getOtherModels(){
         List<String> otherModels = new ArrayList<>();
@@ -265,42 +267,5 @@ public class OpenAiActivity extends BuddyCompatActivity {
         }
 
     }
-
-
-
-    /**
-     * Cacher les barres systemUI
-     */
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            teamChatBuddyApplication.hideSystemUI(this);
-        }
-    }
-
-
-    /**
-     * Fermer le clavier lorsqu'on clique en dehors
-     */
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            View v = getCurrentFocus();
-            if ( v instanceof EditText) {
-                Rect outRect = new Rect();
-                v.getGlobalVisibleRect(outRect);
-                if (!outRect.contains((int)event.getRawX(), (int)event.getRawY())) {
-                    v.clearFocus();
-                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                }
-            }
-        }
-        return super.dispatchTouchEvent( event );
-    }
-
 
 }

@@ -31,8 +31,11 @@ public class AlertManager {
 
     private long alertDelay; // ms
     private int requiredRepetitions;
-    private LocalDateTime inactivityStartTime;
+    private LocalDateTime inactivityStartTime, pauseStartTime;
     String msg, subject ;
+    private long remainingTime = 0;
+    private long pauseTimestamp = 0;
+
 
 
     /** --- Singleton --- */
@@ -55,12 +58,12 @@ public class AlertManager {
 
     /** -------------------- DÉMARRAGE DE LA SURVEILLANCE -------------------- **/
     public void start() {
+        Log.i("AlertManager", "-------------------- start --------------------" );
         inactivityStartTime = LocalDateTime.now();
         handler.removeCallbacks(alertRunnable);
+        pauseStartTime = null;
         try{
             alertDelay = Long.parseLong(app.getParamFromFile("ALERT_DURATION", "TeamChatBuddy.properties")) * 60000;
-
-            Log.i("AlertManager", "alertDelay:"+alertDelay);
         }catch (Exception e) {
             Log.i("AlertManager", "alertDelay Erreur:"+e);
             alertDelay = 1 * 60000;
@@ -68,6 +71,7 @@ public class AlertManager {
 
         handler.postDelayed(alertRunnable, alertDelay);
         Log.i("AlertManager", "Surveillance démarrée à " + inactivityStartTime);
+        app.setparam("wasAlertActivated", "true");
     }
 
     /** -------------------- MÉTHODE INCREMENTE -------------------- **/
@@ -121,6 +125,7 @@ public class AlertManager {
 
     /** -------------------- RÉINITIALISATION APRÈS ACTIVITÉ -------------------- **/
     public void reinit() {
+        Log.i("AlertManager", "-------------------- reinit --------------------" );
         handler.removeCallbacks(alertRunnable);
         inactivityStartTime = LocalDateTime.now();
         alertDelay = Long.parseLong(app.getParamFromFile("ALERT_DURATION", "TeamChatBuddy.properties")) * 60000;
@@ -128,11 +133,12 @@ public class AlertManager {
         app.setCounterHotword(0);
         app.setCounterTouch(0);
         app.setCounterTracking(0);
-        Log.i("AlertManager", "Réinitialisation du compteur à " + inactivityStartTime);
     }
 
     /** -------------------- ARRÊT COMPLET -------------------- **/
     public void stop() {
+
+        Log.i("AlertManager", "-------------------- stop --------------------" );
         handler.removeCallbacks(alertRunnable);
         app.setCounterHotword(0);
         app.setCounterTouch(0);
@@ -140,8 +146,93 @@ public class AlertManager {
         Log.i("AlertManager", "Surveillance arrêtée.");
     }
 
+    /** -------------------- MISE EN PAUSE -------------------- **/
+    public void pause() {
+
+        Log.i("AlertManager", "-------------------- pause --------------------" );
+
+        // Annuler l'alerte en attente
+        handler.removeCallbacks(alertRunnable);
+
+        // Calcul du temps restant
+        long elapsed;
+        if(pauseStartTime != null) {
+            elapsed = System.currentTimeMillis() - pauseStartTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+            remainingTime = remainingTime - elapsed;
+            if (remainingTime < 0) remainingTime = 0;
+            pauseStartTime = null;
+        }
+        else if (inactivityStartTime != null) {
+            elapsed = System.currentTimeMillis() - inactivityStartTime.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+            remainingTime = alertDelay - elapsed;
+            if (remainingTime < 0) remainingTime = 0;
+        } else {
+            remainingTime = alertDelay;
+        }
+
+        app.setparam("touch", app.getCounterTouch()+"");
+        app.setparam("hotword", app.getCounterHotword()+"");
+        app.setparam("tracking", app.getCounterTracking()+"");
+        app.setparam("remainingTime", String.valueOf(remainingTime));
+        app.setparam("wasAlterActivated", String.valueOf(true));
+        Log.i("AlertManager", "--- remainingTime=" + remainingTime + " savedTouch=" + app.getCounterTouch() + " savedHotword=" + app.getCounterHotword() + " savedTracking=" + app.getCounterTracking());
+
+        Log.i("AlertManager", "Pause activée. remainingTime = " + remainingTime);
+        pauseTimestamp = System.currentTimeMillis();
+    }
+
+    /** -------------------- REPRISE -------------------- **/
+    public void resume() {
+
+        Log.i("AlertManager", "-------------------- resume --------------------" );
+        // Récupération des valeurs sauvegardées avec gestion des valeurs vides
+        String touchStr = app.getparam("touch");
+        String hotwordStr = app.getparam("hotword");
+        String trackingStr = app.getparam("tracking");
+        String remainingTimeStr = app.getparam("remainingTime");
+
+        int savedTouch = 0;
+        int savedHotword = 0;
+        int savedTracking = 0;
+        long savedRemaining = 0;
+
+        try { savedTouch = (touchStr != null && !touchStr.isEmpty()) ? Integer.parseInt(touchStr) + 1 : 0; } catch (Exception ignored) {}
+        try { savedHotword = (hotwordStr != null && !hotwordStr.isEmpty()) ? Integer.parseInt(hotwordStr) : 0; } catch (Exception ignored) {}
+        try { savedTracking = (trackingStr != null && !trackingStr.isEmpty()) ? Integer.parseInt(trackingStr) : 0; } catch (Exception ignored) {}
+        try { savedRemaining = (remainingTimeStr != null && !remainingTimeStr.isEmpty()) ? Long.parseLong(remainingTimeStr) : 0; } catch (Exception ignored) {}
+
+        app.setCounterTouch(savedTouch);
+        app.setCounterHotword(savedHotword);
+        app.setCounterTracking(savedTracking);
+
+        remainingTime = savedRemaining;
+
+        String rep = app.getParamFromFile("ALERT_REPETITIONS", "TeamChatBuddy.properties");
+        requiredRepetitions = (rep != null && !rep.isEmpty()) ? Integer.parseInt(rep) : 0;
+
+        pauseStartTime = LocalDateTime.now();
+
+        if ((remainingTime <= 0)||(app.getCounterTouch() + app.getCounterTracking() +  app.getCounterHotword() >= requiredRepetitions+1)) {
+            remainingTime = alertDelay;
+            reinit();
+            return;
+        }
+
+        inactivityStartTime = LocalDateTime.now();
+        handler.removeCallbacks(alertRunnable);
+        handler.postDelayed(alertRunnable, remainingTime);
+
+        Log.i("AlertManager",
+                "Resume exécuté. touch=" + savedTouch +
+                        " hotword=" + savedHotword +
+                        " tracking=" + savedTracking +
+                        " remainingTime=" + remainingTime);
+    }
+
     /** -------------------- DÉCLENCHEMENT DE L’ALERTE -------------------- **/
     private void executeAlert() {
+
+        Log.i("AlertManager", "-------------------- executeAlert --------------------" );
         // Vérification du jour
         if (!isAlertDay()) {
             Log.i("AlertManager","Alerte ignorée : jour non actif");
